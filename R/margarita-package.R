@@ -4,7 +4,7 @@
 ##'
 ##' @name margarita-package
 ##' @docType package
-##' @author harry.southworth@gmail.com
+##' @author harry.southworth@@gmail.com
 ##' @keywords package
 ##' @import ggplot2 texmex
 
