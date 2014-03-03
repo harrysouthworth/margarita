@@ -1,0 +1,32 @@
+Package: margarita
+Type: Package
+Title: Support functions for texmex
+Version: 0.2
+Date: 2013-05-23
+Depends:
+    ggplot2,
+    MASS,
+    texmex,
+    gridExtra,
+    scales,
+    xtable,
+    testthat
+Author: Harry Southworth
+Maintainer: Harry Southworth <harry.southworth@astrazeneca.com>
+Description: Functions to make simulation and presentation of return levels and
+    probabilities of threshold excess easy, including simulation from robust
+    linear models. Also includes ggplot alternatives to several texmex plot
+    functions and ggplot functions for simulated return levels and so on.
+License: GPL (>= 3)
+Collate:
+    'globalVariables.R'
+    'ggplot.evm.R'
+    'ggplotBayes.R'
+    'lmr.R'
+    'simulate.R'
+    'ggplot.sim.R'
+    'threshold.evm.R'
+    'helpers.R'
+    'helperTests.R'
+    'margarita-package.R'
+    'AICtab.R'
