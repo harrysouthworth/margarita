@@ -1,0 +1,28 @@
+\name{simBase}
+\alias{simBase}
+\title{Simulate baseline data used in construction of robust linear model and
+predictions from extreme value model}
+\usage{
+simBase(lmod, gmod, baseline = "log(alt.b)")
+}
+\arguments{
+  \item{lmod}{An object of class 'rlm' created by
+  \code{lmr}.}
+
+  \item{gmod}{An object of class 'evmSim'.}
+
+  \item{baseline}{Character string identifying the baseline
+  column of the design matrix used to fit the robust linear
+  model.}
+}
+\description{
+Simulate baseline data by resampling, inferring the number
+of samples from the input.
+}
+\details{
+The function decides how many baselines to simulate based
+on the number of simulated values in the \code{param}
+component of \code{gmod}.
+}
+\keyword{datagen}
+

@@ -80,4 +80,3 @@ ggplot.summary.margarita.sim.prob <- function(data=NULL, ptcol="blue",
              }
     p
 }
-

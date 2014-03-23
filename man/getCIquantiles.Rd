@@ -1,0 +1,16 @@
+\name{getCIquantiles}
+\alias{getCIquantiles}
+\title{Get quantiles representing confidence limits from a given test size.}
+\usage{
+getCIquantiles(alpha)
+}
+\arguments{
+  \item{alpha}{The size of the test. Values {alpha/2, 1 -
+  alpha/2} will be returned. \code{alpha} can have length
+  either 1 or 2.}
+}
+\description{
+Get quantiles representing confidence limits from a given
+test size.
+}
+

@@ -1,0 +1,30 @@
+\name{ggplot.evmSim}
+\alias{ggacfplots}
+\alias{ggdensplots}
+\alias{ggplot.evmSim}
+\alias{ggtraceplots}
+\title{Diagnostic plots for the Markov chains in an evmSim object}
+\usage{
+\method{ggplot}{evmSim}(data = NULL, which.plots = 1:3, denscol = "blue",
+  acfcol = "light blue", ...)
+}
+\arguments{
+  \item{data}{An object of class 'evmSim'.}
+
+  \item{which.plots}{Which plots to produce. Currently
+  ignored.}
+
+  \item{denscol}{Colour for the density plots. Defaults to
+  'blue'.}
+
+  \item{acfcol}{Colour for the ACF plots. Defaults to
+  'light blue'.}
+
+  \item{...}{Additional arguments to \code{ggplot},
+  currently unused.}
+}
+\description{
+Diagnostic plots for the Markov chains in an evmSim object
+}
+\keyword{hplot}
+

@@ -1,0 +1,17 @@
+\name{ggqqplot}
+\alias{ggqqplot}
+\title{QQ-plot for residuals from a model using ggplot2}
+\usage{
+ggqqplot(o)
+}
+\arguments{
+  \item{o}{A fitted model with a \code{resid} component.}
+}
+\value{
+a \code{ggplot2} plot representing the Gaussian QQ-plot of
+the residuals with a fitted line.
+}
+\description{
+QQ-plot for residuals from a model using ggplot2
+}
+

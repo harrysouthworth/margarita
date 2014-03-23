@@ -1,4 +1,4 @@
-#' @S3method ggplot qqevm
+#' @method ggplot qqevm
 ggplot.qqevm <- function(data=NULL, xlab, ylab, main,
                        ylim = "auto",
                        ptcol="blue",
@@ -27,7 +27,7 @@ ggplot.qqevm <- function(data=NULL, xlab, ylab, main,
     p
 }
 
-#' @S3method ggplot ppevm
+#' @method ggplot ppevm
 ggplot.ppevm <- function(data=NULL, xlab, ylab,  main,
                          ptcol="blue", col="light blue", fill="orange", ...){
 
@@ -76,14 +76,11 @@ ggplot.hist.evmOpt <- function(data, xlab=NULL, ylab=NULL, main=NULL,
 #'
 #' Create and display diagnostic plots for an evm object.
 #'
-#' @aliases ggplot.ppevm ggplot.qqevm ggplot.hist.evmOpt ggplot.evmOpt
 #' @param data An object of class 'evm'.
-#' @param which Which plots to produce. Defaults to \code{which=1:4}.
-#' @param main Main titles. Should have length 4.
+#' @param alpha Used to compute coverage of pointwise confidence intervals.
 #' @param xlab Labels for x-axes.
 #' @param ylab Labels for y-axes.
-#' @param nsim Number of simulated datasets to create to form tolerence regions.
-#' @param alpha Used to compute coverage of pointwise confidence intervals.
+#' @param main Main titles. Should have length 4.
 #' @param ptcol Colour for points. Defaults to \code{ptcol="blue"}.
 #' @param col Colour for lines. Defaults to \code{col="light blue"}.
 #' @param fill Colour for confidence regions. Defaults to \code{fill="orange"}
@@ -131,7 +128,18 @@ function(data, alpha = .050,
 }
 
 
-#' @S3method ggplot evmOpt
+#' @method ggplot evmOpt
+#' @aliases ggplot.ppevm ggplot.qqevm ggplot.hist.evmOpt ggplot.evmOpt, ggplotrl
+#' @param which Which plots to produce. Defaults to \code{which=1:4}.
+#' @param main Main titles. Should have length 4.
+#' @param xlab Labels for x-axes.
+#' @param ylab Labels for y-axes.
+#' @param nsim Number of simulated datasets to create to form tolerence regions.
+#' @param alpha Used to compute coverage of pointwise confidence intervals.
+#' @param ptcol Colour for points. Defaults to \code{ptcol="blue"}.
+#' @param col Colour for lines. Defaults to \code{col="light blue"}.
+#' @param fill Colour for confidence regions. Defaults to \code{fill="orange"}
+#' @param ... Other arguments passed through to underlying plot functions.
 ggplot.evmOpt <-
 function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.05,
          ptcol="blue", col="light blue", fill="orange", ...){
@@ -183,9 +191,6 @@ function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.
         if (3 %in% which)
         for(i in (1:length(data$data$D))[Which]){
           ParName <- names(data$data$D[i])
-#          ParName <- names(pSymbols)[match(ParName, pSymbols)]
-#cat(ParName, "\n")
-#          xlab <- expression(paste("hat(", xi, ")", sep=""))
           xlab <- paste("Fitted", ParName)
           d <- data.frame(lp=lp[, i], r = resid(data))
           co[[i]] <- ggplot(d, aes(lp, r)) +

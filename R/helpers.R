@@ -37,7 +37,7 @@ getCIquantiles <- function(alpha){
 #'
 #' Compute the return period for a genralized Pareto distribution
 #' @param X An indexing parameter used in a call to \code{sapply} or \code{lapply}.
-#' @param m The threshold above which we wish to estimated the exceedance rate.
+#' @param xm The threshold above which we wish to estimated the exceedance rate.
 #' @param u The threshold.
 #' @param phi The log-scale parameter for the GPD model.
 #' @param xi The shape parameter for the GPD model.
@@ -76,12 +76,13 @@ margarita.getProbs <- function(X, par, u, p, r, m) {
 #' Construct a matrix of thresholds whose rate of exceedance we wish to estimate.
 #'
 #' @param M Numeric vector of thresholds.
-#' @param n The number of instances of each value of M to compute.
 #' @param scale Whether we are interested in the raw values of M or are treating
 #'        them as fold-changes from baseline ('proportional') or absolute
 #'        differences ('difference')
 #' @param trans A function for transforming the data, the same as the function
 #'        used to transform the data before fitting the original linear model.
+#' @param d A list of data.frames
+#' @param baseline The name of the baseline column in d
 margarita.rp.matrix <- function(M, scale, trans, d, baseline){
     # Get baseline data - should be identical for each element of d, so use d[[1]]
     baseline <- d[[1]][, baseline]

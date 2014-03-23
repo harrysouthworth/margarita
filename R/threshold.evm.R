@@ -1,4 +1,4 @@
-#' @S3method ggplot mrl
+#' @method ggplot mrl
 ggplot.mrl <- function(data, xlab = "Threshold", ylab = "Mean excess", main=NULL,
                        fill="light blue", col="blue",
                        addNexcesses=TRUE, textsize=4, ...){
@@ -28,7 +28,7 @@ ggplot.mrl <- function(data, xlab = "Threshold", ylab = "Mean excess", main=NULL
     p
 }
 
-#' @S3method ggplot gpdRangeFit
+#' @method ggplot gpdRangeFit
 ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NULL,
                                fill="orange", col="blue",
                                addNexcesses = TRUE, textsize=4, ...){
@@ -74,6 +74,9 @@ ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NUL
 #' @method ggplot mrl
 #' @method ggplot gpdRangeFit
 #' @param x A numeric vector.
+#' @param umin The minimum value of x to use as a threshold. Defaults to \code{umin=quantile(x, .05)}.
+#' @param umax The maximum value of x to use as a threshold. Defaults to \code{umin=quantile(x, .95)}.
+#' @param nint The number of values of x at which to compute the parameters. Defaults to \code{nint=25}.
 #' @param data An object returned by \code{gpdThresh}.
 #' @param xlab Label for the x axis.
 #' @param ylab Label fo rthe y axis.
@@ -100,7 +103,7 @@ gpdThresh <- function(x, umin=quantile(x, .05),
     invisible(res)
 }
 
-#' @S3method ggplot gpdThresh
+#' @method ggplot gpdThresh
 ggplot.gpdThresh <- function(data, ...){
     blankPanel <- grid.rect(gp=gpar(col="white"))    
     grid.arrange(data[[1]], data[[2]], data[[3]], blankPanel)

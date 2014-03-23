@@ -50,7 +50,7 @@ margarita <- function(rlm, evmSim, newdata,
     res
 }
 
-#' @S3method print margarita
+#' @method print margarita
 print.margarita <- function(x, ...){
     print(x[[1]])
     cat("\n")
@@ -100,9 +100,9 @@ simBase <- function(lmod, gmod, baseline="log(alt.b)"){
 #'        baseline values. If no transformation is performed, this will be
 #'        the same value as for \code{baseline}. Defaults to
 #'        \code{rawBaseline = "alt.b"}.
-#' @param trans A function for back-transforming the baseline data if required.
+#' @param invtrans A function for back-transforming the baseline data if required.
 #'        By default, the function assumes the user worked with log-transformed
-#'        baseline data, so assumes \code{trans=exp}.
+#'        baseline data, so assumes \code{invtrans=exp}.
 #' @keywords datagen
 #' @importFrom mvtnorm rmvnorm
 #' @export simLinear
@@ -135,9 +135,9 @@ simLinear <- function(lmod, gmod, newdata=NULL,
     # and so are baselines, so do the same with the simulated
     # coefficients here.
     lco <- rmvnorm(nsim, coef(lmod), lmod$cov) -> co1
-    if (nrep > 1)
-      for (i in 1:(nrep - 1))
+    for (i in 1:(nrep - 1)){
         lco <- rbind(lco, co1)
+    }
 
     res <- rowSums(M * lco)
     newdata$fitted <- res
@@ -162,8 +162,6 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' @param object An object of class 'margarita'
 #' @param nsim Unused argument.
 #' @param seed Unused argument.
-#' @param newdata A data.frame containing values of the covariates used
-#'        to fit the robust model, excluding the baseline variable.
 #' @param type What type of prediction is required: either 'rl' or 'prob'.
 #'        Defaults to \code{type = "rl"}.
 #' @param M The return level to be predicted. Defaults to \code{M=1000}. If
@@ -182,18 +180,6 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #'        for return levels, or P(yMax > 2, 5, 10 times yBase)). If
 #'        \code{scale='difference'}, absolute changes from baseline are
 #'        assumed.
-#' @param trans If threshold exceedence probabilities are being predicted,
-#'        \code{trans} should be the function used to transform the raw data
-#'        prior to model fitting and defaults to \code{trans=log}. If
-#'        return levels are being predicted and the call is to \code{summary},
-#'        \code{trans} should be the \emph{reverse} transformation!
-#' @param baseline Character string identifying the baseline column of the
-#'        design matrix used to fit the robust linear model. Defaults to
-#'        'log(b.alt)'.
-#' @param rawBaseline Character string giving the name of the untransformed
-#'        baseline values. If no transformation is performed, this will be
-#'        the same value as for \code{baseline}. Defaults to
-#'        \code{rawBaseline = "alt.b"}.
 #' @param ... Other agruments passed to \code{simulate}. Currently unused.
 #' @keywords datagen
 #' @method simulate margarita
@@ -272,7 +258,6 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     # out is a list. Each element is a matrix with one column for each value of M
 
     onms <- apply(object$newdata, 2, as.character)
-    if (is.character(onms)) onms <- as.data.frame(t(onms))
     onms <- apply(onms, 1, paste, collapse=" ")
     names(out) <- onms
     
@@ -285,28 +270,28 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
 }
 
 
-#' @S3method as.data.frame margarita.sim.rl
+#' @method as.data.frame margarita.sim.rl
 as.data.frame.margarita.sim.rl <-
 function(x, row.names=NULL, optional=FALSE, ...){
     x <- as.data.frame(unclass(x))
     x
 }
 
-#' @S3method print margarita.sim.rl
+#' @method print margarita.sim.rl
 print.margarita.sim.rl <-
 function(x, ...){
     x <- as.data.frame(x)
     print(x, ...)
 }
 
-#' @S3method head margarita.sim.rl
+#' @method head margarita.sim.rl
 head.margarita.sim.rl <-
 function(x, ...){
     x <- as.data.frame(x)
     head(x, ...)
 }
 
-#' @S3method summary margarita.sim.rl
+#' @method summary margarita.sim.rl
 summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
     baseline <- attr(object, "baseline")
     invtrans <- attr(object, "invtrans")
@@ -340,24 +325,24 @@ summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
     res
 }
 
-#' @S3method as.data.frame summary.margarita.sim.rl
+#' @method as.data.frame summary.margarita.sim.rl
 as.data.frame.summary.margarita.sim.rl <- as.data.frame.margarita.sim.rl
 
-#' @S3method print summary.margarita.sim.rl
+#' @method print summary.margarita.sim.rl
 print.summary.margarita.sim.rl <- function(x, ...){ print(as.data.frame(x), ...) }
 
-#' @S3method print margarita.sim.prob
+#' @method print margarita.sim.prob
 print.margarita.sim.prob <- function(x, ...){
     print(unclass(x), ...)
 }
 
-#' @S3method head margarita.sim.prob
+#' @method head margarita.sim.prob
 head.margarita.sim.prob <- function(x, ...){
     x <- unclass(x)
     lapply(x, head)
 }
 
-#' @S3method summary margarita.sim.prob
+#' @method summary margarita.sim.prob
 summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), ...){
     object <- unclass(object)
 
@@ -373,7 +358,7 @@ summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), ...){
     res
 }
 
-#' @S3method print summary.margarita.sim.prob
+#' @method print summary.margarita.sim.prob
 print.summary.margarita.sim.prob <- function(x, ...){
     for (i in 1:length(x)){
         cat(names(x)[i], "\n")

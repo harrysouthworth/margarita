@@ -1,0 +1,13 @@
+\name{margaritaScale}
+\alias{margaritaScale}
+\title{Check an allowed value of the scale argument has been given and reduce it to
+its first letter}
+\usage{
+margaritaScale(s)
+}
+\description{
+param s A character string which should be 'raw',
+'proportional' or 'difference' or an abbreviation of one of
+those. Only the first letter is returned.
+}
+

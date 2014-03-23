@@ -1,0 +1,39 @@
+\name{margarita}
+\alias{margarita}
+\title{Create an object of class 'margarita'}
+\usage{
+margarita(rlm, evmSim, newdata, trans = log, invtrans = exp,
+  baseline = "alt.b", minima = FALSE)
+}
+\arguments{
+  \item{rlm}{An object of class 'rlm' returned by
+  \code{lmr}.}
+
+  \item{evmSim}{An object of class 'evmSim'.}
+
+  \item{newdata}{A \code{data.frame} containing the new
+  data from which predictions are to be made.}
+
+  \item{trans}{A function matching that used to transform
+  the response in the robust regression. Defaults to
+  \code{trans=log}. Use \code{trans=I} if no transformation
+  was made.}
+
+  \item{invtrans}{A function, the inverse of \code{trans}.}
+
+  \item{baseline}{Character string giving the name of the
+  baseline variable.}
+
+  \item{minima}{Are the extremes minima rather than maxima
+  (i.e. the response was multiplied by -1 prior to all
+  modelling). Defaults to \code{minima=FALSE}.}
+}
+\description{
+Create an object of class 'margarita'
+}
+\details{
+Returns a list with class 'margarita', to be used with
+\code{simulate.margarita}.
+}
+\keyword{models}
+
