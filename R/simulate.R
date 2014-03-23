@@ -135,9 +135,9 @@ simLinear <- function(lmod, gmod, newdata=NULL,
     # and so are baselines, so do the same with the simulated
     # coefficients here.
     lco <- rmvnorm(nsim, coef(lmod), lmod$cov) -> co1
-    for (i in 1:(nrep - 1)){
-        lco <- rbind(lco, co1)
-    }
+    if (nrep > 1)
+      for (i in 1:(nrep - 1))
+          lco <- rbind(lco, co1)
 
     res <- rowSums(M * lco)
     newdata$fitted <- res
@@ -258,6 +258,7 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     # out is a list. Each element is a matrix with one column for each value of M
 
     onms <- apply(object$newdata, 2, as.character)
+    if (is.character(onms)) onms <- as.data.frame(t(onms))
     onms <- apply(onms, 1, paste, collapse=" ")
     names(out) <- onms
     
