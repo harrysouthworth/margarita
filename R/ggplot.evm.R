@@ -72,25 +72,7 @@ ggplot.hist.evmOpt <- function(data, xlab=NULL, ylab=NULL, main=NULL,
     p
 }
 
-#' Diagnostic plots for an evm object
-#'
-#' Create and display diagnostic plots for an evm object.
-#'
-#' @param data An object of class 'evm'.
-#' @param alpha Used to compute coverage of pointwise confidence intervals.
-#' @param xlab Labels for x-axes.
-#' @param ylab Labels for y-axes.
-#' @param main Main titles. Should have length 4.
-#' @param ptcol Colour for points. Defaults to \code{ptcol="blue"}.
-#' @param col Colour for lines. Defaults to \code{col="light blue"}.
-#' @param fill Colour for confidence regions. Defaults to \code{fill="orange"}
-#' @param RetPeriodRange Range over which to compute return levels.
-#' @param ... Additional arguments to \code{ggplot}.
-#' @details The function attempts to arrange the plots nicely. If the output
-#'          isn't what was wanted, the function returns the graphs to the user
-#'          as a list so that the user can use \code{grid.arrange} directly.
-#' @keywords hplot
-#' @export ggplotrl
+#' @export
 ggplotrl <-
 function(data, alpha = .050,
          xlab, ylab, main,
@@ -127,9 +109,11 @@ function(data, alpha = .050,
     p
 }
 
-
-#' @method ggplot evmOpt
+#' Diagnostic plots for an evm object
+#'
+#' Create and display diagnostic plots for an evm object.
 #' @aliases ggplot.ppevm ggplot.qqevm ggplot.hist.evmOpt ggplot.evmOpt, ggplotrl
+#' @param data An object of class \code{evm}.
 #' @param which Which plots to produce. Defaults to \code{which=1:4}.
 #' @param main Main titles. Should have length 4.
 #' @param xlab Labels for x-axes.
@@ -139,6 +123,12 @@ function(data, alpha = .050,
 #' @param ptcol Colour for points. Defaults to \code{ptcol="blue"}.
 #' @param col Colour for lines. Defaults to \code{col="light blue"}.
 #' @param fill Colour for confidence regions. Defaults to \code{fill="orange"}
+#' @param RetPeriodRange Range over which to compute return levels.
+#' @details The function attempts to arrange the plots nicely. If the output
+#'          isn't what was wanted, the function returns the graphs to the user
+#'          as a list so that the user can use \code{grid.arrange} directly.
+#' @keywords hplot
+
 #' @param ... Other arguments passed through to underlying plot functions.
 ggplot.evmOpt <-
 function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.05,

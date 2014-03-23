@@ -46,7 +46,8 @@ ggqqplot <- function(o) {
 }
 
 #' ggplot for rlm results
-#' @param data an object of class \code{rlm}
+#' @param data an object of class \code{rlm}.
+#' @param ... Additional arguments passed to \code{ggplot}. Currently unused.
 #' @method ggplot rlm
 #' @importFrom gridExtra grid.arrange
 #' @export

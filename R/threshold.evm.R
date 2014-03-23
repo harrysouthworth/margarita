@@ -1,4 +1,3 @@
-#' @method ggplot mrl
 ggplot.mrl <- function(data, xlab = "Threshold", ylab = "Mean excess", main=NULL,
                        fill="light blue", col="blue",
                        addNexcesses=TRUE, textsize=4, ...){
@@ -28,7 +27,6 @@ ggplot.mrl <- function(data, xlab = "Threshold", ylab = "Mean excess", main=NULL
     p
 }
 
-#' @method ggplot gpdRangeFit
 ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NULL,
                                fill="orange", col="blue",
                                addNexcesses = TRUE, textsize=4, ...){
@@ -86,6 +84,7 @@ ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NUL
 #' @param addNexcesses Whether or not to annotate the mean residual life plot with
 #'        the number of threshold excesses. Defaults to \code{TRUE}.
 #' @param textsize Font size for threshold excesses annotation.
+#' @param ... Additional arguments passed to \code{ggplot}.
 #' @return A list of graphical objects created by \code{ggplot}.
 #' @details The only argument is the data, so there is no control over other
 #'    settings used by \code{mrl}, \code{gpdRangeFit} and their plot functions.
