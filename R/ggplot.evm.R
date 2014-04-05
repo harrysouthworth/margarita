@@ -130,6 +130,7 @@ function(data, alpha = .050,
 #' @keywords hplot
 
 #' @param ... Other arguments passed through to underlying plot functions.
+#' @export
 ggplot.evmOpt <-
 function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.05,
          ptcol="blue", col="light blue", fill="orange", ...){

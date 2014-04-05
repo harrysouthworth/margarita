@@ -1,11 +1,12 @@
 \name{ggplot.evmOpt}
 \alias{ggplot.evmOpt}
-\alias{ggplot.evmOpt,}
 \alias{ggplot.hist.evmOpt}
 \alias{ggplot.ppevm}
 \alias{ggplot.qqevm}
 \alias{ggplotrl}
+\title{Diagnostic plots for an \code{evm} object}
 \usage{
+
 \method{ggplot}{evmOpt}(data, which = 1:4, main = rep(NULL, 4),
   xlab = rep(NULL, 4), nsim = 1000, alpha = 0.05, ptcol = "blue",
   col = "light blue", fill = "orange", ...)
