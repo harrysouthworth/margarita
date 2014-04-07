@@ -92,7 +92,6 @@ ggplot.rlm <- function(data=NULL, ...){
 #' @param ... Additional arguments to \code{boxplot}. Not currently used.
 #' @method boxplot rlm
 #' @importFrom graphics boxplot
-#' @export
 boxplot.rlm <- function(x, by, jitter.width=.1, xlab="", ylab="Scaled residuals",
                         main="", ptcol="orange", boxcol="blue", boxfill="light blue", ...){
     trt <- x$data[, by]

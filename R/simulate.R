@@ -217,6 +217,7 @@ simulate.margarita.rl <- function(object, nsim=1, seed=NULL, M=NULL, ...){
                      invtrans=object$invtrans)
 
     p <- predict(object[[2]], newdata=object$newdata, all=TRUE, M=M, unique.=FALSE)
+
     p <- c(unclass(p)[[1]])
 
     res$RLraw <- p
