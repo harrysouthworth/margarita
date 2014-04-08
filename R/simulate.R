@@ -273,6 +273,7 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
 
 
 #' @method as.data.frame margarita.sim.rl
+#' @export
 as.data.frame.margarita.sim.rl <-
 function(x, row.names=NULL, optional=FALSE, ...){
     x <- as.data.frame(unclass(x))
@@ -280,6 +281,7 @@ function(x, row.names=NULL, optional=FALSE, ...){
 }
 
 #' @method print margarita.sim.rl
+#' @export
 print.margarita.sim.rl <-
 function(x, ...){
     x <- as.data.frame(x)
@@ -287,6 +289,7 @@ function(x, ...){
 }
 
 #' @method head margarita.sim.rl
+#' @export
 head.margarita.sim.rl <-
 function(x, ...){
     x <- as.data.frame(x)
@@ -294,6 +297,7 @@ function(x, ...){
 }
 
 #' @method summary margarita.sim.rl
+#' @export
 summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
     baseline <- attr(object, "baseline")
     invtrans <- attr(object, "invtrans")
@@ -328,23 +332,28 @@ summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
 }
 
 #' @method as.data.frame summary.margarita.sim.rl
+#' @export
 as.data.frame.summary.margarita.sim.rl <- as.data.frame.margarita.sim.rl
 
 #' @method print summary.margarita.sim.rl
+#' @export
 print.summary.margarita.sim.rl <- function(x, ...){ print(as.data.frame(x), ...) }
 
 #' @method print margarita.sim.prob
+#' @export
 print.margarita.sim.prob <- function(x, ...){
     print(unclass(x), ...)
 }
 
 #' @method head margarita.sim.prob
+#' @export
 head.margarita.sim.prob <- function(x, ...){
     x <- unclass(x)
     lapply(x, head)
 }
 
 #' @method summary margarita.sim.prob
+#' @export
 summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), ...){
     object <- unclass(object)
 
@@ -361,6 +370,7 @@ summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), ...){
 }
 
 #' @method print summary.margarita.sim.prob
+#' @export
 print.summary.margarita.sim.prob <- function(x, ...){
     for (i in 1:length(x)){
         cat(names(x)[i], "\n")
@@ -369,5 +379,3 @@ print.summary.margarita.sim.prob <- function(x, ...){
     }
     invisible()
 }
-
-
