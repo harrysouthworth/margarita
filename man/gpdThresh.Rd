@@ -39,6 +39,8 @@
 
   \item{textsize}{Font size for threshold excesses
   annotation.}
+
+  \item{...}{Additional arguments passed to \code{ggplot}.}
 }
 \value{
 A list of graphical objects created by \code{ggplot}.
