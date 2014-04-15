@@ -125,7 +125,7 @@ boxplot.rlm <- function(x, by, jitter.width=.1, xlab="", ylab="Scaled residuals"
 #' @param linecol The colour for the reference line.
 #' @param ... Additional arguments to \code{ggplot}. Currently unused.
 #' @export shiftplot
-shiftplot <- function(data, aes, by=NULL, ncol=NULL, trans="log10",
+shiftplot <- function(data, aes, by=NULL, ncol=NULL, trans="identity",
                       xlab="Baseline", ylab="Maximum", main=NULL,
                       jitter.amount=0, alpha=1, shape=16,
                       ptcol="blue", linecol="orange", ...){
