@@ -93,9 +93,11 @@ ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NUL
 #' @export gpdThresh
 gpdThresh <- function(x, umin=quantile(x, .05),
                          umax=quantile(x, .95),
-                         nint=25){
+                         nint=25,
+                         priorParameters=NULL, cov="observed"){
     m <- ggplot(mrl(x, nint=length(x)))
-    g <- ggplot(gpdRangeFit(x, umin=umin, umax=umax, nint=nint))
+    g <- ggplot(gpdRangeFit(x, umin=umin, umax=umax, nint=nint,
+                            priorParameters=priorParameters, cov=cov))
     
     res <- list(g[[1]], g[[2]], m)
     oldClass(res) <- 'gpdThresh'
