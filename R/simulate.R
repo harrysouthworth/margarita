@@ -259,13 +259,14 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     # out is a list. Each element is a matrix with one column for each value of M
 
     onms <- apply(object$newdata, 2, as.character)
-    if (is.character(onms)) onms <- as.data.frame(t(onms))
+    # XXX NEXT LINE HAS HAD PROBLEMS
+    # XXX Check the Git repo for previously attempted solutions if this fails again
+    if (!is.matrix(onms)) onms <- as.data.frame(t(onms))
     onms <- apply(onms, 1, paste, collapse=" ")
     names(out) <- onms
     
-    if (is.null(Mlabels)){
-        Mlabels <- paste("RL =", format(M))
-    }
+    if (is.null(Mlabels)) Mlabels <- paste("RL =", format(M))
+
     out <- lapply(out, function(x, m){ colnames(x) <- m; x }, m=Mlabels)
 
     out
@@ -378,4 +379,21 @@ print.summary.margarita.sim.prob <- function(x, ...){
         cat("\n")
     }
     invisible()
+}
+
+#' Stack a list of data.frames or matrices
+#' 
+#' Stack a list of data.frames or matrices that have the same number of columns
+#' @method stack list
+#' @export
+#' @param x A list containing data.frames or matrices with the same number of columns
+#' @param ... Additional arguments, currently unused.
+#' @details A rudimentary check is performed to see if the objects in \code{x} have the
+#'          same number of columns. If so, \code{rbind} is used to stack them.
+stack.list <- function(x, ...){
+  nc <- try(sapply(x, ncol), silent=TRUE)
+  if (is.numeric(nc) & length(unique(nc)) == 1)
+    do.call("rbind", x)
+  else
+    stop("x should be a list of data.frames or matrices with the same number of columns")
 }
