@@ -162,8 +162,14 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' @param object An object of class 'margarita'
 #' @param nsim Unused argument.
 #' @param seed Unused argument.
-#' @param type What type of prediction is required: either 'rl' or 'prob'.
-#'        Defaults to \code{type = "rl"}.
+#' @param type What type of prediction is required: either 'rl', 'prob' or 'simple'.
+#'        Defaults to \code{type = "rl"}. If \code{type='simple'} is used, the result
+#'        is just a \code{data.frame} containing simulated baselines, fitted values
+#'        (from the robust linear model) and values resulting from adding residuals
+#'        to the fitted values. The residuals are sampled from GP distributions with
+#'        parameters taken from the Markov chains, or are resampled from observed
+#'        residuals, in proportion to the number of observations above and below
+#'        the GP fitting threshold.
 #' @param M The return level to be predicted. Defaults to \code{M=1000}. If
 #'        \code{type="prob"}, M should be a vector containing the thresholds
 #'        whose probabilities of exceedance the user is interested in, on the
@@ -186,7 +192,7 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' @export
 simulate.margarita <- function(object, nsim=1, seed=NULL,
                                type="rl", M=NULL, scale="raw", ...){
-    if (missing(M)){
+    if (missing(M) & type != "simple"){
         stop("You must provide a value for M")
     }
 
@@ -194,14 +200,18 @@ simulate.margarita <- function(object, nsim=1, seed=NULL,
                   "rl" =, "return" =, "return level" =
                       simulate.margarita.rl(object, nsim=nsim, seed=seed, M=M, ...),
                   "prob" =, "probability"=, "excess probability" = 
-                      simulate.margarita.prob(object, nsim=nsim, seed=seed, M=M, scale=scale, ...)
+                      simulate.margarita.prob(object, nsim=nsim, seed=seed, M=M, scale=scale, ...),
+                  "simple"= simulate.margarita.simple(object, nsim=nsim, seed=seed, ...)
                   )
     attr(res, "baseline") <- object$rawBaseline
     attr(res, "trans") <- object$trans
     attr(res, "invtrans") <- object$invtrans
     
-    if (type %in% c("rl", "return", "return level")) oldClass(res) <- "margarita.sim.rl"
-    else oldClass(res) <- "margarita.sim.prob"
+    if (type %in% c("rl", "return", "return level"))
+      oldClass(res) <- "margarita.sim.rl"
+    else if (type %in% c("prob", "probability", "excess probability"))
+      oldClass(res) <- "margarita.sim.prob"
+    # otherwise it's just a data.frame
     
     res
 }
@@ -270,6 +280,26 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     out <- lapply(out, function(x, m){ colnames(x) <- m; x }, m=Mlabels)
 
     out
+}
+
+#' Simulate pairs of baselines and on-treatment values
+simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
+  if (class(object) != "margarita") stop("object should be of class margarita")
+  s <- simLinear(object[[1]], object[[2]], newdata=object$newdata,
+                 baseline=object$baseline, rawBaseline=object$rawBaseline,
+                 invtrans=object$invtrans)
+  param <- object[[2]]$param # Posterior simulated parameter estimates
+  th <- object[[2]]$map$threshold # Threshold used in GPD fit
+  ru <- rgpd(nrow(param), exp(param[, 1]), param[, 2], u=th)
+  rl <- resid(object[[1]])
+  rl <- sample(rl[rl <= th], size=nrow(param), replace=TRUE)
+  r <- sample(c(ru, rl))
+  res <- s
+    #data.frame(baseline=s[, object$rawBaseline], max=s$fitted + sample(r, size=nrow(s)))
+  pe <- object[[2]]$map$rate # sample from ru with probability P(x > th)
+  res$value <- res$fitted + sample(r, size=nrow(s), prob=rep(c(pe, 1-pe), each=nrow(param)))
+  res$value <- object$invtrans(res$value)
+  invisible(res)
 }
 
 

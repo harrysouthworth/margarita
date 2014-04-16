@@ -129,20 +129,25 @@ boxplot.rlm <- function(x, by, jitter.width=.1, xlab="", ylab="Scaled residuals"
 shiftplot <- function(data, aes, by=NULL, ncol=NULL, trans="identity",
                       xlab="Baseline", ylab="Maximum", main=NULL,
                       jitter.amount=0, alpha=1, shape=16,
-                      ptcol="blue", linecol="orange", ...){
+                      ptcol="blue", linecol="orange", theme=NULL, ...){
   d <- data[, c(as.character(aes$x), as.character(aes$y))]
   limits <- range(d, na.rm=TRUE) + c(-jitter.amount, jitter.amount)
 
-  p <- ggplot(data, aes) +
-         geom_jitter(color=ptcol, alpha=alpha, shape=shape,
-                     position=position_jitter(width=jitter.amount, height=jitter.amount)) +
+  ppts <-
+    if (! "colour" %in% names(aes))
+      geom_jitter(color=ptcol, alpha=alpha, shape=shape,
+                  position=position_jitter(width=jitter.amount, height=jitter.amount))
+    else
+      geom_jitter(alpha=alpha, shape=shape,
+                  position=position_jitter(width=jitter.amount, height=jitter.amount))
+
+    p <- ggplot(data, aes) + ppts + theme +
          geom_abline(color=linecol, intercept=0, slope=1) +
          scale_x_continuous(xlab, limit=limits, trans=trans) +
          scale_y_continuous(ylab, limit=limits, trans=trans) +
          coord_fixed() +
          ggtitle(main) +
          if (!is.null(by)) facet_wrap(by, ncol=ncol)
-
   p
 }
 
