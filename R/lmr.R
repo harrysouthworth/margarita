@@ -51,13 +51,14 @@ ggqqplot <- function(o) {
 #' @method ggplot rlm
 #' @importFrom gridExtra grid.arrange
 #' @export
-ggplot.rlm <- function(data=NULL, ...){
+ggplot.rlm <- function(data=NULL, hist.scale=10, ...){
     d <- data.frame(r = resid(data), f=fitted(data), o=resid(data) + fitted(data))
     
     qq <- ggqqplot(data)
     
+    bin <- diff(range(d$r, na.rm=TRUE) / hist.scale)
     hist <- ggplot() +
-              geom_histogram(data=d, aes(r, ..density..), fill="blue" ) +
+              geom_histogram(data=d, aes(r, ..density..), fill="blue", binwidth=bin) +
               geom_density(data=d, aes(r, ..density..), color="light blue" ) +
               geom_rug(data=d, aes(r), color="orange" ) +
               scale_x_continuous("Residuals")
