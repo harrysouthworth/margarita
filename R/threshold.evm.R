@@ -14,7 +14,7 @@ ggplot.mrl <- function(data, xlab = "Threshold", ylab = "Mean excess", main=NULL
     poly <- poly[c(k, rev(k)), ]
 
     p <- ggplot(poly, aes(x, y)) +
-             geom_polygon(fill=fill) +
+             geom_polygon(fill=fill, alpha=.5) +
              geom_line(data=d, aes(th, mrl), color=col) +
              scale_x_continuous(xlab) +
              scale_y_continuous(ylab) +
@@ -52,7 +52,7 @@ ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NUL
         poly <- data.frame(x=c(x$th, rev(x$th)), y=c(x$lo[, i], rev(x$hi[, i])))
         
         p[[i]] <- ggplot(poly, aes(x, y)) +
-                    geom_polygon(fill=fill) +
+                    geom_polygon(fill=fill, alpha=.5) +
                     geom_line(data=d, aes(th, par), color=col) +
                     scale_x_continuous(xlab) +
                     scale_y_continuous(ylab[i]) +
