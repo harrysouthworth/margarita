@@ -2,7 +2,7 @@
 \alias{simulate.margarita}
 \alias{simulate.margarita.prob}
 \alias{simulate.margarita.rl}
-\title{Simulate return levels and probabilities of threshold exceedences from a robust linear model and an extreme value model}
+\title{Simulate return levels, probabilities of threshold exceedences or simple datasets from a robust linear model and an extreme value model}
 \usage{
 \method{simulate}{margarita}(object, nsim = 1, seed = NULL, type = "rl",
   M = NULL, scale = "raw", ...)
@@ -15,7 +15,15 @@
   \item{seed}{Unused argument.}
 
   \item{type}{What type of prediction is required: either
-  'rl' or 'prob'.  Defaults to \code{type = "rl"}.}
+  'rl', 'prob' or 'simple'.  Defaults to \code{type =
+  "rl"}. If \code{type='simple'} is used, the result is
+  just a \code{data.frame} containing simulated baselines,
+  fitted values (from the robust linear model) and values
+  resulting from adding residuals to the fitted values. The
+  residuals are sampled from GP distributions with
+  parameters taken from the Markov chains, or are resampled
+  from observed residuals, in proportion to the number of
+  observations above and below the GP fitting threshold.}
 
   \item{M}{The return level to be predicted. Defaults to
   \code{M=1000}. If \code{type="prob"}, M should be a

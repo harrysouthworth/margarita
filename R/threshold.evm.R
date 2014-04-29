@@ -107,7 +107,7 @@ gpdThresh <- function(x, umin=quantile(x, .05),
 #' @method ggplot gpdThresh
 #' @export
 ggplot.gpdThresh <- function(data, ...){
-    blankPanel <- grid.rect(gp=gpar(col="white"))    
+    blankPanel <- grid.rect(gp=gpar(col="white"))
     grid.arrange(data[[1]], data[[2]], data[[3]], blankPanel)
     invisible()
 }

@@ -2,10 +2,16 @@
 \alias{ggplot.rlm}
 \title{ggplot for rlm results}
 \usage{
-\method{ggplot}{rlm}(data = NULL, ...)
+\method{ggplot}{rlm}(data = NULL, hist.scale = 10, ...)
 }
 \arguments{
   \item{data}{an object of class \code{rlm}.}
+
+  \item{hist.scale}{A scaleing factor for bin widths in the
+  histogram. The default bin width will be
+  \code{range(resid(data))/hist.scale)}. Defaults to
+  \code{hist.scale=10}, which is smaler than the
+  \code{ggplot} default of 30.}
 
   \item{...}{Additional arguments passed to \code{ggplot}.
   Currently unused.}

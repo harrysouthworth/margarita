@@ -145,7 +145,7 @@ simLinear <- function(lmod, gmod, newdata=NULL,
     invisible(newdata)
 }
 
-#' Simulate return levels and probabilities of threshold exceedences from a robust linear model and an extreme value model
+#' Simulate return levels, probabilities of threshold exceedences or simple datasets from a robust linear model and an extreme value model
 #'
 #' Simulate return levels and probabilities of threshold exceedences from a
 #' robust linear model and an extreme value model. The procedure is specific to
@@ -299,6 +299,7 @@ simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
   pe <- object[[2]]$map$rate # sample from ru with probability P(x > th)
   res$value <- res$fitted + sample(r, size=nrow(s), prob=rep(c(pe, 1-pe), each=nrow(param)))
   res$value <- object$invtrans(res$value)
+  rownames(res) <- NULL
   invisible(res)
 }
 

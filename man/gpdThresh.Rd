@@ -6,7 +6,7 @@
 \title{Produce plots to aid threshold selection for GPD models}
 \usage{
 \method{ggplot}{gpdThresh}(x, umin = quantile(x, 0.05), umax = quantile(x,
-  0.95), nint = 25)
+  0.95), nint = 25, priorParameters = NULL, cov = "observed")
 }
 \arguments{
   \item{x}{A numeric vector.}
