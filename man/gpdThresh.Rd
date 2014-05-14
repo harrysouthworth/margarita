@@ -9,6 +9,8 @@
   0.95), nint = 25)
 }
 \arguments{
+  \item{data}{An object created by \code{gpdThresh}.}
+
   \item{x}{A numeric vector.}
 
   \item{umin}{The minimum value of x to use as a threshold.
@@ -39,6 +41,8 @@
 
   \item{textsize}{Font size for threshold excesses
   annotation.}
+
+  \item{...}{Additional arguments passed to \code{ggplot}.}
 }
 \value{
 A list of graphical objects created by \code{ggplot}.
