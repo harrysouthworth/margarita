@@ -29,7 +29,7 @@ margarita <- function(rlm, evmSim, newdata,
         stop("object should be created by lmr, not rlm")
     }
     if (class(evmSim) != "evmSim"){
-        stop("object2 should have class 'evmSim'")
+        stop("object should have class 'evmSim'")
     }
 
     # Construct string for transformed baseline
@@ -40,6 +40,10 @@ margarita <- function(rlm, evmSim, newdata,
     rawBaseline <- baseline
     baseline <- if (ctrans != "I") paste0(ctrans, "(", rawBaseline, ")")
                 else baseline
+
+    if (missing(newdata))
+      if (length(coef(evmSim)) == 2) newdata <- data.frame(1)
+      else stop("There are covariates in the model: you need to provide newdata")
 
     # Construct output object and return
     res <- list(rlm, evmSim, newdata=newdata,
@@ -217,23 +221,26 @@ simulate.margarita <- function(object, nsim=1, seed=NULL,
 }
 
 simulate.margarita.rl <- function(object, nsim=1, seed=NULL, M=NULL, ...){
-    if (length(M) != 1){
-        stop("Currently, M must have length 1.")
-    }
+    #if (length(M) != 1){
+    #    stop("Currently, M must have length 1.")
+    #}
     object <- unclass(object)
 
     res <- simLinear(object[[1]], object[[2]], newdata=object$newdata,
                      baseline=object$baseline, rawBaseline=object$rawBaseline,
                      invtrans=object$invtrans)
+    fullres <- vector("list", len=length(M))
 
-    p <- predict(object[[2]], newdata=object$newdata, all=TRUE, M=M, unique.=FALSE)
-
-    p <- c(unclass(p)[[1]])
-
-    res$RLraw <- p
-    res$RLfull <- res$RLraw + res$fitted
-    if (object$minima) { res$RLfull <- -res$RLfull }
-    res
+    for (m in M){
+      fullres[[m]] <- res
+      p <- predict(object[[2]], newdata=object$newdata, all=TRUE, M=m, unique.=FALSE)
+      p <- c(unclass(p)[[1]])
+      
+      fullres[[m]]$RLraw <- p
+      fullres[[m]]$RLfull <- fullres[[m]]$RLraw + res$fitted
+      if (object$minima) { fullres[[m]]$RLfull <- -fullres[[m]]$RLfull }
+    }
+    fullres
 }
 
 simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="raw", 
