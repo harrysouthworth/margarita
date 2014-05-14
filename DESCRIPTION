@@ -1,7 +1,7 @@
 Package: margarita
 Type: Package
 Title: Support functions for texmex
-Version: 04.
+Version: 0.4
 Date: 2014-04-29
 Depends:
     mvtnorm,
