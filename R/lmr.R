@@ -47,17 +47,21 @@ ggqqplot <- function(o) {
 
 #' ggplot for rlm results
 #' @param data an object of class \code{rlm}.
+#' @param hist.scale A scaleing factor for bin widths in the histogram. The default bin width
+#'        will be \code{range(resid(data))/hist.scale)}. Defaults to \code{hist.scale=10},
+#'        which is smaler than the \code{ggplot} default of 30.
 #' @param ... Additional arguments passed to \code{ggplot}. Currently unused.
 #' @method ggplot rlm
 #' @importFrom gridExtra grid.arrange
 #' @export
-ggplot.rlm <- function(data=NULL, ...){
+ggplot.rlm <- function(data=NULL, hist.scale=10, ...){
     d <- data.frame(r = resid(data), f=fitted(data), o=resid(data) + fitted(data))
     
     qq <- ggqqplot(data)
     
+    bin <- diff(range(d$r, na.rm=TRUE) / hist.scale)
     hist <- ggplot() +
-              geom_histogram(data=d, aes(r, ..density..), fill="blue" ) +
+              geom_histogram(data=d, aes(r, ..density..), fill="blue", binwidth=bin) +
               geom_density(data=d, aes(r, ..density..), color="light blue" ) +
               geom_rug(data=d, aes(r), color="orange" ) +
               scale_x_continuous("Residuals")
@@ -83,6 +87,8 @@ ggplot.rlm <- function(data=NULL, ...){
 #' @param x An object of class 'rlm'.
 #' @param by A character string giving the name of a factor in \code{x}.
 #' @param jitter.width The amount of jittering to do. Defaults to \code{jitter.width = 0.1}.
+#' @param box Whether to do the boxplot. If the amount of data is small, it might be better
+#'        to just plot the jittered points. Defaults to \code{box=TRUE}.
 #' @param xlab Horizontal axis label. Defaults to \code{xlab=""}.
 #' @param ylab Vertical axis label. Defaults to \code{ylab="Scaled residuals"}.
 #' @param main Main title. Defaults to blank.
@@ -91,18 +97,22 @@ ggplot.rlm <- function(data=NULL, ...){
 #' @param boxfill The fill colour of the boxplots. Defaults to \code{"light blue"}.
 #' @param ... Additional arguments to \code{boxplot}. Not currently used.
 #' @method boxplot rlm
-#' @importFrom graphics boxplot
 #' @export
-boxplot.rlm <- function(x, by, jitter.width=.1, xlab="", ylab="Scaled residuals",
-                        main="", ptcol="orange", boxcol="blue", boxfill="light blue", ...){
+#' @importFrom graphics boxplot
+boxplot.rlm <- function(x, by, jitter.width=.1, box=TRUE, xlab="", ylab="Scaled residuals",
+                        main="", size=3, ptcol="orange", boxcol="blue", boxfill="light blue", ...){
     trt <- x$data[, by]
     data <- data.frame(sr = resid(x) / x$s, trt=as.factor(trt))
+    if (box)
+      bp <- stat_boxplot(color=boxcol, fill=boxfill, alpha=.5, outlier.shape="")
+    else
+      bp <- NULL
     p <- ggplot(data, aes(trt, sr)) +
-           geom_jitter(color=ptcol, position=position_jitter(width=jitter.width)) +
-           stat_boxplot(color=boxcol, fill=boxfill, alpha=.5, outlier.shape="") +
+           geom_jitter(color=ptcol, size=size, alpha=.7, position=position_jitter(width=jitter.width)) +
            scale_x_discrete(xlab) +
            scale_y_continuous(ylab) +
-           ggtitle(main)
+           ggtitle(main) +
+           bp
     p
 }
 
@@ -126,23 +136,28 @@ boxplot.rlm <- function(x, by, jitter.width=.1, xlab="", ylab="Scaled residuals"
 #' @param linecol The colour for the reference line.
 #' @param ... Additional arguments to \code{ggplot}. Currently unused.
 #' @export shiftplot
-shiftplot <- function(data, aes, by=NULL, ncol=NULL, trans="log10",
+shiftplot <- function(data, aes, by=NULL, ncol=NULL, trans="identity",
                       xlab="Baseline", ylab="Maximum", main=NULL,
                       jitter.amount=0, alpha=1, shape=16,
-                      ptcol="blue", linecol="orange", ...){
+                      ptcol="blue", linecol="orange", theme=NULL, ...){
   d <- data[, c(as.character(aes$x), as.character(aes$y))]
   limits <- range(d, na.rm=TRUE) + c(-jitter.amount, jitter.amount)
 
-  p <- ggplot(data, aes) +
-         geom_jitter(color=ptcol, alpha=alpha, shape=shape,
-                     position=position_jitter(width=jitter.amount, height=jitter.amount)) +
+  ppts <-
+    if (! "colour" %in% names(aes))
+      geom_jitter(color=ptcol, alpha=alpha, shape=shape,
+                  position=position_jitter(width=jitter.amount, height=jitter.amount))
+    else
+      geom_jitter(alpha=alpha, shape=shape,
+                  position=position_jitter(width=jitter.amount, height=jitter.amount))
+
+    p <- ggplot(data, aes) + ppts + theme +
          geom_abline(color=linecol, intercept=0, slope=1) +
          scale_x_continuous(xlab, limit=limits, trans=trans) +
          scale_y_continuous(ylab, limit=limits, trans=trans) +
          coord_fixed() +
          ggtitle(main) +
          if (!is.null(by)) facet_wrap(by, ncol=ncol)
-
   p
 }
 

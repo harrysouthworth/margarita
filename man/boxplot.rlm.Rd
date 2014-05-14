@@ -2,8 +2,8 @@
 \alias{boxplot.rlm}
 \title{Boxplots of scaled residuals, by a factor in the model.}
 \usage{
-\method{boxplot}{rlm}(x, by, jitter.width = 0.1, xlab = "",
-  ylab = "Scaled residuals", main = "", ptcol = "orange",
+\method{boxplot}{rlm}(x, by, jitter.width = 0.1, box = TRUE, xlab = "",
+  ylab = "Scaled residuals", main = "", size = 3, ptcol = "orange",
   boxcol = "blue", boxfill = "light blue", ...)
 }
 \arguments{
@@ -14,6 +14,10 @@
 
   \item{jitter.width}{The amount of jittering to do.
   Defaults to \code{jitter.width = 0.1}.}
+
+  \item{box}{Whether to do the boxplot. If the amount of
+  data is small, it might be better to just plot the
+  jittered points. Defaults to \code{box=TRUE}.}
 
   \item{xlab}{Horizontal axis label. Defaults to
   \code{xlab=""}.}

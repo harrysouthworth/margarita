@@ -2,9 +2,10 @@
 \alias{shiftplot}
 \title{Shiftplot}
 \usage{
-shiftplot(data, aes, by = NULL, ncol = NULL, trans = "log10",
+shiftplot(data, aes, by = NULL, ncol = NULL, trans = "identity",
   xlab = "Baseline", ylab = "Maximum", main = NULL, jitter.amount = 0,
-  alpha = 1, shape = 16, ptcol = "blue", linecol = "orange", ...)
+  alpha = 1, shape = 16, ptcol = "blue", linecol = "orange",
+  theme = NULL, ...)
 }
 \arguments{
   \item{data}{A \code{data.frame}.}

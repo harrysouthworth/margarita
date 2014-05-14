@@ -145,7 +145,7 @@ simLinear <- function(lmod, gmod, newdata=NULL,
     invisible(newdata)
 }
 
-#' Simulate return levels and probabilities of threshold exceedences from a robust linear model and an extreme value model
+#' Simulate return levels, probabilities of threshold exceedences or simple datasets from a robust linear model and an extreme value model
 #'
 #' Simulate return levels and probabilities of threshold exceedences from a
 #' robust linear model and an extreme value model. The procedure is specific to
@@ -162,8 +162,14 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' @param object An object of class 'margarita'
 #' @param nsim Unused argument.
 #' @param seed Unused argument.
-#' @param type What type of prediction is required: either 'rl' or 'prob'.
-#'        Defaults to \code{type = "rl"}.
+#' @param type What type of prediction is required: either 'rl', 'prob' or 'simple'.
+#'        Defaults to \code{type = "rl"}. If \code{type='simple'} is used, the result
+#'        is just a \code{data.frame} containing simulated baselines, fitted values
+#'        (from the robust linear model) and values resulting from adding residuals
+#'        to the fitted values. The residuals are sampled from GP distributions with
+#'        parameters taken from the Markov chains, or are resampled from observed
+#'        residuals, in proportion to the number of observations above and below
+#'        the GP fitting threshold.
 #' @param M The return level to be predicted. Defaults to \code{M=1000}. If
 #'        \code{type="prob"}, M should be a vector containing the thresholds
 #'        whose probabilities of exceedance the user is interested in, on the
@@ -186,7 +192,7 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' @export
 simulate.margarita <- function(object, nsim=1, seed=NULL,
                                type="rl", M=NULL, scale="raw", ...){
-    if (missing(M)){
+    if (missing(M) & type != "simple"){
         stop("You must provide a value for M")
     }
 
@@ -194,14 +200,18 @@ simulate.margarita <- function(object, nsim=1, seed=NULL,
                   "rl" =, "return" =, "return level" =
                       simulate.margarita.rl(object, nsim=nsim, seed=seed, M=M, ...),
                   "prob" =, "probability"=, "excess probability" = 
-                      simulate.margarita.prob(object, nsim=nsim, seed=seed, M=M, scale=scale, ...)
+                      simulate.margarita.prob(object, nsim=nsim, seed=seed, M=M, scale=scale, ...),
+                  "simple"= simulate.margarita.simple(object, nsim=nsim, seed=seed, ...)
                   )
     attr(res, "baseline") <- object$rawBaseline
     attr(res, "trans") <- object$trans
     attr(res, "invtrans") <- object$invtrans
     
-    if (type %in% c("rl", "return", "return level")) oldClass(res) <- "margarita.sim.rl"
-    else oldClass(res) <- "margarita.sim.prob"
+    if (type %in% c("rl", "return", "return level"))
+      oldClass(res) <- "margarita.sim.rl"
+    else if (type %in% c("prob", "probability", "excess probability"))
+      oldClass(res) <- "margarita.sim.prob"
+    # otherwise it's just a data.frame
     
     res
 }
@@ -217,6 +227,7 @@ simulate.margarita.rl <- function(object, nsim=1, seed=NULL, M=NULL, ...){
                      invtrans=object$invtrans)
 
     p <- predict(object[[2]], newdata=object$newdata, all=TRUE, M=M, unique.=FALSE)
+
     p <- c(unclass(p)[[1]])
 
     res$RLraw <- p
@@ -258,20 +269,43 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     # out is a list. Each element is a matrix with one column for each value of M
 
     onms <- apply(object$newdata, 2, as.character)
-    if (is.character(onms)) onms <- as.data.frame(t(onms))
+    # XXX NEXT LINE HAS HAD PROBLEMS
+    # XXX Check the Git repo for previously attempted solutions if this fails again
+    if (!is.matrix(onms)) onms <- as.data.frame(t(onms))
     onms <- apply(onms, 1, paste, collapse=" ")
     names(out) <- onms
     
-    if (is.null(Mlabels)){
-        Mlabels <- paste("RL =", format(M))
-    }
+    if (is.null(Mlabels)) Mlabels <- paste("RL =", format(M))
+
     out <- lapply(out, function(x, m){ colnames(x) <- m; x }, m=Mlabels)
 
     out
 }
 
+#' Simulate pairs of baselines and on-treatment values
+simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
+  if (class(object) != "margarita") stop("object should be of class margarita")
+  s <- simLinear(object[[1]], object[[2]], newdata=object$newdata,
+                 baseline=object$baseline, rawBaseline=object$rawBaseline,
+                 invtrans=object$invtrans)
+  param <- object[[2]]$param # Posterior simulated parameter estimates
+  th <- object[[2]]$map$threshold # Threshold used in GPD fit
+  ru <- rgpd(nrow(param), exp(param[, 1]), param[, 2], u=th)
+  rl <- resid(object[[1]])
+  rl <- sample(rl[rl <= th], size=nrow(param), replace=TRUE)
+  r <- sample(c(ru, rl))
+  res <- s
+    #data.frame(baseline=s[, object$rawBaseline], max=s$fitted + sample(r, size=nrow(s)))
+  pe <- object[[2]]$map$rate # sample from ru with probability P(x > th)
+  res$value <- res$fitted + sample(r, size=nrow(s), prob=rep(c(pe, 1-pe), each=nrow(param)))
+  res$value <- object$invtrans(res$value)
+  rownames(res) <- NULL
+  invisible(res)
+}
+
 
 #' @method as.data.frame margarita.sim.rl
+#' @export
 as.data.frame.margarita.sim.rl <-
 function(x, row.names=NULL, optional=FALSE, ...){
     x <- as.data.frame(unclass(x))
@@ -279,6 +313,7 @@ function(x, row.names=NULL, optional=FALSE, ...){
 }
 
 #' @method print margarita.sim.rl
+#' @export
 print.margarita.sim.rl <-
 function(x, ...){
     x <- as.data.frame(x)
@@ -286,6 +321,7 @@ function(x, ...){
 }
 
 #' @method head margarita.sim.rl
+#' @export
 head.margarita.sim.rl <-
 function(x, ...){
     x <- as.data.frame(x)
@@ -293,6 +329,7 @@ function(x, ...){
 }
 
 #' @method summary margarita.sim.rl
+#' @export
 summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
     baseline <- attr(object, "baseline")
     invtrans <- attr(object, "invtrans")
@@ -327,23 +364,28 @@ summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
 }
 
 #' @method as.data.frame summary.margarita.sim.rl
+#' @export
 as.data.frame.summary.margarita.sim.rl <- as.data.frame.margarita.sim.rl
 
 #' @method print summary.margarita.sim.rl
+#' @export
 print.summary.margarita.sim.rl <- function(x, ...){ print(as.data.frame(x), ...) }
 
 #' @method print margarita.sim.prob
+#' @export
 print.margarita.sim.prob <- function(x, ...){
     print(unclass(x), ...)
 }
 
 #' @method head margarita.sim.prob
+#' @export
 head.margarita.sim.prob <- function(x, ...){
     x <- unclass(x)
     lapply(x, head)
 }
 
 #' @method summary margarita.sim.prob
+#' @export
 summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), ...){
     object <- unclass(object)
 
@@ -360,6 +402,7 @@ summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), ...){
 }
 
 #' @method print summary.margarita.sim.prob
+#' @export
 print.summary.margarita.sim.prob <- function(x, ...){
     for (i in 1:length(x)){
         cat(names(x)[i], "\n")
@@ -369,4 +412,19 @@ print.summary.margarita.sim.prob <- function(x, ...){
     invisible()
 }
 
-
+#' Stack a list of data.frames or matrices
+#' 
+#' Stack a list of data.frames or matrices that have the same number of columns
+#' @method stack list
+#' @export
+#' @param x A list containing data.frames or matrices with the same number of columns
+#' @param ... Additional arguments, currently unused.
+#' @details A rudimentary check is performed to see if the objects in \code{x} have the
+#'          same number of columns. If so, \code{rbind} is used to stack them.
+stack.list <- function(x, ...){
+  nc <- try(sapply(x, ncol), silent=TRUE)
+  if (is.numeric(nc) & length(unique(nc)) == 1)
+    do.call("rbind", x)
+  else
+    stop("x should be a list of data.frames or matrices with the same number of columns")
+}

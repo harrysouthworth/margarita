@@ -14,7 +14,7 @@ ggplot.mrl <- function(data, xlab = "Threshold", ylab = "Mean excess", main=NULL
     poly <- poly[c(k, rev(k)), ]
 
     p <- ggplot(poly, aes(x, y)) +
-             geom_polygon(fill=fill) +
+             geom_polygon(fill=fill, alpha=.5) +
              geom_line(data=d, aes(th, mrl), color=col) +
              scale_x_continuous(xlab) +
              scale_y_continuous(ylab) +
@@ -52,7 +52,7 @@ ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NUL
         poly <- data.frame(x=c(x$th, rev(x$th)), y=c(x$lo[, i], rev(x$hi[, i])))
         
         p[[i]] <- ggplot(poly, aes(x, y)) +
-                    geom_polygon(fill=fill) +
+                    geom_polygon(fill=fill, alpha=.5) +
                     geom_line(data=d, aes(th, par), color=col) +
                     scale_x_continuous(xlab) +
                     scale_y_continuous(ylab[i]) +
@@ -93,9 +93,13 @@ ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NUL
 #' @export gpdThresh
 gpdThresh <- function(x, umin=quantile(x, .05),
                          umax=quantile(x, .95),
-                         nint=25){
+                         nint=25,
+                         priorParameters=NULL, cov="observed"){
     m <- ggplot(mrl(x, nint=length(x)))
-    g <- ggplot(gpdRangeFit(x, umin=umin, umax=umax, nint=nint))
+    wh <- x[x>=umin & x<=umax]
+    nint <- min(nint, length(wh))
+    g <- ggplot(gpdRangeFit(x, umin=umin, umax=umax, nint=nint,
+                            priorParameters=priorParameters, cov=cov))
     
     res <- list(g[[1]], g[[2]], m)
     oldClass(res) <- 'gpdThresh'
@@ -103,9 +107,10 @@ gpdThresh <- function(x, umin=quantile(x, .05),
 }
 
 #' @method ggplot gpdThresh
+#' @export
 ggplot.gpdThresh <- function(data, ...){
-    blankPanel <- grid.rect(gp=gpar(col="white"))    
-    grid.arrange(data[[1]], data[[2]], data[[3]], blankPanel)
+    #blankPanel <- grid.rect(gp=gpar(col="white"))
+    grid.arrange(data[[1]], data[[2]], data[[3]], ncol=2)
     invisible()
 }
 

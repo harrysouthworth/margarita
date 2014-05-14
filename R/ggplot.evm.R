@@ -16,14 +16,14 @@ ggplot.qqevm <- function(data=NULL, xlab, ylab, main,
 
     poly <- data.frame(x = c(data$ModPoints,rev(data$ModPoints)),
                        y = c(data$sim[1, ], rev(data$sim[2, ])))
+
     p <- ggplot(poly, aes(x, y)) +
-             geom_polygon(fill=fill) +
+             geom_polygon(fill=fill, alpha=.5) +
              geom_abline(intercept=0, slope=1, color=col) +
              geom_point(data=d, aes(x, y), color=ptcol) +
              ggtitle(main) +
              scale_x_continuous(xlab) +
              scale_y_continuous(ylab)
-
     p
 }
 
@@ -40,7 +40,7 @@ ggplot.ppevm <- function(data=NULL, xlab, ylab,  main,
                        y = c(data$sim[1, ], rev(data$sim[2, ])))
 
     p <- ggplot(poly, aes(x, y)) +
-             geom_polygon(fill=fill) +
+             geom_polygon(fill=fill, alpha=.5) +
              geom_abline(intercept=0, slope=1, color=col) +
              geom_point(data=d, aes(x, y), color=ptcol) +
              ggtitle(main) +
@@ -100,7 +100,7 @@ function(data, alpha = .050,
     poly <- data.frame(x=c(wh$m, rev(wh$m)), y=c(wh$xm[, 2], rev(wh$xm[, 3])))
 
     p <- ggplot(poly, aes(x, y)) +
-             geom_polygon(fill=fill) +
+             geom_polygon(fill=fill, alpha=.5) +
              geom_line(data=ln, aes(x, y), color=col) +
              geom_point(data=d, aes(x, y), color=ptcol) +
              scale_x_continuous(xlab, trans="log10") +
@@ -130,6 +130,8 @@ function(data, alpha = .050,
 #' @keywords hplot
 
 #' @param ... Other arguments passed through to underlying plot functions.
+#' @method ggplot evmOpt
+#' @export
 ggplot.evmOpt <-
 function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.05,
          ptcol="blue", col="light blue", fill="orange", ...){
@@ -184,12 +186,11 @@ function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.
           xlab <- paste("Fitted", ParName)
           d <- data.frame(lp=lp[, i], r = resid(data))
           co[[i]] <- ggplot(d, aes(lp, r)) +
-                         geom_point(color=ptcol) +
-                         stat_smooth(color=col, se=FALSE, method="loess") +
+                         geom_point(color=ptcol, alpha=.7, position=position_jitter(width=.1)) +
+                         stat_smooth(color=col, se=FALSE, span=1) + #, method="loess") +
                          ggtitle(paste("Residuals vs fitted", ParName)) +
                          ggtitle(paste("Residuals vs fitted", ParName)) +
                          scale_x_continuous(paste("Fitted", ParName)) +
-                         scale_x_continuous(xlab) +
                          scale_y_continuous("Residuals")
         }
         co <- co[!sapply(co, is.null)]
