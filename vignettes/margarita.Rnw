@@ -4,7 +4,7 @@
 \usepackage[british]{babel}
 \usepackage{fancyhdr}
 \pagestyle{fancy}
-\rfoot{\thepage}
+%\rfoot{\thepage}
 \begin{document}
 \title{margarita: making texmex more digestible}
 \author{Harry Southworth}

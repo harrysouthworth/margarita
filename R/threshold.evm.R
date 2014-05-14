@@ -96,6 +96,8 @@ gpdThresh <- function(x, umin=quantile(x, .05),
                          nint=25,
                          priorParameters=NULL, cov="observed"){
     m <- ggplot(mrl(x, nint=length(x)))
+    wh <- x[x>=umin & x<=umax]
+    nint <- min(nint, length(wh))
     g <- ggplot(gpdRangeFit(x, umin=umin, umax=umax, nint=nint,
                             priorParameters=priorParameters, cov=cov))
     
