@@ -229,16 +229,17 @@ simulate.margarita.rl <- function(object, nsim=1, seed=NULL, M=NULL, ...){
     res <- simLinear(object[[1]], object[[2]], newdata=object$newdata,
                      baseline=object$baseline, rawBaseline=object$rawBaseline,
                      invtrans=object$invtrans)
-    fullres <- vector("list", len=length(M))
+    fullres <- list()
 
     for (m in M){
-      fullres[[m]] <- res
+      nmM <- paste("RL:", m)
+      fullres[[nmM]] <- res
       p <- predict(object[[2]], newdata=object$newdata, all=TRUE, M=m, unique.=FALSE)
       p <- c(unclass(p)[[1]])
       
-      fullres[[m]]$RLraw <- p
-      fullres[[m]]$RLfull <- fullres[[m]]$RLraw + res$fitted
-      if (object$minima) { fullres[[m]]$RLfull <- -fullres[[m]]$RLfull }
+      fullres[[nmM]]$RLraw <- p
+      fullres[[nmM]]$RLfull <- fullres[[nmM]]$RLraw + res$fitted
+      if (object$minima) { fullres[[nmM]]$RLfull <- -fullres[[nmM]]$RLfull }
     }
     fullres
 }
@@ -315,8 +316,15 @@ simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
 #' @export
 as.data.frame.margarita.sim.rl <-
 function(x, row.names=NULL, optional=FALSE, ...){
-    x <- as.data.frame(unclass(x))
-    x
+  x <- lapply(x, function(x) as.data.frame(unclass(x)))
+
+  M <- rep(names(x), each=nrow(x[[1]]))
+  x <- do.call("rbind", x)
+  cat("sick\n")
+  x <- as.data.frame(x)
+  cat("scratch\n")
+  x$M <- M
+  x
 }
 
 #' @method print margarita.sim.rl
@@ -340,31 +348,36 @@ function(x, ...){
 summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
     baseline <- attr(object, "baseline")
     invtrans <- attr(object, "invtrans")
-    object <- as.data.frame(object)
     scale <- margaritaScale(scale)
     
     # Get quantiles for credible interval
     qu <- getCIquantiles(alpha)
        
     sims <- c(baseline, "fitted", "RLraw", "RLfull")
-    groups <- names(object)[!is.element(names(object), sims)]
+    groups <- names(object[[1]])[!is.element(names(object[[1]]), sims)]
 
-    groups <- object[, groups, drop=FALSE]
+    groups <- object[[1]][, groups, drop=FALSE]
     groups <- apply(groups, 2, as.character)
     groups <- apply(groups, 1, paste, collapse=" ")
 
-    # Get response: the raw values, proportional or absolute change from baseline
-    x <- switch(scale,
-                "r" = invtrans(object$RLfull),
-                "p" = invtrans(object$RLfull)/object[, baseline],
-                "d" = invtrans(object$RLfull) - object[, baseline])
-
-    res <- tapply(x, groups, quantile, prob=qu)
-    # Groups have been reordered alphabeticall. Revert to original order
-    res <- res[unique(groups)]
-
-    res <- t(do.call("data.frame", res))
-    colnames(res) <- paste("Q", qu*100, "%", sep = "")
+    getSummaries <- function(o){
+      o <- as.data.frame(o)
+      # Get response: the raw values, proportional or absolute change from baseline
+      x <- switch(scale,
+                  "r" = invtrans(o$RLfull),
+                  "p" = invtrans(o$RLfull)/o[, baseline],
+                  "d" = invtrans(o$RLfull) - o[, baseline])
+      
+      res <- tapply(x, groups, quantile, prob=qu)
+      # Groups have been reordered alphabeticall. Revert to original order
+      res <- res[unique(groups)]
+      
+      res <- t(do.call("data.frame", res))
+      colnames(res) <- paste("Q", qu*100, "%", sep = "")
+      rownames(res) <- unique(groups)
+      res
+    }
+    res <- lapply(object, getSummaries)
 
     oldClass(res) <- "summary.margarita.sim.rl"
     res
@@ -372,7 +385,20 @@ summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
 
 #' @method as.data.frame summary.margarita.sim.rl
 #' @export
-as.data.frame.summary.margarita.sim.rl <- as.data.frame.margarita.sim.rl
+as.data.frame.summary.margarita.sim.rl <- function(x, row.names=NULL, optional=FALSE, ...){
+  M <- rep(names(x), each=nrow(x[[1]]))
+  groups <- rep(rownames(x[[1]]), each=length(x))
+
+  x <- do.call("rbind", x)
+  x <- as.data.frame(x)
+
+  x$groups <- groups
+  x$M <- M
+
+  rownames(x) <- 1:nrow(x)
+  x
+}
+
 
 #' @method print summary.margarita.sim.rl
 #' @export

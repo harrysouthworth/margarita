@@ -3,14 +3,14 @@
 #         estimates and interval estimates, and a column called 'group'.
 getSegmentData <- function(data){
     if (ncol(data) > 5){
-        seg1 <- data.frame(lo=data[, 1], hi=data[, 5], group=data$group, stringsAsFactors=FALSE)
-        seg2 <- data.frame(lo=data[, 2], hi=data[, 4], group=data$group, stringsAsFactors=FALSE)
+        seg1 <- data.frame(lo=data[, 1], hi=data[, 5], group=data$groups, stringsAsFactors=FALSE)
+        seg2 <- data.frame(lo=data[, 2], hi=data[, 4], group=data$groups, stringsAsFactors=FALSE)
         if (any(seg1[, "lo"] > seg1[, "hi"]) | any(seg2[, "lo"] > seg2[, "hi"])){
             stop("CI segments with lo > hi")
         }
     }
     else if (ncol(data) > 3) {
-        seg1 <- data.frame(lo=data[, 1], hi=data[, 3], group=data$group, stringsAsFactors=FALSE)
+        seg1 <- data.frame(lo=data[, 1], hi=data[, 3], group=data$groups, stringsAsFactors=FALSE)
         seg2 <- NULL
         if (any(seg1[, "lo"] > seg1[, "hi"])){
             stop("CI segments with lo > hi")

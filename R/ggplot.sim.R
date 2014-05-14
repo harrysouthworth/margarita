@@ -6,14 +6,19 @@ ggplot.summary.margarita.sim.rl <- function(data=NULL, trans="log10", labels=com
                                          ptsize=4, linesize=c(.5, 1.5),
                                          ...){
     data <- as.data.frame(data)
+    
+    ng <- length(unique(data$groups))
+    if (ng == 1) data$groups <- data$M
+    
     nint <- ncol(data)/2 - .5 # Number of intervals
 
     names(data)[ncol(data)/2 + .5] <- "median" # Middle column (could be mean or median or something else)
-    data$group <- factor(rownames(data), levels=rownames(data))
+#    data$group <- factor(rownames(data), levels=rownames(data))
 
     seg <- getSegmentData(data)    
-
-    p <- ggplot(data=data, aes(median, group)) +
+browser()
+    p <- ggplot(data=data, aes(median, groups)) +
+             if (ng > 1) facet_wrap(~M) +
              geom_point(size=ptsize, color=ptcol) +
              scale_x_continuous(xlab, trans=trans, labels=labels) +
              scale_y_discrete(ylab) +
