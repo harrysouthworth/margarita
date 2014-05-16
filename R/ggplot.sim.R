@@ -6,19 +6,20 @@ ggplot.summary.margarita.sim.rl <- function(data=NULL, trans="log10", labels=com
                                          ptsize=4, linesize=c(.5, 1.5),
                                          ...){
     data <- as.data.frame(data)
+    data$M <- factor(data$M, levels=data$M)
     
     ng <- length(unique(data$groups))
-    if (ng == 1) data$groups <- data$M
+    if (ng == 1) data$groups <- data$M # <------------------ Redundant now???
     
     nint <- ncol(data)/2 - .5 # Number of intervals
 
-    names(data)[ncol(data)/2 + .5] <- "median" # Middle column (could be mean or median or something else)
+    names(data)[(ncol(data)-2)/2 + .5] <- "median" # Middle column (could be mean or median or something else)
 #    data$group <- factor(rownames(data), levels=rownames(data))
 
     seg <- getSegmentData(data)    
-browser()
-    p <- ggplot(data=data, aes(median, groups)) +
-             if (ng > 1) facet_wrap(~M) +
+
+    if (ng > 1){
+      p <- ggplot(data=data, aes(median, groups)) +
              geom_point(size=ptsize, color=ptcol) +
              scale_x_continuous(xlab, trans=trans, labels=labels) +
              scale_y_discrete(ylab) +
@@ -26,9 +27,23 @@ browser()
              geom_segment(data=seg[[1]], aes(x=lo, xend=hi, y=group, yend=group),
                           size=linesize[1], color=linecol[1]) +
              if (!is.null(seg[[2]])){
-                 geom_segment(data=seg[[2]], aes(x=lo, xend=hi, y=group, yend=group),
-                              size=linesize[2], color=linecol[2])
+               geom_segment(data=seg[[2]], aes(x=lo, xend=hi, y=group, yend=group),
+                            size=linesize[2], color=linecol[2])
+             } # Close if
+    } # Close if ng > 1
+    else{
+      p <- ggplot(data=data, aes(median, groups)) +
+             geom_point(size=ptsize, color=ptcol) +
+             scale_x_continuous(xlab, trans=trans, labels=labels) +
+             scale_y_discrete(ylab) +
+             ggtitle(main) +
+             geom_segment(data=seg[[1]], aes(x=lo, xend=hi, y=group, yend=group),
+                          size=linesize[1], color=linecol[1]) +
+             if (!is.null(seg[[2]])){
+               geom_segment(data=seg[[2]], aes(x=lo, xend=hi, y=group, yend=group),
+                            size=linesize[2], color=linecol[2])
              }
+    }
     p
 }
 
@@ -57,7 +72,7 @@ ggplot.summary.margarita.sim.prob <- function(data=NULL, ptcol="blue",
 
     # Make groups to trellis on
     data <- do.call("rbind", data)
-    data$group <- factor(g, levels=unique(g))
+    data$groups <- factor(g, levels=unique(g))
     if (ncol(data) == 7){
         names(data)[3] <- "mid"
     }
@@ -71,7 +86,7 @@ ggplot.summary.margarita.sim.prob <- function(data=NULL, ptcol="blue",
     seg <- getSegmentData(data)
     seg <- lapply(seg, function(x, M){ if (!is.null(x)){ x$M <- M }; x }, M=data$M)
 
-    p <- ggplot(data, aes(mid, group)) +
+    p <- ggplot(data, aes(mid, groups)) +
              geom_point(size=ptsize, color=ptcol) +
              facet_wrap(~M, scales=scales, ncol=ncol) +
              scale_x_continuous(xlab) +
