@@ -7,7 +7,7 @@ evidence <- function(){
                  c("Weak", "Modest", "Strong", "Very strong"))
     colnames(dev) <- c("Change in deviance", "Strength of evidence")
     rownames(dev) <- c("", " ", "  ", "   ")
-    xtable(dev, label="tab:deviance",
+    xtable(dev, label="tab:deviance", align="llr",
            caption="Interpretation of change in deviance in terms of strength of evidence.")
 }
 
