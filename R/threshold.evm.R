@@ -1,3 +1,4 @@
+#' @method ggplot mrl
 ggplot.mrl <- function(data, xlab = "Threshold", ylab = "Mean excess", main=NULL,
                        fill="light blue", col="blue",
                        addNexcesses=TRUE, textsize=4, ...){
@@ -27,6 +28,7 @@ ggplot.mrl <- function(data, xlab = "Threshold", ylab = "Mean excess", main=NULL
     p
 }
 
+#' @method ggplot gpdRangeFit
 ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NULL,
                                fill="orange", col="blue",
                                addNexcesses = TRUE, textsize=4, ...){
@@ -67,23 +69,13 @@ ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NUL
 
 #' Produce plots to aid threshold selection for GPD models
 #'
-#' @aliases ggplot.gpdThresh ggplot.mrl ggplot.gpdRangeFit
-#' @method ggplot gpdThresh
-#' @method ggplot mrl
-#' @method ggplot gpdRangeFit
+#' @aliases gpdThresh, ggplot.gpdThresh ggplot.mrl ggplot.gpdRangeFit
 #' @param x A numeric vector.
 #' @param umin The minimum value of x to use as a threshold. Defaults to \code{umin=quantile(x, .05)}.
 #' @param umax The maximum value of x to use as a threshold. Defaults to \code{umin=quantile(x, .95)}.
 #' @param nint The number of values of x at which to compute the parameters. Defaults to \code{nint=25}.
-#' @param data An object returned by \code{gpdThresh}.
-#' @param xlab Label for the x axis.
-#' @param ylab Label fo rthe y axis.
-#' @param main Main title.
-#' @param fill Fill colour for polynomials representing confidence regions.
-#' @param col Colour for lines.
-#' @param addNexcesses Whether or not to annotate the mean residual life plot with
-#'        the number of threshold excesses. Defaults to \code{TRUE}.
-#' @param textsize Font size for threshold excesses annotation.
+#' @param priorParameters A list containing the parameters of the prior distribution, passed through to \code{evm}.
+#' @param cov How to compute the covariance, passed through to \code{evm}. Defaults to \code{cov='observed'}, but you might want to use \code{cov='numeric'} if the computations are unstable.
 #' @param ... Additional arguments passed to \code{ggplot}.
 #' @return A list of graphical objects created by \code{ggplot}.
 #' @details The only argument is the data, so there is no control over other

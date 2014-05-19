@@ -8,18 +8,19 @@
 \begin{document}
 \title{margarita: making texmex more digestible}
 \author{Harry Southworth}
+\date{}
 \maketitle%\thispagestyle{empty}
 
 \section{Introduction}
 This document illustrates some usage of the margarita
-package for R. The purpose of the package is to provide
-{\tt ggplot} replacement functions for several of
-texmex's {\tt plot} functions, to enable simpler
+package for R~\cite{R}. The purpose of the package is to provide
+{\tt ggplot}~\cite{ggplot} replacement functions for several of
+texmex's~\cite{texmex} {\tt plot} functions, to enable simpler
 robust regression modelling, and to enable much easier
 prediction of return levels and threshold exceedance
 probabilities.
 
-The functionality or margarita is illustrated by
+The functionality of margarita is illustrated by
 reanalysing the liver data that can be found in the
 texmex package. We begin by loading the package and
 producing the shiftplots.
@@ -29,18 +30,19 @@ options(width=60)
 @
 
 <<shiftplots, echo=TRUE, fig.cap="Shiftplots of the liver data.">>=
-set.seed(20130516)
+set.seed(20140517)
 library(margarita)
 library(xtable)
 
-shiftplot(liver, aes(ALT.B, ALT.M), by=~dose, xlab="Baseline ALT (U/L)",
+shiftplot(liver, aes(ALT.B, ALT.M), by=~dose,
+          xlab="Baseline ALT (U/L)",
           ylab="Maximum ALT (U/L)")
 @
 
 \section{Robust regression}
 Robust regression can be performed using the {\tt lmr}
 (linear model robust) function. This function is a
-wrapper to {\tt rlm} in the MASS package, setting the
+wrapper to {\tt rlm} in the MASS~\cite{MASS} package, setting the
 method to MM and efficiency to 85\%. It also computes
 the coefficient covariance and attaches it to the
 returned object. A ggplot function for diagnostics is
@@ -51,7 +53,6 @@ liver$ndose <- as.numeric(liver$dose)
 mm <- lmr(log(ALT.M) ~ log(ALT.B) + ndose, data=liver)
 ggplot(mm)
 
-liver$r <- resid(mm)
 boxplot(mm, by="dose")
 @
 
@@ -63,6 +64,8 @@ at diagnostic plots, then refit by MCMC and look at diagnostic plots
 of the Markov chains.
 <<extreme, echo=TRUE>>=
 # Do threshold selection plots
+liver$r <- resid(mm)
+
 ggplot(gpdThresh(liver$r))
 
 # Fit GPD model by penalized ML
@@ -91,11 +94,9 @@ mods <- margarita(mm, gmod, newdata=nd,
 \section{Return levels}
 Return levels for clinical trial data can be simulated
 using the {\tt simulate} function with {\tt type=`rl'}
-(the default). Note that only one return level can be
-simulated at a time (e.g. the 100-patient return level),
-so if you want, say, the 100- and 1000-patient return
-levels, you'll need to call {\tt simulate} twice,
-once with {\tt M=100} and once with {\tt M=1000}.
+(the default). The simulations for various return levels
+can be run in a single call by passing a vector argument
+into the function.
 
 The first step before simulation is to create a new
 object of class `margarita' that contains the robust
@@ -104,9 +105,12 @@ functions infer from the number of draws from the
 posterior distributions contained in the extreme
 value model how many cases to simulate.
 
-To deal with all kinds of trial designs, the
-{\tt simulate} function requires a {\tt newdata}
-argument. The rows of {\tt newdata} should be
+If there are no covariates in the model, {\tt simulate}
+doesn't need the {\tt newdata} argument. However, if there
+are covariantes, in order
+to deal with all kinds of trial designs, the
+{\tt simulate} function requires {\tt newdata}
+The rows of {\tt newdata} should be
 unique and it should {\emph not} contain the baseline
 data. Baseline data are simulated internally by
 resampling from the data attached to the linear
@@ -120,8 +124,10 @@ suln <- s/36
 sFold <- summary(rl1000, scale="proportional")
 sDiff <- summary(rl1000, scale="difference")
 
-rownames(s) <- paste("Dose", LETTERS[1:4])
-rownames(sFold) <- rownames(sDiff) <- rownames(suln) <- rownames(s)
+# s and the others are lists with an element for each element of M
+rownames(s[[1]]) <- paste("Dose", LETTERS[1:4])
+rownames(sFold[[1]]) <- rownames(sDiff[[1]]) <-
+  rownames(suln[[1]]) <- rownames(s[[1]])
 gs <- ggplot(s, xlab="U/L")
 gsuln <- ggplot(suln, xlab="Multiples of ULN")
 gsFold <- ggplot(sFold, xlab="Fold-change from baseline")
@@ -133,7 +139,7 @@ Notice that for return levels, because of the way they are
 calculated, it is straightforward to change the scale
 after the calculations have been done. It is achieved by
 providing optional arguments to {\tt summary} or by
-manipulating the object returned by {\tt summary} direclty.
+manipulating the object returned by {\tt summary} directly.
 
 \section{Threshold exceedance probabilities}
 When simulating threshold exceedance probabilities, the
@@ -147,7 +153,8 @@ of multiples of baseline.
 <<prob, echo=TRUE>>=
 pULNs <- simulate(mods, type="prob",
                   M=36*c(1, 3, 10, 20),
-                  Mlabels=c("P(ALT > ULN)", "P(ALT > 3xULN)", "P(ALT > 10xULN)", "P(ALT > 20xULN)"))
+                  Mlabels=c("P(ALT > ULN)", "P(ALT > 3xULN)",
+                            "P(ALT > 10xULN)", "P(ALT > 20xULN)"))
 ps <- summary(pULNs)
 
 # Manually set the treatment group names
@@ -156,7 +163,8 @@ ggplot(ps, ncol=1)
 
 # Simulate fold-changes from baseline
 pBase <- simulate(mods, type="prob", M=c(2, 5, 10, 20),
-                  Mlabels=c("2-fold", "5-fold", "10-fold", "20-fold"),
+                  Mlabels=c("2-fold", "5-fold",
+                            "10-fold", "20-fold"),
                   scale="proportional")
 pbs <- summary(pBase)
 
@@ -165,5 +173,21 @@ names(pbs) <- LETTERS[1:4]
 ggplot(pbs, ncol=1, xlab="")
 @
 
+\begin{thebibliography}{99}
+\bibitem{R}R Core Team (2014). R: A language and environment for statistical
+computing. R Foundation for Statistical Computing, Vienna, Austria.
+URL http://www.R-project.org/.
 
+\bibitem{texmex}
+Harry Southworth and Janet E. Heffernan. texmex: Statistical modelling of extreme
+  values. R package version 2.2, 2013
+
+\bibitem{ggplot}
+H. Wickham. ggplot2: elegant graphics for data analysis. Springer New York, 2009
+
+\bibitem{MASS}
+W. N. Venables and B. D. Ripley Modern Applied Statistics with S. Fourth Edition.
+  Springer, New York, 2002. ISBN 0-387-95457-0
+
+\end{thebibliography}
 \end{document}

@@ -2,6 +2,7 @@
 \alias{simulate.margarita}
 \alias{simulate.margarita.prob}
 \alias{simulate.margarita.rl}
+\alias{simulate.margarita.simple}
 \title{Simulate return levels, probabilities of threshold exceedences or simple datasets from a robust linear model and an extreme value model}
 \usage{
 \method{simulate}{margarita}(object, nsim = 1, seed = NULL, type = "rl",

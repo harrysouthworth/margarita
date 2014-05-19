@@ -21,8 +21,6 @@
 
   \item{xlab}{Labels for x-axes.}
 
-  \item{ylab}{Labels for y-axes.}
-
   \item{nsim}{Number of simulated datasets to create to
   form tolerence regions.}
 
@@ -37,9 +35,6 @@
 
   \item{fill}{Colour for confidence regions. Defaults to
   \code{fill="orange"}}
-
-  \item{RetPeriodRange}{Range over which to compute return
-  levels.}
 
   \item{...}{Other arguments passed through to underlying
   plot functions.}

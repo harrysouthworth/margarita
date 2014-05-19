@@ -3,14 +3,13 @@
 \alias{ggplot.gpdThresh}
 \alias{ggplot.mrl}
 \alias{gpdThresh}
+\alias{gpdThresh,}
 \title{Produce plots to aid threshold selection for GPD models}
 \usage{
-\method{ggplot}{gpdThresh}(x, umin = quantile(x, 0.05), umax = quantile(x,
-  0.95), nint = 25, priorParameters = NULL, cov = "observed")
+gpdThresh(x, umin = quantile(x, 0.05), umax = quantile(x, 0.95),
+  nint = 25, priorParameters = NULL, cov = "observed")
 }
 \arguments{
-  \item{data}{An object created by \code{gpdThresh}.}
-
   \item{x}{A numeric vector.}
 
   \item{umin}{The minimum value of x to use as a threshold.
@@ -22,25 +21,13 @@
   \item{nint}{The number of values of x at which to compute
   the parameters. Defaults to \code{nint=25}.}
 
-  \item{data}{An object returned by \code{gpdThresh}.}
+  \item{priorParameters}{A list containing the parameters
+  of the prior distribution, passed through to \code{evm}.}
 
-  \item{xlab}{Label for the x axis.}
-
-  \item{ylab}{Label fo rthe y axis.}
-
-  \item{main}{Main title.}
-
-  \item{fill}{Fill colour for polynomials representing
-  confidence regions.}
-
-  \item{col}{Colour for lines.}
-
-  \item{addNexcesses}{Whether or not to annotate the mean
-  residual life plot with the number of threshold excesses.
-  Defaults to \code{TRUE}.}
-
-  \item{textsize}{Font size for threshold excesses
-  annotation.}
+  \item{cov}{How to compute the covariance, passed through
+  to \code{evm}. Defaults to \code{cov='observed'}, but you
+  might want to use \code{cov='numeric'} if the
+  computations are unstable.}
 
   \item{...}{Additional arguments passed to \code{ggplot}.}
 }

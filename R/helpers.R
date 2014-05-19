@@ -147,3 +147,50 @@ margaritaScale <- function(s){
         s
     }
 }
+
+#' Stack a list of data.frames or matrices
+#' 
+#' Stack a list of data.frames or matrices that have the same number of columns
+#' @importFrom utils stack
+#' @method stack list
+#' @export
+#' @param x A list containing data.frames or matrices with the same number of columns
+#' @param ... Additional arguments, currently unused.
+#' @details A rudimentary check is performed to see if the objects in \code{x} have the
+#'          same number of columns. If so, \code{rbind} is used to stack them.
+stack.list <- function(x, ...){
+  nc <- try(sapply(x, ncol), silent=TRUE)
+  if (is.numeric(nc) & length(unique(nc)) == 1)
+    do.call("rbind", x)
+  else
+    stop("x should be a list of data.frames or matrices with the same number of columns")
+}
+
+#' @export
+"/.summary.margarita.sim.rl" <- function(x, value){
+  x <- lapply(x, function(a) a/value)
+  oldClass(x) <- "summary.margarita.sim.rl"
+  x
+}
+
+#' @export
+"*.summary.margarita.sim.rl" <- function(x, value){
+  x <- lapply(x, function(a) a*value)
+  oldClass(x) <- "summary.margarita.sim.rl"
+  x
+}
+
+#' @export
+"-.summary.margarita.sim.rl" <- function(x, value){
+  x <- lapply(x, function(a) a-value)
+  oldClass(x) <- "summary.margarita.sim.rl"
+  x
+}
+
+#' @export
+"+.summary.margarita.sim.rl" <- function(x, value){
+  x <- lapply(x, function(a) a+value)
+  oldClass(x) <- "summary.margarita.sim.rl"
+  x
+}
+

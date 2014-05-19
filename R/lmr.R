@@ -92,6 +92,7 @@ ggplot.rlm <- function(data=NULL, hist.scale=10, ...){
 #' @param xlab Horizontal axis label. Defaults to \code{xlab=""}.
 #' @param ylab Vertical axis label. Defaults to \code{ylab="Scaled residuals"}.
 #' @param main Main title. Defaults to blank.
+#' @param size The size of the plot symbols. Defaults to 3.
 #' @param ptcol The colour of the residuals on the plot. Defaults to \code{"orange"}.
 #' @param boxcol The colour of the outline of the boxplots. Defaults to \code{"blue"}.
 #' @param boxfill The fill colour of the boxplots. Defaults to \code{"light blue"}.
@@ -135,6 +136,7 @@ boxplot.rlm <- function(x, by, jitter.width=.1, box=TRUE, xlab="", ylab="Scaled 
 #' @param ptcol The colour for points on the plots.
 #' @param linecol The colour for the reference line.
 #' @param ... Additional arguments to \code{ggplot}. Currently unused.
+#' @param theme An object produced by a call to \code{theme} to be added to the ggplot.
 #' @export shiftplot
 shiftplot <- function(data, aes, by=NULL, ncol=NULL, trans="identity",
                       xlab="Baseline", ylab="Maximum", main=NULL,

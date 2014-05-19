@@ -7,15 +7,12 @@
 \arguments{
   \item{data}{an object of class \code{rlm}.}
 
-<<<<<<< HEAD
-=======
   \item{hist.scale}{A scaleing factor for bin widths in the
   histogram. The default bin width will be
   \code{range(resid(data))/hist.scale)}. Defaults to
   \code{hist.scale=10}, which is smaler than the
   \code{ggplot} default of 30.}
 
->>>>>>> 4591c4fb24f23737cdfc16530762ecf577a56043
   \item{...}{Additional arguments passed to \code{ggplot}.
   Currently unused.}
 }

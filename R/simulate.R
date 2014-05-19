@@ -156,13 +156,14 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' the situation of extreme value modelling of residuals when predictions on
 #' the scale of the original data are required.
 #'
-#' @aliases simulate.margarita.rl simulate.margarita.prob
+#' @aliases simulate.margarita.rl simulate.margarita.prob simulate.margarita.simple
 #' @aliases as.data.frame.margarita.sim.rl print.margarita.sim.rl head.margarita.sim.rl
 #' @aliases as.data.frame.margarita.sim.prob print.margarita.sim.prob head.margarita.sim.prob
 #' @aliases summary.margarita.sim.rl summary.margarita.sim.prob
 #' @aliases ggplot.summary.margarita.sim.rl ggplot.summary.margarita.sim.prob
 #' @aliases as.data.frame.summary.margarita.sim.rl print.summary.margarita.sim.rl
 #' @aliases as.data.frame.summary.margarita.sim.prob print.summary.margarita.sim.prob
+#' @aliases "/.summary.margarita.sim.rl" "*.summary.margarita.sim.rl" "-.summary.margarita.sim.rl" "+.summary.margarita.sim.rl"
 #' @param object An object of class 'margarita'
 #' @param nsim Unused argument.
 #' @param seed Unused argument.
@@ -290,7 +291,7 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     out
 }
 
-#' Simulate pairs of baselines and on-treatment values
+# Simulate pairs of baselines and on-treatment values
 simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
   if (class(object) != "margarita") stop("object should be of class margarita")
   s <- simLinear(object[[1]], object[[2]], newdata=object$newdata,
@@ -445,19 +446,3 @@ print.summary.margarita.sim.prob <- function(x, ...){
     invisible()
 }
 
-#' Stack a list of data.frames or matrices
-#' 
-#' Stack a list of data.frames or matrices that have the same number of columns
-#' @method stack list
-#' @export
-#' @param x A list containing data.frames or matrices with the same number of columns
-#' @param ... Additional arguments, currently unused.
-#' @details A rudimentary check is performed to see if the objects in \code{x} have the
-#'          same number of columns. If so, \code{rbind} is used to stack them.
-stack.list <- function(x, ...){
-  nc <- try(sapply(x, ncol), silent=TRUE)
-  if (is.numeric(nc) & length(unique(nc)) == 1)
-    do.call("rbind", x)
-  else
-    stop("x should be a list of data.frames or matrices with the same number of columns")
-}

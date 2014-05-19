@@ -42,6 +42,9 @@ shiftplot(data, aes, by = NULL, ncol = NULL, trans = "identity",
 
   \item{...}{Additional arguments to \code{ggplot}.
   Currently unused.}
+
+  \item{theme}{An object produced by a call to \code{theme}
+  to be added to the ggplot.}
 }
 \description{
 Shiftplots using ggplot with optional trellising

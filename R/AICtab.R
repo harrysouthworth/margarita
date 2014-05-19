@@ -1,6 +1,8 @@
+
 #' Get an xtable object that describes change in deviance in terms of
 #' strength of evidence
 #' 
+#' @import xtable
 #' @export
 evidence <- function(){
     dev <- cbind(c("< 2", "2 -- 6", "6 -- 10", "> 10"),
@@ -16,6 +18,8 @@ evidence <- function(){
 #' @param x A list, each element of which is an object of class "evm". It is
 #'          assumed that the first element of \code{x} is the null model.
 #' @param digits The number of significant digits to display.
+#' @param label The label to use for the table. Defaults to \code{label='tab:aic'}.
+#' @param caption The caption for the table.
 #' @details Use \code{print(res, sanitize.text.function=function(x) x, include.rownames=FALSE)}.
 #' @export
 AICtable <- function(x, digits=3, label="tab:aic",

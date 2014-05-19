@@ -12,6 +12,11 @@ AICtable(x, digits = 3, label = "tab:aic",
 
   \item{digits}{The number of significant digits to
   display.}
+
+  \item{label}{The label to use for the table. Defaults to
+  \code{label='tab:aic'}.}
+
+  \item{caption}{The caption for the table.}
 }
 \description{
 Take a list of evmOpt objects and return an xtable

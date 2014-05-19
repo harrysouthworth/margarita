@@ -77,7 +77,7 @@ ggplotrl <-
 function(data, alpha = .050,
          xlab, ylab, main,
          ptcol = "blue", col = "light blue", fill = "orange",
-         RetPeriodRange=NULL, ...){
+         ...){
 
     wh <- sapply(data$data$D, ncol)
     if (any(wh > 1)){
@@ -87,7 +87,7 @@ function(data, alpha = .050,
     if (missing(ylab) || is.null(ylab)) { ylab <- "Return level" }
     if (missing(main) || is.null(main)) { main <- "Return Level Plot" }
 
-    wh <- getPlotRLdata(data, alpha, RetPeriodRange)
+    wh <- getPlotRLdata(data, alpha, NULL)
 
     o <- order(wh$m) # in case the return period are not in ascending order.
     wh$m <- wh$m[o]
@@ -117,13 +117,11 @@ function(data, alpha = .050,
 #' @param which Which plots to produce. Defaults to \code{which=1:4}.
 #' @param main Main titles. Should have length 4.
 #' @param xlab Labels for x-axes.
-#' @param ylab Labels for y-axes.
 #' @param nsim Number of simulated datasets to create to form tolerence regions.
 #' @param alpha Used to compute coverage of pointwise confidence intervals.
 #' @param ptcol Colour for points. Defaults to \code{ptcol="blue"}.
 #' @param col Colour for lines. Defaults to \code{col="light blue"}.
 #' @param fill Colour for confidence regions. Defaults to \code{fill="orange"}
-#' @param RetPeriodRange Range over which to compute return levels.
 #' @details The function attempts to arrange the plots nicely. If the output
 #'          isn't what was wanted, the function returns the graphs to the user
 #'          as a list so that the user can use \code{grid.arrange} directly.

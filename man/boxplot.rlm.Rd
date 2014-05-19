@@ -27,6 +27,8 @@
 
   \item{main}{Main title. Defaults to blank.}
 
+  \item{size}{The size of the plot symbols. Defaults to 3.}
+
   \item{ptcol}{The colour of the residuals on the plot.
   Defaults to \code{"orange"}.}
 

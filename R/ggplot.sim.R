@@ -1,12 +1,13 @@
 #' @method ggplot summary.margarita.sim.rl
 #' @export
+#' @importFrom scales comma
 ggplot.summary.margarita.sim.rl <- function(data=NULL, trans="log10", labels=comma,
                                          xlab="Return level", ylab="", main=NULL,
                                          ptcol="blue", linecol=c("blue", "blue"),
                                          ptsize=4, linesize=c(.5, 1.5),
                                          ...){
     data <- as.data.frame(data)
-    data$M <- factor(data$M, levels=data$M)
+    data$M <- factor(data$M, levels=unique(data$M))
     
     ng <- length(unique(data$groups))
     if (ng == 1) data$groups <- data$M # <------------------ Redundant now???
