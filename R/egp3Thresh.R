@@ -11,7 +11,7 @@
 #' @export
 egp3Thresh <- function(data, umin=0, umax=quantile(data, .75),
                        nint = 20, penalty="gaussian", priorParameters=NULL, alpha=.05){
-  if (umin < 0) stop("EGP3 models can only be fit to non-negative values, so umin must be >= 0")
+  #if (umin < 0) stop("EGP3 models can only be fit to non-negative values, so umin must be >= 0")
   wh <- egp3RangeFit(data=data, umin=umin, umax=umax, nint=nint, penalty=penalty,
                    priorParameters=priorParameters, alpha=alpha)
 
