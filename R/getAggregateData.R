@@ -11,7 +11,7 @@
 #' @param value The name of the column containing the test values. Defaults to \code{aval}
 #' @param aggregate.fun The function to do the aggregation. Defaults to \code{max}
 #' @details Subjects with no post-baseline values are excluded from the output data. Also, no treatment codes are included in the output; these should be spliced in from another dataset. If the baseline column does not exist, the function attempts to use the last observed value at the stated baseline visit.\n The code was commissioned by AstraZeneca and ought to work with their implementation of SDTM: other implementations may differ.
-#' @export getAggregatedata
+#' @export
 getAggregateData <- function(data, subject="usubjid", test="lbtest", test.value="ALT (SGOT)",
                          visit="visitnum", baseline.visit=1, max.study.visit=90,
                          baseline="base", value="aval", aggregate.fun=max){
