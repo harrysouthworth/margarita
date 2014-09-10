@@ -85,12 +85,13 @@ getStudyDay <- function(data, datecol="vsdt", id="usubjid", visit="visit", base.
 }
 
 #' Add baseline values of the analysis variable to an analysis dataset
-#' @param data A data.frame
+#' @param data A \code{data.frame}
 #' @param id The unique patient identifier. Defaults to \code{id = "usubid"}
-#' @param vist The name of the visit column. Defaultso to \code{visit="visit}, but a days on study column could be used instead
+#' @param visit The name of the visit column. Defaultso to \code{visit="visit"}, but a days on study column could be used instead
 #' @param base.visit The value of the visit column at the time the baselne measurements are made
 #' @param value The column containing the data values to be analysed
-#' @detail If multiple measurements are available for some patients at baseline, one is chosen almost arbitrarily
+#' @details If multiple measurements are available for some patients at baseline, one is chosen almost arbitrarily
+#' @export
 getBaselines <- function(data, id="usubjid", visit="visit", base.visit =1, value="aval"){
   data <- data[!is.na(data[, value]), ]
   b <- data[data[, visit] == base.visit, ]
