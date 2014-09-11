@@ -44,5 +44,12 @@ AICtable <- function(x, digits=3, label="tab:aic",
     # Even if print.xtable is told to ignore rownames, the align argument needs to assume
     # they're there, which is why it appears to have the wrong length.
     res <- xtable(res, label=label, caption=caption, align=c("l", "l", rep("r", 4)))
+    oldClass(res) <- "AICtable"
     res
+}
+
+#' @method print AICtable
+print.AICtable <- function(x, ...){
+  print.xtable(x, include.rownames=FALSE, sanitize.colnames.function=function(x) x)
+  invisible()
 }

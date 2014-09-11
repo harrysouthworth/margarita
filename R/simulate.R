@@ -117,7 +117,6 @@ simLinear <- function(lmod, gmod, newdata=NULL,
     if (ur != nrow(newdata)){
         stop("newdata should have unique rows")
     }
-
     # Get simulated baselines
     b <- simBase(lmod, gmod, baseline=baseline)
     nsim <- length(b)
@@ -127,7 +126,6 @@ simLinear <- function(lmod, gmod, newdata=NULL,
     newdata <- newdata[rep(1:nrep, each=nsim),, drop=FALSE]
 
     newdata[, rawBaseline] <- invtrans(b) # b gets repeated nrow times
-
     # Get design matrix and simulate parameters from linear model
     fo <- lmod$call$formula
     fo[[2]] <- NULL
@@ -191,12 +189,14 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #'        for return levels, or P(yMax > 2, 5, 10 times yBase)). If
 #'        \code{scale='difference'}, absolute changes from baseline are
 #'        assumed.
+#' @param Mlabels Labels to be used in the output. Defaults to \code{Mlabels=NULL}
+#'        in which case the function guesses at meaningful labels.
 #' @param ... Other agruments passed to \code{simulate}. Currently unused.
 #' @keywords datagen
 #' @method simulate margarita
 #' @export
 simulate.margarita <- function(object, nsim=1, seed=NULL,
-                               type="rl", M=NULL, scale="raw", ...){
+                               type="rl", M=NULL, scale="raw", Mlabels=NULL, ...){
     if (missing(M) & type != "simple"){
         stop("You must provide a value for M")
     }
@@ -205,7 +205,7 @@ simulate.margarita <- function(object, nsim=1, seed=NULL,
                   "rl" =, "return" =, "return level" =
                       simulate.margarita.rl(object, nsim=nsim, seed=seed, M=M, ...),
                   "prob" =, "probability"=, "excess probability" = 
-                      simulate.margarita.prob(object, nsim=nsim, seed=seed, M=M, scale=scale, ...),
+                      simulate.margarita.prob(object, nsim=nsim, seed=seed, M=M, scale=scale, Mlabels=Mlabels, ...),
                   "simple"= simulate.margarita.simple(object, nsim=nsim, seed=seed, ...)
                   )
     attr(res, "baseline") <- object$rawBaseline
@@ -222,9 +222,6 @@ simulate.margarita <- function(object, nsim=1, seed=NULL,
 }
 
 simulate.margarita.rl <- function(object, nsim=1, seed=NULL, M=NULL, ...){
-    #if (length(M) != 1){
-    #    stop("Currently, M must have length 1.")
-    #}
     object <- unclass(object)
 
     res <- simLinear(object[[1]], object[[2]], newdata=object$newdata,
@@ -285,7 +282,7 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     names(out) <- onms
     
     if (is.null(Mlabels)) Mlabels <- paste("RL =", format(M))
-
+#browser()
     out <- lapply(out, function(x, m){ colnames(x) <- m; x }, m=Mlabels)
 
     out
@@ -445,4 +442,3 @@ print.summary.margarita.sim.prob <- function(x, ...){
     }
     invisible()
 }
-
