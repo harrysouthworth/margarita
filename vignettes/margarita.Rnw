@@ -13,27 +13,136 @@
 
 \section{Introduction}
 This document illustrates some usage of the margarita
-package for R~\cite{R}. The purpose of the package is to provide
-{\tt ggplot}~\cite{ggplot} replacement functions for several of
-texmex's~\cite{texmex} {\tt plot} functions, to enable simpler
-robust regression modelling, and to enable much easier
-prediction of return levels and threshold exceedance
-probabilities.
+package for R~\cite{R}. The margarita package is designed to simplify extreme
+value modelling of clinical trial lab safety data, as described by Southworth
+\& Heffernan~\cite{southHeff}. For non-clinical trial use, the package also
+provides ggplot~\cite{ggplot} replacement functions for several of the
+texmex~\cite{texmex} plot functions.
 
-The functionality of margarita is illustrated by
-reanalysing the liver data that can be found in the
-texmex package. We begin by loading the package and
-producing the shiftplots.
+Development of the margarita package was partially funded by AstraZeneca who have
+kindly made it publically available.
+
+The major gains in efficiency in the analysis of clinical trial safety data come
+from simpler robust regression modelling and simpler simulation of return levels
+and upper limit of normal exceedance probabilities.
+
+Attempts are made at automatic threshold selection, including use of the EGP3
+distribution of Papastathopoulos \& Tawn~\cite{egp}. However, this functionality
+relies on known context of clinical trial safety data and might not work well in
+other contexts. In any event, automatic threshold selection appears to be a tricky
+matter~\cite{scarrottMacDonald} and standard diagnostic plots should always be studied.
+
+Further, margarita attempts to make the restructuring of CDISC~\cite{CDISC} STDM lab data
+straighforward, though this functionality is based on AstraZeneca's implementation
+of STDM and might be in appropriate or need adjustment for other implementations.
 
 <<width, echo=FALSE>>=
 options(width=60)
 @
 
-<<shiftplots, echo=TRUE, fig.cap="Shiftplots of the liver data.">>=
-set.seed(20140517)
-library(margarita)
-library(xtable)
+\section{Data importation}
+Typically, the data will exist in SAS formats with file extensions {\tt .sas7bdat}.
+In what follows, we assume that the availble SAS datasets are uncompressed and do
+not rely on format catalogues. If in your particular case those circumstances do
+not hold, you might want to explore some of the options discussed below. With
+increasing amounts of outsourcing and inlicencing, it is likely that these such
+alternatives will prove necessary in the future.
 
+Supposing the SAS datasets to be held in directory {\tt user/data/}, we import
+using the following commands.
+
+<<data, echo=TRUE>>=
+library(margarita)
+#dataPath <- "/user/data/"
+#dm <- read.sas7bdat(paste0(dataPath, "dm.sas7bdat"))
+#lb <- read.sas7bdat(paste0(dataPath, "lb.sas7bdat"))
+@
+
+
+\subsection{Non-standard SAS datasets}
+SAS dataset can be troublesome if SAS formats catalogues (particularly broken
+ones) are used, or if compressed SAS data is used. SAS do not publish the
+application programming interface for their datasets, nor do they publish their
+compression algorithm. Nevertheless, attempts have been made to reverse engineer
+the {\tt .sas7bdat} data files.
+
+The sas7bdat~\cite{sas7bdat} package for R, by Matt Shotwell works well at importing
+many SAS datasets into R, but does not attempt to work with compressed datasets.
+The SassyReader~\cite{sassyreader} project rewrote Shotwell's code into a Java
+library but still did not attempt to cope with compressed formats. More recently,
+GGA Software Services released their open source Parso~\cite{parso} Java library
+which appears to do a good job of reading SAS datasets, compressed or otherwise,
+and writing to comma separated values. In turn, Shotwell has now written an R
+package, sas7bdat.parso~\cite{sas7bdat.parso} to act as a wrapper to the GGA
+Parso library.
+
+Finally, it might be the case that expected columns are missing from the data, such
+as the number of days on study. Whilst, in general, it would be better to construct
+such columns in accordance with existing standards using SAS, the margarita
+package contains a few helper functions in order to reduce reliance on alternative
+software and personnel. See the {\tt margarita-package} help file for more information.
+
+\subsection{Data aggregation}
+If the {\tt lb} dataset already contains the treatment decodes and population
+flags, the {\tt dm} dataset will not likely be required. Supposing, though,
+that the treatment decodes and population flags need to be added to {\tt lb}
+we use
+
+<<addvars, echo=TRUE>>=
+#lb <- addVariables(lb, dm, vars=c("trt", "saffl"))
+#lb <- lb[lb$saffl == "Y", ]
+@
+
+The above code assumes that the unique subject identifier is called `usubjid'
+and that the treatment group and safety population flags are called `trt' and
+`saffl' respectively. See the help file for {\tt addVariables} for details on
+more control over the function:
+
+<<help, echo=FALSE>>=
+?addVariables
+@
+
+Our lab dataset {\tt lb} now contains all the informtion we need to do extreme
+value modelling, but an awful lot more besides. We now need to reduce it to baseline
+and post-baseline values of the lab variable of interest, retaining treatment
+group information along the way. We achieve this using the {\tt getAggregateData}
+function from the margarita package.
+
+<<aggregate, echo=TRUE>>=
+#liver <- getAggregateData(lb, test.value="ALT", visit="visitnum",
+#                          baseline.visit=1, value="aval")
+@
+
+The above function all tells R to take the {\tt lb} dataset, subset it to cases
+where {\tt lbtest} is `ALT', treat the baseline visit to be visit 1, and take
+the analysis variable to be `aval'. The function also defaults to taking the 
+maximum poast-baseline values, though this can be changed.
+
+Examining the help file for {\tt getAggregateData} gives more details of the
+options allowed. By default, the function assumes the test name to be held in
+a column called `lbtest' and the analysis values to be held in `aval'. In some
+cases, these might be a concatentation of two columns, the `paramcd' column, and
+the `lbstresn' column. Also, the function as called above assumes that the baseline
+column does not exist. If that is not the case, use the {\tt base} argument to
+override the function's attempt to reconstruct the baseline data.
+
+Finally, note that subjects who have no baseline value recorded, or no post-baseline
+value recorded, cannot be used in the analysis (unless some form of multiple
+imputation is to be employed, but in the extreme value setting it is not
+obvious how this would be done). As such, the dataset returned by
+{\\ getAggregateData} drops all such cases with missing values.
+
+We should now have an analysis-ready dataset, the first few rows of which look
+something like this:
+
+<<head, echo=TRUE>>=
+liver <- liver[, c("ALT.M", "ALT.B", "dose")]
+head(liver)
+@
+
+Shiftplots of the data appear in Figure~\ref{fig:shiftplots}.
+
+<<shiftplots, echo=TRUE, fig.cap="Shiftplots of the liver data.">>=
 shiftplot(liver, aes(ALT.B, ALT.M), by=~dose,
           xlab="Baseline ALT (U/L)",
           ylab="Maximum ALT (U/L)")
@@ -91,6 +200,25 @@ mods <- margarita(mm, gmod, newdata=nd,
                   baseline="ALT.B")
 @
 
+The {\tt simulate} functions infer from the number of draws from the
+posterior distributions contained in the extreme value model how many cases to
+simulate.
+
+If there are no covariates in the model, {\tt simulate}
+doesn't need the {\tt newdata} argument. However, if there
+are covariates {\em in either the robust linear model, the GPD
+model or both}, in order to deal with all kinds of trial designs, the
+{\tt simulate} function requires {\tt newdata} The rows of {\tt newdata} should
+be unique and it should {\emph not} contain the baseline data. Baseline data are
+simulated internally by resampling from the data attached to the linear
+model.
+
+The {\tt trans} argument tells the simulation function how the response variable
+is transformed in the robust linear model, and the {\tt invtrans} argument gives
+the reverse transformation. These default to {\tt log} and {\tt exp}, but in some
+cases might both be {\tt I} for the identity (i.e. no) transformation, or to
+{\tt sqrt} and {\tt function(x) x*x} for the square root and square transforms.
+
 \section{Return levels}
 Return levels for clinical trial data can be simulated
 using the {\tt simulate} function with {\tt type=`rl'}
@@ -98,23 +226,6 @@ using the {\tt simulate} function with {\tt type=`rl'}
 can be run in a single call by passing a vector argument
 into the function.
 
-The first step before simulation is to create a new
-object of class `margarita' that contains the robust
-linear model and the evmSim model. The {\tt simulate}
-functions infer from the number of draws from the
-posterior distributions contained in the extreme
-value model how many cases to simulate.
-
-If there are no covariates in the model, {\tt simulate}
-doesn't need the {\tt newdata} argument. However, if there
-are covariantes, in order
-to deal with all kinds of trial designs, the
-{\tt simulate} function requires {\tt newdata}
-The rows of {\tt newdata} should be
-unique and it should {\emph not} contain the baseline
-data. Baseline data are simulated internally by
-resampling from the data attached to the linear
-model.
 
 <<rl, echo=TRUE>>=
 rl1000 <- simulate(mods, type="rl", M=1000)
@@ -178,9 +289,24 @@ ggplot(pbs, ncol=1, xlab="")
 computing. R Foundation for Statistical Computing, Vienna, Austria.
 URL http://www.R-project.org/.
 
+\bibitem{southHeff}
+H. Southworth and J. E. Heffernan, Extreme value modelling of laboratory safety
+data from clinical studies, Pharmaceutical Statistics, 11, 361 -- 366, 2012
+
 \bibitem{texmex}
 Harry Southworth and Janet E. Heffernan. texmex: Statistical modelling of extreme
   values. R package version 2.2, 2013
+
+\bibitem{coles}
+S. Coles, An Introduction to the Statistical Modeling of Extreme Values, Springer,
+2001
+
+\bibitem{cdisc}
+Clinical Data Interchange Standards Constortium, http://www.cdisc.org
+
+\bibitem{scarrottMacDonalt}
+C. Scarrott and A. MacDonald, A review of extreme value threshold estimation
+and uncertainty quantification, REVSTAT Statistical Journal, 10, 33 -- 60, 2012
 
 \bibitem{ggplot}
 H. Wickham. ggplot2: elegant graphics for data analysis. Springer New York, 2009
@@ -188,6 +314,23 @@ H. Wickham. ggplot2: elegant graphics for data analysis. Springer New York, 2009
 \bibitem{MASS}
 W. N. Venables and B. D. Ripley Modern Applied Statistics with S. Fourth Edition.
   Springer, New York, 2002. ISBN 0-387-95457-0
+
+\bibitem{sas7bdat}
+M. Shotwell, sas7bdat: SAS Database Reader (experimental). R package version 0.4.
+  http://CRAN.R-project.org/package=sas7bdat, 2014
+
+\bibitem{sas7bdat.parso}
+M. Shotwell, sas7bdat.parso: Read sas7bdat files in R using the GGASoftware Parso library
+https://github.com/BioStatMatt/sas7bdat.parso, 2014
+
+\bibitem{sassyreader}
+K. S\/orensen, SassyReader -- Open source reader of SAS data sts for Java,
+http://kasper.eobjects.org/2011/06/sassyreader-open-source-reader-of-sas.html,
+2011
+
+\bibitem{parso}
+GGA Software Services, Parso Java Library, http://www.ggasoftware.com/opensource/parso,
+2014
 
 \end{thebibliography}
 \end{document}
