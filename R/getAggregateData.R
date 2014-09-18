@@ -27,13 +27,14 @@ getAggregateData <- function(data, subject="usubjid", test="lbtest", test.value=
 
   # Get baseline data
   b <- data[data[, visit] == baseline.visit, ]
-
-  if (baseline %in% names(data))
+  if (nrow(b) == 0) stop(paste("baseline.visit", 1, "leaves no data"))
+  
+  if (baseline %in% names(data)){
     b <- b[, c(subject, baseline)]
-  else{ # baseline is NULL
+  } else{ # baseline is NULL
     b <- b[order(b[, visit]), ]
     b <- b[order(b[, subject]), ]
-    b <- b[cumsum(rle(b[, subject])$lengths), c(subject, value)]
+    b <- b[cumsum(rle(as.character(b[, subject]))$lengths), c(subject, value)]
     names(b)[names(b) == value] <- baseline
   }
 
@@ -54,11 +55,15 @@ getAggregateData <- function(data, subject="usubjid", test="lbtest", test.value=
 #' @param subject The unique subject identifier. Defaults to \code{subject="usubjid"}
 #' @param vars Character vector with the names of the varialbes in \code{additional.data} to be added to \code{data}
 #' @param The function adds the first value of \code{var} as matched by \code{subject}. If that's not unique, you want to subset \code{additional.data} to make it uniqure, or sort it appropriately first.
+#' @details An alternative is to use the \code{join} function in the \code{plyr} package. NOTE that the call should
+#'          be like \code{mydata <- addVariables(mydata, otherdata, vars="trt")}: that is, the returned object is
+#'          a \code{data.frame}, NOT a new column to be appended to \code{myhdata}.
 #' @export
 addVariables <- function(data, additional.data, subject="usubjid", vars = "trt"){
-  for (var in vars){
-    data[, var] <- additional.data[match(data[, subject], additional.data[, subject]), var]
-  }
+  if (any(vars %in% names(data)))
+    stop("At least one variable already exists in the target data")
+  m <- match(data[, subject], additional.data[, subject])
+  for (var in vars) data[, var] <- additional.data[m, var]
   invisible(data)
 }
 
