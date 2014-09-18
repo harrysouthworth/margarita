@@ -1,15 +1,16 @@
 Package: margarita
 Type: Package
 Title: Support functions for texmex
-Version: 0.5
-Date: 2014-05-14
+Version: 0.7
+Date: 2014-09-05
 Depends:
     mvtnorm,
     ggplot2,
     texmex,
     gridExtra,
     xtable,
-    scales
+    scales,
+    sas7bdat
 Imports:
     MASS,
     utils
@@ -18,5 +19,10 @@ Maintainer: Harry Southworth <harry.southworth@gmail.com>
 Description: Functions to make simulation and presentation of return levels and
     probabilities of threshold excess easy, including simulation from robust
     linear models. Also includes ggplot alternatives to several texmex plot
-    functions and ggplot functions for simulated return levels and so on.
+    functions and ggplot functions for simulated return levels and so on. Some
+    of the development was paid for by AstraZeneca.
 License: GPL (>= 3)
+LazyLoad: yes
+LazyData: yes
+URL: https://github.com/harrysouthworth/margarita
+VignetteBuilder: knitr

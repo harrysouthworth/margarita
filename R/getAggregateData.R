@@ -17,6 +17,8 @@
 #'          Also, if a patient has a missing baseline value and no non-missing post-baseline
 #'          values, they are silently dropped from the returned data object.
 #'          The code was commissioned by AstraZeneca and ought to work with their implementation of SDTM: other implementations may differ.
+#' @examples alt <- getAggregateData(lb, test="lbtestcd", test.value="ALT")
+#'           alt <- addVariables(alt, dm, vars="armcd")
 #' @export
 getAggregateData <- function(data, subject="usubjid", test="lbtest", test.value="ALT",
                          visit="visitnum", baseline.visit=1, max.study.visit=Inf,
@@ -58,6 +60,7 @@ getAggregateData <- function(data, subject="usubjid", test="lbtest", test.value=
 #' @details An alternative is to use the \code{join} function in the \code{plyr} package. NOTE that the call should
 #'          be like \code{mydata <- addVariables(mydata, otherdata, vars="trt")}: that is, the returned object is
 #'          a \code{data.frame}, NOT a new column to be appended to \code{myhdata}.
+#' @examples lb <- addVariables(lb, dm, vars="armcd")
 #' @export
 addVariables <- function(data, additional.data, subject="usubjid", vars = "trt"){
   if (any(vars %in% names(data)))

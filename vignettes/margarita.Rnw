@@ -2,14 +2,11 @@
 %\VignetteIndexEntry{Using margarita with texmex}
 \documentclass[a4paper]{article}
 \usepackage[british]{babel}
-\usepackage{fancyhdr}
-\pagestyle{fancy}
-%\rfoot{\thepage}
 \begin{document}
 \title{margarita: making texmex more digestible}
 \author{Harry Southworth}
 \date{}
-\maketitle%\thispagestyle{empty}
+\maketitle
 
 \section{Introduction}
 This document illustrates some usage of the margarita
@@ -23,8 +20,9 @@ Development of the margarita package was partially funded by AstraZeneca who hav
 kindly made it publically available.
 
 The major gains in efficiency in the analysis of clinical trial safety data come
-from simpler robust regression modelling and simpler simulation of return levels
-and upper limit of normal exceedance probabilities.
+from simpler simulation of return levels and upper limit of normal exceedance
+probabilitiessimpler, as well as functions to support a standard approach to
+robust regression modelling.
 
 Attempts are made at automatic threshold selection, including use of the EGP3
 distribution of Papastathopoulos \& Tawn~\cite{egp}. However, this functionality
@@ -41,23 +39,34 @@ options(width=60)
 @
 
 \section{Data importation}
-Typically, the data will exist in SAS formats with file extensions {\tt .sas7bdat}.
+Typically, the data will exist in SAS datasets with file extensions {\tt .sas7bdat}.
 In what follows, we assume that the availble SAS datasets are uncompressed and do
 not rely on format catalogues. If in your particular case those circumstances do
 not hold, you might want to explore some of the options discussed below. With
 increasing amounts of outsourcing and inlicencing, it is likely that these such
-alternatives will prove necessary in the future.
+alternatives will prove necessary more commonly in the future.
 
-Supposing the SAS datasets to be held in directory {\tt user/data/}, we import
-using the following commands.
+Supposing the SAS datasets to be held in directory {\tt user/data/} (the path
+being relative to the R workspace in use), we import using the following commands.
 
-<<data, echo=TRUE>>=
+<<data, echo=TRUE, eval=FALSE>>=
 library(margarita)
-#dataPath <- "/user/data/"
-#dm <- read.sas7bdat(paste0(dataPath, "dm.sas7bdat"))
-#lb <- read.sas7bdat(paste0(dataPath, "lb.sas7bdat"))
+dataPath <- "/user/data/"
+dm <- read.sas7bdat(paste0(dataPath, "dm.sas7bdat"))
+lb <- read.sas7bdat(paste0(dataPath, "lb.sas7bdat"))
 @
 
+We can examine the first few rows, and summarize the data as follows:
+
+<<attach, echo=FALSE>>=
+# Previous codeblock was not evaluated so need to attach here.
+library(margarita)
+@
+
+<<summary, echo=TRUE>>=
+head(dm)
+summary(dm)
+@
 
 \subsection{Non-standard SAS datasets}
 SAS dataset can be troublesome if SAS formats catalogues (particularly broken
@@ -80,17 +89,23 @@ Finally, it might be the case that expected columns are missing from the data, s
 as the number of days on study. Whilst, in general, it would be better to construct
 such columns in accordance with existing standards using SAS, the margarita
 package contains a few helper functions in order to reduce reliance on alternative
-software and personnel. See the {\tt margarita-package} help file for more information.
+software and personnel.
 
 \subsection{Data aggregation}
+Typically, the lab dataset will contain data on a lot of lab variables. In our
+current case, we are interested only in ALT, so we subset down on that and find
+the baseline values and post-baseline maxima.
+
+<<subset, echo=FALSE>>=
+alt <- getAggregateData(lb, test="lbtestcd", test.value="ALT")
+@
+
 If the {\tt lb} dataset already contains the treatment decodes and population
 flags, the {\tt dm} dataset will not likely be required. Supposing, though,
-that the treatment decodes and population flags need to be added to {\tt lb}
-we use
+that the treatment decodes need to be added to {\tt lb} we use
 
 <<addvars, echo=TRUE>>=
-#lb <- addVariables(lb, dm, vars=c("trt", "saffl"))
-#lb <- lb[lb$saffl == "Y", ]
+alt <- addVariables(alt, dm, vars="armcd")
 @
 
 The above code assumes that the unique subject identifier is called `usubjid'
@@ -98,19 +113,8 @@ and that the treatment group and safety population flags are called `trt' and
 `saffl' respectively. See the help file for {\tt addVariables} for details on
 more control over the function:
 
-<<help, echo=FALSE>>=
+<<help, echo=FALSE, eval=FALSE>>=
 ?addVariables
-@
-
-Our lab dataset {\tt lb} now contains all the informtion we need to do extreme
-value modelling, but an awful lot more besides. We now need to reduce it to baseline
-and post-baseline values of the lab variable of interest, retaining treatment
-group information along the way. We achieve this using the {\tt getAggregateData}
-function from the margarita package.
-
-<<aggregate, echo=TRUE>>=
-#liver <- getAggregateData(lb, test.value="ALT", visit="visitnum",
-#                          baseline.visit=1, value="aval")
 @
 
 The above function all tells R to take the {\tt lb} dataset, subset it to cases
@@ -126,6 +130,12 @@ the `lbstresn' column. Also, the function as called above assumes that the basel
 column does not exist. If that is not the case, use the {\tt base} argument to
 override the function's attempt to reconstruct the baseline data.
 
+Note that it will often be the case that additional steps are necessary to tidy
+up the analysis dataset, such as removing screen failures and ensuring that
+`param' or `lbtestcd' really does uniquely identify lab tests (e.g. that they
+don't need to be combined with a column indicating if the source was serum, urine,
+or something else).
+
 Finally, note that subjects who have no baseline value recorded, or no post-baseline
 value recorded, cannot be used in the analysis (unless some form of multiple
 imputation is to be employed, but in the extreme value setting it is not
@@ -136,14 +146,13 @@ We should now have an analysis-ready dataset, the first few rows of which look
 something like this:
 
 <<head, echo=TRUE>>=
-liver <- liver[, c("ALT.M", "ALT.B", "dose")]
-head(liver)
+head(alt)
 @
 
 Shiftplots of the data appear in Figure~\ref{fig:shiftplots}.
 
 <<shiftplots, echo=TRUE, fig.cap="Shiftplots of the liver data.">>=
-shiftplot(liver, aes(ALT.B, ALT.M), by=~dose,
+shiftplot(alt, aes(base, aval), by=~armcd,
           xlab="Baseline ALT (U/L)",
           ylab="Maximum ALT (U/L)")
 @
@@ -153,37 +162,195 @@ Robust regression can be performed using the {\tt lmr}
 (linear model robust) function. This function is a
 wrapper to {\tt rlm} in the MASS~\cite{MASS} package, setting the
 method to MM and efficiency to 85\%. It also computes
-the coefficient covariance and attaches it to the
+the coefficient covariance matrix and attaches it to the
 returned object. A ggplot function for diagnostics is
 provided.
 
-<<lmr, echo=TRUE>>=
-liver$ndose <- as.numeric(liver$dose)
-mm <- lmr(log(ALT.M) ~ log(ALT.B) + ndose, data=liver)
-ggplot(mm)
+In our data, dose is ordered such that $A < B < C < D$. We take advantage of
+this structure by assuming linearity in dose and recoding A -- D as 1 -- 4.
 
-boxplot(mm, by="dose")
+<<lmr, echo=TRUE, fig.cap="Diagnostic plots from the robust regression of the ALT data.">>=
+alt$ndose <- as.numeric(alt$armcd)
+mm <- lmr(log(aval) ~ log(base) + ndose, data=alt)
+ggplot(mm)
 @
+
+The reason for using {\em robust} regression is that we do not expect the data to be
+normally distributed, but to have outliers. Whilst most robust regression methods
+implicitly assume the distribution to be symmetric, in practice parameter estimates
+are very little affected by skew in the data. In Figure~\ref{fig:lmr}, it can be
+seen in the QQ-plot (top left panel) that the residuals drift away from the reference
+line to the bottom left, but more so to the top right. This indicates outliers
+to the right, confirming the lack of normality in the data. The outliers can
+also be seen in the other panels of Figure~\ref{fig:lmr}. The bottom left panel
+shows plots of residuals versus fitted values and the smoother should be near-horizontal
+(excusing end-effects) through the bulk of the data. The bottom right panel shows
+the observed values versus teh fitted values and should show (as it does) a near linear
+relationship with little evidence of non-constant variance.
+
+We can also look at boxplots of scaled residuals by treatment group.
+<<boxplots, echo=TRUE, fig.cap="Boxplots of residuals from the robust regression, by dose group.">>=
+boxplot(mm, by="armcd")
+@
+
+In Figure~\ref{fig:boxplots} we can see a fairly clear dose-response relationship
+between, with there being few outliers in the lower dose groups and more, and larger,
+outliers in the higher dose groups. In practice, it is often at this stage of the
+analysis that the presence or absence of treatment effects begins to become clear.
+Note that the residuals in Figure~\ref{fig:boxplots} have been scaled so that values
+beyond about $\pm 2.5$ are inconsistent with normality, justifying the use
+of robust estimation.
 
 \section{Extreme value modelling}
 We now move on to fit generalized Pareto distributions to the
-residuals from the robust regression. First we examine some threshold
-selection plots, then fit the model by maximum likelihood and look
-at diagnostic plots, then refit by MCMC and look at diagnostic plots
-of the Markov chains.
-<<extreme, echo=TRUE>>=
+residuals from the robust regression.
+
+\subsection{Threshold selection}
+Before fitting GPD models, we need to select a threshold above which GPD models
+are likely to be reasonable. We proceed firstly by producing some plots to
+aid threshold selection.
+
+<<thresh, echo=TRUE, fig.cap="Threshold selection plots for the residual ALT values.">>=
 # Do threshold selection plots
-liver$r <- resid(mm)
+alt$r <- resid(mm)
+ggplot(gpdThresh(alt$r))
+@
 
-ggplot(gpdThresh(liver$r))
+The top row of Figure~\ref{fig:thresh} displays plots of the scale and shape
+parameters in the generalized Pareto distribution above increasing thresholds.
+Following Coles~\cite{coles}, these should be constant above a threshold suitable
+for thresholding and, to make use of as much data as possible, we want to choose
+the lowest threshold possible. Accounting for the uncertainty represented by the
+approximate pointwise confidence intervals on the graphs, a threshold close to
+zero, or perhaps a little higher, looks like it should be ok.
 
+The lower left panel of Figure~\ref{fig:thresh} shows the {\em mean residual life}
+(MRL) plot, again discussed by Coles~\cite{coles}. The MRL plot should be linear
+above a suitable threshold, uncertainty accounted for. In practice, interpretation
+of such plots requires some practice, but in this case a threshold close to zero
+seems like it might be reasonable.
+
+The bottom right panel of Figure~\ref{fig:thresh} contains a threshold selection
+plot suggested by Papastathoploulos and Tawn~\cite{egp}. The horizontal axis
+is a range of thresholds and the vertical axis is the value of estimated
+power parameter $\kappa$ in the EGP3 distribution. At the point where
+$\kappa = 1$, the EPG3 distribution is identical to the GP distribution, suggesting
+that the lowest threshold for which the confidence interval for $\hat\kappa$
+contains 1 as a candidate. It can be seen that the displayed pointwise confidence
+interval crosses or comes close to the horizontal reference line at 1 at thresholds
+around zero, 0.125 and then above about 0.3. Again, this suggests that a threshold
+of zero or a little higher might be appropriate.
+
+In Figure~\ref{fig:thresh}, the data are {\em all} of the residuals from the robust
+regression with no account being taken of dose (or any other covariate). As such,
+they can only be considered to be approximations of what we really want, which
+is a threshold above which GPD modelling accounting for dose is appropriate.
+
+\subsubsection{A test for threshold selection}
+Papastathopoulos and Tawn~\cite{egp} suggest selecting the lowest threshold above
+which the confidence interval for $\hat\kappa$ contains 1. In the context of
+clincial trials, we typically have fewer observations than in other settings, so
+some care is needed in applying this approach.
+
+Because we are modelling residuals from a robust linear model, the shape of the
+distribution of those residuals should be not far from symmetric and should be
+centered close to zero. This suggests that any threshold beneath the median of
+the residuals would be inappropriate because the shape above a lower threshold
+would not be compatible with the shape of the GP distribution.
+
+Also, due to the sample sizes we expect in practice, if we reject all the
+residuals beneath about the $75^{th}$ percentile, then we will be left with too
+few to do any reasonable modelling with.
+
+As such, when testing for a threshold, we restrict attention to values between
+the median and the $75^{th}$ percentile of the residuals (though these default
+values can be changed).
+
+Further details of the implementation of the EGP3 test in margarita are as follows.
+The function \code{egp3Thresh} calls on \code{egp3RangeFit} from the texmex
+package. It then interpolates through the values of $\hatkappa$ and its confidence
+intervals before looking for the lowest threshold at which the confidence interval
+contains 1, and returning that threshold as well as the threshold for which
+$\hat\kappa$ is closest to 1. If no confidence interval contains 1, the function
+issues a warning.
+
+We now try the test on the residual ALT data. As with the threshold selection
+plots in Figure~\ref{fig:thresh}, the test can be considered only approximate
+because it takes no account of dose, which is what we are actually interested in.
+
+<<test, echo=TRUE>>=
+egp3Thresh(alt$r)
+@
+
+None of the confidence intervals contained 1, so we got a warning and a value
+of {\tt Inf}. The threshold for which the value of $\hat\kappa$ is closest to
+1 is 0.0967. This value corresponds with what we can read off the lower right
+panel of Figure~\ref{fig:thresh}. Approximately
+\Sexpr{round(mean(alt$r < .0967)*100)}\% of the residuals are beneath this value,
+suggesting a slightly lower threshold than the $70^{th}$ percentile used by
+Southworth \& Heffernan~\cite{southHeff}.
+
+\subsection{Fitting generalized Pareto distributions}
+Following the discussion in the previous section, we proceed to
+fit GPD models to the residual ALT values by maximum likelihood and look
+at diagnostic plots. We threshold at the $60^{th}$ percentile.
+
+<<gpd, echo=TRUE, fig.cap="Diagnostic plots for the GPD model fit to the residual ALT values without accounting for dose.">>=
 # Fit GPD model by penalized ML
-mlmod <- evm(r, data=liver, qu=.7, xi=~ndose, penalty="none")
+mlmod <- evm(r, data=alt, qu=.6)
 ggplot(mlmod)
+@
 
-# Refit using MCMC
-gmod <- evm(r, data=liver, qu=.7, xi=~ndose,
-            method="sim", verbose=FALSE)
+Diagnostic plots appear in Figure~\ref{fig:gpd}. No account has been taken of
+dose, so these plots can only be considered as approximate guidance on whether
+GPD models are likely to fit well above the chosen threshold. The pointwise
+simulated envelopes give no cause for concern. In general, the QQ-plot (the
+top right panel) is usually the one in which any lack of model fit become most
+clear.
+
+Following Southworth \& Heffernan~\cite{southHeff}, we wish to account for dose.
+As with the robust regression modelling previously, we assume linearity in dose.
+Either one, both or none of the parameters in the GPD might be dependent on dose,
+so we fit a variety of models and compare them using the Akaike Information
+Criterion (AIC). The AIC provides guidance on model selection, but not a hard
+rule, so in some cases, we might want to consider the change in deviance due to
+the addition of a single parameter more carefully. Table~\ref{tab:deviance}
+is reproduced from Kass \& Raftery~\cite{kassRaftery}, though versions of it have
+been suggested by many other authors~\cite{jeffreys, raftery, lindsey, davison}.
+
+<<deviance, echo=TRUE>>=
+evidence()
+@
+
+<<gpd2, echo=TRUE>>=
+gpd0 <- evm(r, alt, qu=.6) # null model
+gpd1 <- evm(r, alt, qu=.6, phi=~ndose)
+gpd2 <- evm(r, alt, qu=.6, xi=~ndose)
+gpd3 <- evm(r, alt, qu=.6, phi=~ndose, xi=~ndose)
+AICtable(list(gpd0, gpd1, gpd2, gpd3))
+@
+
+The function \code{AICtable} provides a neat way of producing \LaTeX output
+containin the AICs, log-likelihoods and related information in a written report
+(like this one). Alternatively, examine any of the fitted models by printing
+them:
+
+<<gmod2, echo=TRUE>>=
+gpd2
+@
+
+From Table~\ref{tab:aic}, the model with a linear term for dose in $\xi$ is
+preferred by AIC. We check the diagnostic plots for the MLE fit before refitting
+using Markov chain Monte Carlo (MCMC).
+
+<<bmod, echo=TRUE, fig.cap="Diagnostic plots for the chosen model.">>=
+ggplot(gpd2)
+gmod <- evm(r, alt, qu=.6, xi=~ndose, method="sim")
+@
+
+Having refit, we now look at diagnostic plots for the Markov chains:
+
+<<markov, echo=TRUE, fig.cap="Diagnostic plots for the Markov chains.">>=
 ggplot(gmod)
 @
 
@@ -197,7 +364,7 @@ be performed. The function we use is {\tt margarita}.
 nd <- data.frame(ndose=1:4)
 mods <- margarita(mm, gmod, newdata=nd,
                   trans=log, invtrans=exp,
-                  baseline="ALT.B")
+                  baseline="base")
 @
 
 The {\tt simulate} functions infer from the number of draws from the
@@ -331,6 +498,10 @@ http://kasper.eobjects.org/2011/06/sassyreader-open-source-reader-of-sas.html,
 \bibitem{parso}
 GGA Software Services, Parso Java Library, http://www.ggasoftware.com/opensource/parso,
 2014
+
+\bibitem{egp}
+I. Papastathopoulos and J. A. Tawn, Extended generalised Pareto models for tail
+estimation, Journal of Statistical Planning and Inference, 143, 131 -- 143, 2011
 
 \end{thebibliography}
 \end{document}

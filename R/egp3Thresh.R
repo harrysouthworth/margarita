@@ -7,11 +7,14 @@
 #' @param penalty The penalty function to use, if any. By default, maximum likelihood is used with no penalty
 #' @param priorParameters Parameters to use in the prior distribution if the likelihood is being penalized
 #' @param alpha Determines the coverage of the approximate confidence interval on the power parameter
-#' @details the EPG3 model of Papastathopoulos and Tawn is fit across a range of thresholds. The threshold at which the confidence interval first contains 1, and at which the point estimate is closest to 1 are returned as suggested thresholds for GPD modelling. The usual diagnostic checks should always be performed.
+#' @details The EPG3 model of Papastathopoulos and Tawn is fit across a range of
+#'          thresholds. The threshold at which the confidence interval first contains
+#'          1, and at which the point estimate is closest to 1 are returned as suggested
+#'          thresholds for GPD modelling. The usual diagnostic checks should always be
+#'          performed.
 #' @export
-egp3Thresh <- function(data, umin=0, umax=quantile(data, .75),
+egp3Thresh <- function(data, umin=quantile(data, .50), umax=quantile(data, .75),
                        nint = 20, penalty="gaussian", priorParameters=NULL, alpha=.05){
-  #if (umin < 0) stop("EGP3 models can only be fit to non-negative values, so umin must be >= 0")
   wh <- egp3RangeFit(data=data, umin=umin, umax=umax, nint=nint, penalty=penalty,
                    priorParameters=priorParameters, alpha=alpha)
 
@@ -19,8 +22,11 @@ egp3Thresh <- function(data, umin=0, umax=quantile(data, .75),
   slo <- spline(wh$th, wh$lo, n=200)
   spar <- spline(wh$th, wh$par, n=200)
 
-  wh <- shi$y > 1 & slo$y < 1
-  res1 <- min(slo$x[wh]) # A confidence limit touches 1
-  res2 <- spar$x[abs(spar$y - 1) == min(abs(spar$y - 1))]
-  c(res1, res2)
+  wh <- shi$y > 1 & slo$y < 1 # Values for which the CI contains 1 (if any)
+  res1 <- suppressWarnings(min(slo$x[wh])) # Min threshold with 1 in CI
+  if (is.infinite(res1))
+    warning("No interval contained 1")
+  res2 <- spar$x[abs(spar$y - 1) == min(abs(spar$y - 1))] # Threshold with value closest to 1
+  res <- c(res1, res2)
+  res
 }
