@@ -122,6 +122,14 @@ function(data, alpha = .050,
 #' @param ptcol Colour for points. Defaults to \code{ptcol="blue"}.
 #' @param col Colour for lines. Defaults to \code{col="light blue"}.
 #' @param fill Colour for confidence regions. Defaults to \code{fill="orange"}
+#' @param plot. Whether or not to display the output. Defaults to \code{plot.=TRUE}.
+#'        If the display doesn't have the desired row and column layout, the
+#'        user should specify \code{plot.=FALSE}, asign the output to an object,
+#'        and use \code{grid.arrange} to display it.
+#' @param ncol The number of columns wanted in the resulting plot. Defaults to
+#'        \code{ncol=2}. This argument is passed into \code{grid.arrange}.
+#' @param nrow The number of rows wanted in the resulting plot. Defaults to
+#'        \code{nrow=2}. This argument is passed into \code{grid.arrange}.
 #' @details The function attempts to arrange the plots nicely. If the output
 #'          isn't what was wanted, the function returns the graphs to the user
 #'          as a list so that the user can use \code{grid.arrange} directly.
@@ -132,7 +140,7 @@ function(data, alpha = .050,
 #' @export
 ggplot.evmOpt <-
 function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.05,
-         ptcol="blue", col="light blue", fill="orange", ...){
+         ptcol="blue", col="light blue", fill="orange", plot.=TRUE, ncol=2, nrow=2, ...){
     if (!missing(main)){
         if (length(main) != 1 & length(main) != 4){
             stop("main should have length 1 or 4")
@@ -142,7 +150,7 @@ function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.
 
     pSymbols <- c(m="mu", f="phi", x="xi", s="sigma", k="kappa")
 
-    pp <- qq <- rl <- h <- 0 -> co
+    pp <- qq <- rl <- h <- co <- 0
 
     if (all(sapply(data$data$D,ncol) == 1)){
         if (1 %in% which)
@@ -191,20 +199,21 @@ function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.
                          scale_x_continuous(paste("Fitted", ParName)) +
                          scale_y_continuous("Residuals")
         }
-        co <- co[!sapply(co, is.null)]
-
+        co <- co[!sapply(co, is.null)] # modifyList will do this
+        
         res <- c(list(pp, qq), co)
+        names(res) <- letters[1:length(res)] # stop grid.arrange getting confused
 
     } # Close else
 
     # Try to arrange the output nicely.
-    if (length(res) %% 2 == 1){
-        blankPanel <- grid.rect(gp=gpar(col="white"))
-        res <- c(res, list(blankPanel))
-    }
+    #if (length(res) %% 2 == 1){
+    #    blankPanel <- grid.rect(gp=gpar(col="white"))
+    #    res <- c(res, list(blankPanel))
+    #}
     
     # The loess smoother can tend to throw warnings, so suppress
-    suppressWarnings(do.call("grid.arrange", res))
+    if (plot.) suppressWarnings(do.call("grid.arrange", c(res, list(ncol=ncol, nrow=nrow))))
 
     # Send output to the user in case it needs to be arranged
     # differently.
