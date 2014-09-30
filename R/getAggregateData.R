@@ -63,10 +63,18 @@ getAggregateData <- function(data, subject="usubjid", test="lbtest", test.value=
 #' @examples lb <- addVariables(lb, dm, vars="armcd")
 #' @export
 addVariables <- function(data, additional.data, subject="usubjid", vars = "trt"){
-  if (any(vars %in% names(data)))
-    stop("At least one variable already exists in the target data")
   m <- match(data[, subject], additional.data[, subject])
-  for (var in vars) data[, var] <- additional.data[m, var]
+  for (var in vars){
+    if (var %in% names(data)){
+      if (nrow(data) > sum(is.na(data[, var]))){
+        warning(paste(var, "already in data and it isn't empty"))
+      } else {
+        data[, var] <- additional.data[m, var]
+      }
+    } else {
+      data[, var] <- additional.data[m, var]
+    }
+  }
   invisible(data)
 }
 
@@ -100,12 +108,19 @@ getStudyDay <- function(data, datecol="vsdt", id="usubjid", visit="visit", base.
 #' @param value The column containing the data values to be analysed
 #' @details If multiple measurements are available for some patients at baseline, one is chosen almost arbitrarily
 #' @export
-getBaselines <- function(data, id="usubjid", visit="visit", base.visit =1, value="aval"){
+getBaselines <- function(data, id="usubjid", visit="visit", base.visit =1, value="aval", baseline="baseline"){
+  if (baseline %in% names(data)){
+    if (nrow(data) > sum(is.na(data[, baseline]))){}
+      warning("data contains the baseline column already, and it isn't empty")
+      invisible(data)
+    }
+  }
+
   data <- data[!is.na(data[, value]), ]
   b <- data[data[, visit] == base.visit, ]
   b <- b[order(b[, id]), c(id, value)]
   b <- b[cumsum(rle(b[, id])$lengths), ]
-  
-  data$base <- b[match(data[, id], b[, id]), value]
+
+  data[, baseline] <- b[match(data[, id], b[, id]), value]
   invisible(data)
 }
