@@ -17,11 +17,11 @@ provides ggplot~\cite{ggplot} replacement functions for several of the
 texmex~\cite{texmex} plot functions.
 
 Development of the margarita package was partially funded by AstraZeneca who have
-kindly made it publically available.
+kindly made it publicly available.
 
 The major gains in efficiency in the analysis of clinical trial safety data come
 from simpler simulation of return levels and upper limit of normal exceedance
-probabilitiessimpler, as well as functions to support a standard approach to
+probabilities simpler, as well as functions to support a standard approach to
 robust regression modelling.
 
 Attempts are made at automatic threshold selection, including use of the EGP3
@@ -31,7 +31,7 @@ other contexts. In any event, automatic threshold selection appears to be a tric
 matter~\cite{scarrottMacDonald} and standard diagnostic plots should always be studied.
 
 Further, margarita attempts to make the restructuring of CDISC~\cite{CDISC} STDM lab data
-straighforward, though this functionality is based on AstraZeneca's implementation
+straightforward, though this functionality is based on AstraZeneca's implementation
 of STDM and might be in appropriate or need adjustment for other implementations.
 
 <<width, echo=FALSE>>=
@@ -40,10 +40,10 @@ options(width=60)
 
 \section{Data importation}
 Typically, the data will exist in SAS datasets with file extensions {\tt .sas7bdat}.
-In what follows, we assume that the availble SAS datasets are uncompressed and do
+In what follows, we assume that the available SAS datasets are uncompressed and do
 not rely on format catalogues. If in your particular case those circumstances do
 not hold, you might want to explore some of the options discussed below. With
-increasing amounts of outsourcing and inlicencing, it is likely that these such
+increasing amounts of outsourcing and inlicensing, it is likely that these such
 alternatives will prove necessary more commonly in the future.
 
 Supposing the SAS datasets to be held in directory {\tt user/data/} (the path
@@ -120,12 +120,12 @@ more control over the function:
 The above function all tells R to take the {\tt lb} dataset, subset it to cases
 where {\tt lbtest} is `ALT', treat the baseline visit to be visit 1, and take
 the analysis variable to be `aval'. The function also defaults to taking the 
-maximum poast-baseline values, though this can be changed.
+maximum post-baseline values, though this can be changed.
 
 Examining the help file for {\tt getAggregateData} gives more details of the
 options allowed. By default, the function assumes the test name to be held in
 a column called `lbtest' and the analysis values to be held in `aval'. In some
-cases, these might be a concatentation of two columns, the `paramcd' column, and
+cases, these might be a concatenation of two columns, the `paramcd' column, and
 the `lbstresn' column. Also, the function as called above assumes that the baseline
 column does not exist. If that is not the case, use the {\tt base} argument to
 override the function's attempt to reconstruct the baseline data.
@@ -185,7 +185,7 @@ to the right, confirming the lack of normality in the data. The outliers can
 also be seen in the other panels of Figure~\ref{fig:lmr}. The bottom left panel
 shows plots of residuals versus fitted values and the smoother should be near-horizontal
 (excusing end-effects) through the bulk of the data. The bottom right panel shows
-the observed values versus teh fitted values and should show (as it does) a near linear
+the observed values versus the fitted values and should show (as it does) a near linear
 relationship with little evidence of non-constant variance.
 
 We can also look at boxplots of scaled residuals by treatment group.
@@ -194,7 +194,7 @@ boxplot(mm, by="armcd")
 @
 
 In Figure~\ref{fig:boxplots} we can see a fairly clear dose-response relationship
-between, with there being few outliers in the lower dose groups and more, and larger,
+with there being few outliers in the lower dose groups and more, and larger,
 outliers in the higher dose groups. In practice, it is often at this stage of the
 analysis that the presence or absence of treatment effects begins to become clear.
 Note that the residuals in Figure~\ref{fig:boxplots} have been scaled so that values
@@ -249,7 +249,7 @@ is a threshold above which GPD modelling accounting for dose is appropriate.
 \subsubsection{A test for threshold selection}
 Papastathopoulos and Tawn~\cite{egp} suggest selecting the lowest threshold above
 which the confidence interval for $\hat\kappa$ contains 1. In the context of
-clincial trials, we typically have fewer observations than in other settings, so
+clinical trials, we typically have fewer observations than in other settings, so
 some care is needed in applying this approach.
 
 Because we are modelling residuals from a robust linear model, the shape of the
@@ -267,8 +267,8 @@ the median and the $75^{th}$ percentile of the residuals (though these default
 values can be changed).
 
 Further details of the implementation of the EGP3 test in margarita are as follows.
-The function \code{egp3Thresh} calls on \code{egp3RangeFit} from the texmex
-package. It then interpolates through the values of $\hatkappa$ and its confidence
+The function {\tt egp3Thresh} calls on {\tt egp3RangeFit} from the texmex
+package. It then interpolates through the values of $\hat\kappa$ and its confidence
 intervals before looking for the lowest threshold at which the confidence interval
 contains 1, and returning that threshold as well as the threshold for which
 $\hat\kappa$ is closest to 1. If no confidence interval contains 1, the function
@@ -318,11 +318,11 @@ the addition of a single parameter more carefully. Table~\ref{tab:deviance}
 is reproduced from Kass \& Raftery~\cite{kassRaftery}, though versions of it have
 been suggested by many other authors~\cite{jeffreys, raftery, lindsey, davison}.
 
-<<deviance, echo=TRUE>>=
+<<deviance, echo=FALSE, results="asis">>=
 evidence()
 @
 
-<<gpd2, echo=TRUE>>=
+<<gpd2, echo=TRUE, results="asis">>=
 gpd0 <- evm(r, alt, qu=.6) # null model
 gpd1 <- evm(r, alt, qu=.6, phi=~ndose)
 gpd2 <- evm(r, alt, qu=.6, xi=~ndose)
@@ -330,8 +330,8 @@ gpd3 <- evm(r, alt, qu=.6, phi=~ndose, xi=~ndose)
 AICtable(list(gpd0, gpd1, gpd2, gpd3))
 @
 
-The function \code{AICtable} provides a neat way of producing \LaTeX output
-containin the AICs, log-likelihoods and related information in a written report
+The function {\tt AICtable} provides a neat way of producing \LaTeX output
+containing the AICs, log-likelihoods and related information in a written report
 (like this one). Alternatively, examine any of the fitted models by printing
 them:
 
@@ -343,10 +343,20 @@ From Table~\ref{tab:aic}, the model with a linear term for dose in $\xi$ is
 preferred by AIC. We check the diagnostic plots for the MLE fit before refitting
 using Markov chain Monte Carlo (MCMC).
 
-<<bmod, echo=TRUE, fig.cap="Diagnostic plots for the chosen model.">>=
+<<diag, echo=TRUE, fig.cap="Diagnostic plots for the chosen model.">>=
 ggplot(gpd2)
+@
+<<bmod, echo=TRUE>>=
 gmod <- evm(r, alt, qu=.6, xi=~ndose, method="sim")
 @
+
+Note that fitting using MCMC results (by default) in the function telling the 
+user the acceptance rate. For fairly simple models with few parameters, as we
+have here, an acceptance rate of a little over 30\% is common. If the rate is
+much higher or lower than this, then something might have gone wrong. Also, if
+more parameters are included in the model, the acceptance rate should be
+expected to go down. Section 12.2 of Gelman et al~\cite{bda} contains some
+discussion of acceptance rates and efficient MCMC algorithms.
 
 Having refit, we now look at diagnostic plots for the Markov chains:
 
@@ -354,18 +364,42 @@ Having refit, we now look at diagnostic plots for the Markov chains:
 ggplot(gmod)
 @
 
+The top row of Figure~\ref{fig:markov} shows kernel density estimates of the
+posterior distributions as simulated by the Markov chains. The second row shows
+the simulated values at each step of the chain and the cumulative means. If the
+Markov chains have converged on their target distributions, the cumulative means
+should converge rapidly on stable values and the trace of the chains should look
+like `fat hairy caterpillars'. The final row of Figure~\ref{fig:markov} shows
+the autocorrelation functions (ACFs) of the chains. If the algorithm has worked
+well, the ACFs should rapidly decay to zero.
+
+In general, it is good practice to discard the first part of the Markov chains
+(the {\em burn-in} period) and to {\em thin} the chains by discarding values at
+regular intervals. For example, we could keep in in every 4 values from the
+chains. These steps improve the chances that the chains have converged on the
+target distribution, reduce autocorrelation, and make the simulated values
+behave more like a random sample from the target distribution. The help file
+for {\tt evm} describes the {\tt thin} and {\tt burn} arguments that control
+these settings.
+
 \section{\tt margarita}
-Before simulating return levels and probabilities of
-threshold exceedance, we first create a new object that
-contains the robust regression model, the extreme value
-model, and other information to allow the simulations to
-be performed. The function we use is {\tt margarita}.
+The main efficiency that margarita package introduces to the analysis of clinical
+trial safety data is to provide built-in functions to aid simulation of
+quantities of interest such as return levels and probabilities of exceeding
+high values. This is achieved by first creating an object that contains the
+robust linear model, the MCMC simulated GPD model, and other information
+required for the calculations.
+
 <<margarita, echo=TRUE>>=
 nd <- data.frame(ndose=1:4)
 mods <- margarita(mm, gmod, newdata=nd,
                   trans=log, invtrans=exp,
                   baseline="base")
 @
+
+In the call to {\tt margarita}, we passed in the robust regression model,
+the MCMC extreme value model. The resulting margarita object is then interpreted
+by {\tt simulate} functions and used to generate predicted values of interest.
 
 The {\tt simulate} functions infer from the number of draws from the
 posterior distributions contained in the extreme value model how many cases to
@@ -375,10 +409,10 @@ If there are no covariates in the model, {\tt simulate}
 doesn't need the {\tt newdata} argument. However, if there
 are covariates {\em in either the robust linear model, the GPD
 model or both}, in order to deal with all kinds of trial designs, the
-{\tt simulate} function requires {\tt newdata} The rows of {\tt newdata} should
+{\tt simulate} function requires {\tt newdata}. The rows of {\tt newdata} should
 be unique and it should {\emph not} contain the baseline data. Baseline data are
 simulated internally by resampling from the data attached to the linear
-model.
+model object.
 
 The {\tt trans} argument tells the simulation function how the response variable
 is transformed in the robust linear model, and the {\tt invtrans} argument gives
@@ -393,12 +427,46 @@ using the {\tt simulate} function with {\tt type=`rl'}
 can be run in a single call by passing a vector argument
 into the function.
 
+Note that it is common for clinical laboratory safety data to be interpreted
+in terms of how far the observed values are from being `normal'. As such, each
+lab variable tends to be issued with an upper limit of normal (ULN) and a lower
+limit of normal (LLN), though we are usually concerned only with one or the other.
+
+There is a great deal of arbitrariness in the computation of the LLN and ULN.
+The values ought to represent a low and a high quantile of the distribution in
+a healthy population, but they vary from lab to lab, partly due to the machines
+that make the readings differing from lab to lab, partly because the local
+populations differ from lab to lab, and because the way that low and high
+quantiles are computed differs. M'Kada et al~\cite{mkada} describe one lab
+that calculated the ULN for ALT as the mean plus two standard deviations after
+removing the 5\% most extreme values, but later recalculated it as the mean
+plus a single standard deviation after removing the 5\% most extreme values.
+Given that ALT I skewed and subject to outliers, it is difficult to justify
+either approach.
+
+To avoid the risk of increasing variation by using local lab normal ranges, it
+is recommended to use fixed ranges as published in the public domain. A little
+searching reveals estimated ULNs for ALT ranging from 26 U/L to 72 U/L. The
+Merck manual~\cite{merck} suggests 35 U/L, and it is recommended that the Merck
+manual be the first place to look when attempting to decide on a reasonable
+reference range.
+
+Finally, in clinical trials we observe patients at baseline (i.e. before
+treatment) and then after a period of treatment. Baseline values are almost
+always correlated with on-treatment values, so a more appropriate approach
+to interpreting the effect of drug on lab values would be to eliminate the
+baseline effect and study what remains. An approach that comes close to this
+is to look at changes from baseline. In practice, we work with the residuals
+from a robustly fit linear model, but transform results back to the scale
+of the change from baseline and multiples of ULN.
 
 <<rl, echo=TRUE>>=
+ULN <- 35
+
 rl1000 <- simulate(mods, type="rl", M=1000)
 
 s <- summary(rl1000)
-suln <- s/36
+suln <- s / ULN
 sFold <- summary(rl1000, scale="proportional")
 sDiff <- summary(rl1000, scale="difference")
 
@@ -419,9 +487,12 @@ after the calculations have been done. It is achieved by
 providing optional arguments to {\tt summary} or by
 manipulating the object returned by {\tt summary} directly.
 
+Here we have included the absolute change from baseline in the output, though
+for ALT it is usually the proportional change that is of more interest.
+
 \section{Threshold exceedance probabilities}
 When simulating threshold exceedance probabilities, the
-scale of the predicted values needs to be specifed in the
+scale of the predicted values needs to be specified in the
 call to {\tt simulate} rather than {\tt summary}.
 
 First we find probabilities of threshold exceedance on the
@@ -430,7 +501,7 @@ of multiples of baseline.
 
 <<prob, echo=TRUE>>=
 pULNs <- simulate(mods, type="prob",
-                  M=36*c(1, 3, 10, 20),
+                  M=ULN * c(1, 3, 10, 20),
                   Mlabels=c("P(ALT > ULN)", "P(ALT > 3xULN)",
                             "P(ALT > 10xULN)", "P(ALT > 20xULN)"))
 ps <- summary(pULNs)
@@ -448,39 +519,50 @@ pbs <- summary(pBase)
 
 # Manually change treatment group names
 names(pbs) <- LETTERS[1:4]
-ggplot(pbs, ncol=1, xlab="")
+ggplot(pbs, ncol=1,
+       xlab="Proportion of patients with exceedance")
 @
 
 \begin{thebibliography}{99}
-\bibitem{R}R Core Team (2014). R: A language and environment for statistical
-computing. R Foundation for Statistical Computing, Vienna, Austria.
-URL http://www.R-project.org/.
 
-\bibitem{southHeff}
-H. Southworth and J. E. Heffernan, Extreme value modelling of laboratory safety
-data from clinical studies, Pharmaceutical Statistics, 11, 361 -- 366, 2012
-
-\bibitem{texmex}
-Harry Southworth and Janet E. Heffernan. texmex: Statistical modelling of extreme
-  values. R package version 2.2, 2013
+\bibitem{cdisc}
+Clinical Data Interchange Standards Consortium, http://www.cdisc.org
 
 \bibitem{coles}
 S. Coles, An Introduction to the Statistical Modeling of Extreme Values, Springer,
 2001
 
-\bibitem{cdisc}
-Clinical Data Interchange Standards Constortium, http://www.cdisc.org
+\bibitem{bda}
+A. Gelman, J. B. Carlin, H. S. Stern, D. B. Dunson, A. Vehtari and D. B. Rubin.
+Bayesian Data Analysis (Third Edition), CRC Press, 2014.
+
+\bibitem{parso}
+GGA Software Services, Parso Java Library, http://www.ggasoftware.com/opensource/parso,
+2014
+
+\bibitem{kassRaftery}
+R. E. Kass and A. E. Raftery. Bayes factors, Journal of the American Statistical
+Association, 90, 773 -- 795, 1995
+
+\bibitem{mkada}
+H. M'Kada, M. Munteanu, H. Perazzo, Y. Ngo, N. Ramanujam, F. Imbert-Bismut,
+V. Ratziu, D. Bonnefont-Rousselot, B. Souberbielle, I. Schuppe-Koistinen,
+T. Poynard and the DILI group of the SAFE-T consortium.
+What are the best reference values for a normal serum alanine transaminase
+activity (ALT)? Impact on the presumed prevalence of drug induced liver
+injury (DILI), Regulatory Toxicity and Pharmacology, 60, 290 -- 295, 2011
+
+\bibitem{egp}
+I. Papastathopoulos and J. A. Tawn, Extended generalised Pareto models for tail
+estimation, Journal of Statistical Planning and Inference, 143, 131 -- 143, 2011
+
+\bibitem{R}R Core Team (2014). R: A language and environment for statistical
+computing. R Foundation for Statistical Computing, Vienna, Austria.
+URL http://www.R-project.org/.
 
 \bibitem{scarrottMacDonalt}
 C. Scarrott and A. MacDonald, A review of extreme value threshold estimation
 and uncertainty quantification, REVSTAT Statistical Journal, 10, 33 -- 60, 2012
-
-\bibitem{ggplot}
-H. Wickham. ggplot2: elegant graphics for data analysis. Springer New York, 2009
-
-\bibitem{MASS}
-W. N. Venables and B. D. Ripley Modern Applied Statistics with S. Fourth Edition.
-  Springer, New York, 2002. ISBN 0-387-95457-0
 
 \bibitem{sas7bdat}
 M. Shotwell, sas7bdat: SAS Database Reader (experimental). R package version 0.4.
@@ -491,17 +573,24 @@ M. Shotwell, sas7bdat.parso: Read sas7bdat files in R using the GGASoftware Pars
 https://github.com/BioStatMatt/sas7bdat.parso, 2014
 
 \bibitem{sassyreader}
-K. S\/orensen, SassyReader -- Open source reader of SAS data sts for Java,
+K. S\/orensen, SassyReader -- Open source reader of SAS data sets for Java,
 http://kasper.eobjects.org/2011/06/sassyreader-open-source-reader-of-sas.html,
 2011
 
-\bibitem{parso}
-GGA Software Services, Parso Java Library, http://www.ggasoftware.com/opensource/parso,
-2014
+\bibitem{southHeff}
+H. Southworth and J. E. Heffernan, Extreme value modelling of laboratory safety
+data from clinical studies, Pharmaceutical Statistics, 11, 361 -- 366, 2012
 
-\bibitem{egp}
-I. Papastathopoulos and J. A. Tawn, Extended generalised Pareto models for tail
-estimation, Journal of Statistical Planning and Inference, 143, 131 -- 143, 2011
+\bibitem{texmex}
+Harry Southworth and Janet E. Heffernan. texmex: Statistical modelling of extreme
+  values. R package version 2.2, 2013
+
+\bibitem{MASS}
+W. N. Venables and B. D. Ripley Modern Applied Statistics with S. Fourth Edition.
+  Springer, New York, 2002. ISBN 0-387-95457-0
+
+\bibitem{ggplot}
+H. Wickham. ggplot2: elegant graphics for data analysis. Springer New York, 2009
 
 \end{thebibliography}
 \end{document}
