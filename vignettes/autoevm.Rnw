@@ -98,20 +98,11 @@ appears in Table~\ref{tab:sb} and a summary of the post-baseline maxima
 appears in Table~\ref{tab:sm}.
 
 <<summary, echo=FALSE, results="asis">>=
-# XXX Need to move this
-sfun <- function(x, what, which){
-  fun <- function(x) quantile(x, type=3) # should match SAS
-
-  res <- tapply(x[, what], x[, which], FUN=fun)
-  res <- t(sapply(res, as.vector))
-  colnames(res) <- c("Min.", "Q1", "Median", "Q3", "Max.")
-  res
-} 
-print(xtable(sfun(lab, baseline, arm), label="tab:sb",
+print(xtable(fivenumBy(lab, baseline, arm), label="tab:sb",
              caption="Summary of baseline data by treatment group."))
 
 agg <- if (minmax == "max") "maxima" else "minima"
-print(xtable(sfun(lab, value, arm), label="tab:sb",
+print(xtable(fivenumBy(lab, value, arm), label="tab:sb",
              caption=paste("Summary of post-baseline", agg, "by treatment group.")))
 @
 
@@ -133,23 +124,10 @@ contains a summary of the fitted model, and Figure~\ref{fig:robust2} displays
 boxplots of scaled residuals by treatment group.
 
 <<robust, echo=FALSE, results="asis", fig.cap="Diagnostic plots for the robust linear model.">>=
-# XXX Need to move this
-if (trans == "log"){
-  tfun <- log; itfun <- exp
-} else if (trans == "sqrt"){
-  tfun <- sqrt; itfun <- function(x) x*x
-} else if (trans == "I"){
-  tfun <- itfun <- I
-} else {
-  stop("only log, sqrt and identity transformations are supported")
-}
-
-# XXX Need to move this and do it neatly
 rfo <- as.formula(paste0("tfun(", value, ") ~ ", "tfun(", baseline, ") + ", arm))
 rmod <- lmr(rfo, data=lab)
 
 # XXX Need to change tfun to log in output
-
 print(xtable(coef(summary(rmod)), label="tab:robust",
              caption="Summary of the robust linear model used to eliminate effect of baseline and the effect of treatment on the location of the distribution."))
 
@@ -168,13 +146,7 @@ ggplot(gpdThresh(lab$r))
 th <- min(egp3Thresh(lab$r))
 qu <- mean(lab$r <= th) # checked and it's <=
 
-# XXX Need to move this
-oi <- function(x){ # get ordinal indicator
-  x <- as.character(x)
-  x <- x[nchar(x)]
-  switch(x, "1"="st", "2"="nd", "3"="rd", "4"=, "5"=, "6"=, "7"=, "8"=, "9"=, "0"="th")
-}
-cqu <- oi(round(qu*100))
+cqu <- ordinalIndicator(round(qu*100))
 @
 
 The threshold selection plots, and a test based on the EGP3 model, suggest a
@@ -244,7 +216,7 @@ $99.9^{th}$ percentile.
 Plots of predicted values of various return levels appear in
 Figure~\ref{fig:returnLevels}. The same information appears in Table~\ref{tab:rl}.
 
-<<returnLevels, echo=FALSE, fig.cap="Predicted return levels. The heavy lines represent 50\\% interval estimates and the lighter lines represent 90\\% interval estimates.", results="asis">>=
+<<returnLevels, echo=FALSE, fig.cap="Predicted return levels in terms of multiples of ULN. The heavy lines represent 50\\% interval estimates and the lighter lines represent 90\\% interval estimates.", results="asis">>=
 if (prefmod != 0){ # need to construct newdata to pass into margarita
   nd <- data.frame(sort(unique(lab[, arm])))
   names(nd) <- arm
@@ -264,7 +236,7 @@ srl <- as.data.frame(srl)[, c(7:6, 1:5)]
 srl[, 3:7] <- round(srl[, 3:7], 1)
 ng <- length(unique(lab[, arm]))
 print(xtable(srl, label="tab:rl", digits=1,
-             caption="Predicted M-subject return levels."),
+             caption="Predicted M-subject return levels in terms of multiples of ULN."),
       include.rownames=FALSE, hline.after=c(-1, 0, 4*c(1:length(returnLevels))))
 @
 
