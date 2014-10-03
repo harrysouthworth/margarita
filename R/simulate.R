@@ -362,6 +362,25 @@ summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), ...){
     res
 }
 
+#' @method as.data.frame summary.margarita.sim.prob
+#' @export
+
+as.data.frame.summary.margarita.sim.prob <- function(x, row.names=NULL, optional=FALSE, ...){
+  groups <- names(x)
+  x <- unclass(x)
+  ng <- nrow(x[[1]])
+  groups <- rep(groups, each=ng)
+
+  x <- as.data.frame(do.call("rbind", x))
+  x$Exceedance <- rownames(x)
+  x$groups <- groups
+  x <- x[, c(ncol(x)-1, ncol(x), 1:(ncol(x)-2))]
+  #x <- x[order(x[, 2]), ]
+  #x <- x[order(x[, 1]), ]
+  rownames(x) <- 1:nrow(x)
+  x
+}
+
 #' @method print summary.margarita.sim.prob
 #' @export
 print.summary.margarita.sim.prob <- function(x, ...){

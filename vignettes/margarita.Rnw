@@ -93,11 +93,18 @@ software and personnel.
 
 \subsection{Data aggregation}
 Typically, the lab dataset will contain data on a lot of lab variables. In our
-current case, we are interested only in ALT, so we subset down on that and find
-the baseline values and post-baseline maxima.
+current case, we are interested only in ALT, so we subset down on that.
 
-<<subset, echo=FALSE>>=
-alt <- getAggregateData(lb, test="lbtestcd", test.value="ALT")
+<<subset, echo=TRUE>>=
+alt <- lb[lb$lbtestcd == "ALT", ]
+@
+
+We now reduce the data to it's baseline values and post-baseline maxima. See the
+help files for {\tt getBaselines} and {\tt getAggregateData} for further information.
+
+<<alt, echo=TRUE>>=
+alt <- getBaselines(alt, visit="visitnum")
+alt <- getAggregateData(alt)
 @
 
 If the {\tt lb} dataset already contains the treatment decodes and population
@@ -152,7 +159,7 @@ head(alt)
 Shiftplots of the data appear in Figure~\ref{fig:shiftplots}.
 
 <<shiftplots, echo=TRUE, fig.cap="Shiftplots of the liver data.">>=
-shiftplot(alt, aes(base, aval), by=~armcd,
+shiftplot(alt, aes(baseline, aval), by=~armcd,
           xlab="Baseline ALT (U/L)",
           ylab="Maximum ALT (U/L)")
 @
@@ -171,7 +178,7 @@ this structure by assuming linearity in dose and recoding A -- D as 1 -- 4.
 
 <<lmr, echo=TRUE, fig.cap="Diagnostic plots from the robust regression of the ALT data.">>=
 alt$ndose <- as.numeric(alt$armcd)
-mm <- lmr(log(aval) ~ log(base) + ndose, data=alt)
+mm <- lmr(log(aval) ~ log(baseline) + ndose, data=alt)
 ggplot(mm)
 @
 
@@ -394,7 +401,7 @@ required for the calculations.
 nd <- data.frame(ndose=1:4)
 mods <- margarita(mm, gmod, newdata=nd,
                   trans=log, invtrans=exp,
-                  baseline="base")
+                  baseline="baseline")
 @
 
 In the call to {\tt margarita}, we passed in the robust regression model,

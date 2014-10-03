@@ -1,3 +1,8 @@
+suppressMessages(library(margarita))
+suppressMessages(library(xtable))
+suppressMessages(library(ggplot2))
+suppressMessages(library(gridExtra))
+
 dataPath <- paste(dataRoot, drug, study, sep="/")
 dataPath <- paste0(dataPath, "/")
 

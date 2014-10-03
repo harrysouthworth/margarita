@@ -56,7 +56,7 @@ ggplot.summary.margarita.sim.rl <- function(data=NULL, trans="log10", labels=com
 ggplot.summary.margarita.sim.prob <- function(data=NULL, ptcol="blue",
                                            linecol=c("blue", "blue"),
                                            ptsize=4, linesize=c(.5, 1.5),
-                                           scales="free", ncol=NULL,
+                                           scales="free", ncol=NULL, as.table=TRUE,
                                            xlab="P( > RL)", ylab="", M, main=NULL,
                                            ...){
     g <- names(data)
@@ -65,9 +65,8 @@ ggplot.summary.margarita.sim.prob <- function(data=NULL, ptcol="blue",
     g <- rep(g, each=nM)
 
     # Add M to each data.frame
-    if (missing(M)){
+    if (missing(M))
         M <- factor(rownames(data[[1]]), levels=rownames(data[[1]]))
-    }
 
     data <- lapply(1:length(data), function(x, data, M) {
                              data <- as.data.frame(data[[x]])
@@ -92,7 +91,7 @@ ggplot.summary.margarita.sim.prob <- function(data=NULL, ptcol="blue",
 
     p <- ggplot(data, aes(mid, groups)) +
              geom_point(size=ptsize, color=ptcol) +
-             facet_wrap(~M, scales=scales, ncol=ncol) +
+             facet_wrap(~M, scales=scales, ncol=ncol, as.table=as.table) +
              scale_x_continuous(xlab) +
              scale_y_discrete(ylab) +
              ggtitle(main) +
