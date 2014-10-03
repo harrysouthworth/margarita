@@ -1,66 +1,3 @@
-#' @importFrom stats simulate
-#' @importFrom utils head
-NULL
-
-#' Create an object of class 'margarita'
-#' @param rlm An object of class 'rlm' returned by \code{lmr}.
-#' @param evmSim An object of class 'evmSim'.
-#' @param newdata A \code{data.frame} containing the new data from which
-#'        predictions are to be made.
-#' @param trans A function matching that used to transform the response
-#'        in the robust regression. Defaults to \code{trans=log}. Use
-#'        \code{trans=I} if no transformation was made.
-#' @param invtrans A function, the inverse of \code{trans}.
-#' @param baseline Character string giving the name of the baseline variable.
-#' @param minima Are the extremes minima rather than maxima (i.e. the response
-#'        was multiplied by -1 prior to all modelling). Defaults to
-#'        \code{minima=FALSE}.
-#' @details Returns a list with class 'margarita', to be used with
-#'       \code{simulate.margarita}.
-#' @keywords models
-#' @export margarita
-margarita <- function(rlm, evmSim, newdata,
-                      trans=log, invtrans=exp,
-                      baseline="alt.b", minima=FALSE){
-    if (class(rlm)[1] != "rlm"){
-        stop("object should have class 'rlm'")
-    }
-    else if (is.null(rlm$cov)){
-        stop("object should be created by lmr, not rlm")
-    }
-    if (class(evmSim) != "evmSim"){
-        stop("object should have class 'evmSim'")
-    }
-
-    # Construct string for transformed baseline
-    if (missing(trans)){ ctrans <- "log" }
-    else {
-        ctrans <- as.character(as.list(match.call())$trans)
-    }
-    rawBaseline <- baseline
-    baseline <- if (ctrans != "I") paste0(ctrans, "(", rawBaseline, ")")
-                else baseline
-
-    if (missing(newdata))
-      if (length(coef(evmSim)) == 2) newdata <- data.frame(1)
-      else stop("There are covariates in the model: you need to provide newdata")
-
-    # Construct output object and return
-    res <- list(rlm, evmSim, newdata=newdata,
-                baseline=baseline, rawBaseline=rawBaseline,
-                trans=trans, invtrans=invtrans,
-                minima=minima)
-    oldClass(res) <- "margarita"
-    res
-}
-
-#' @method print margarita
-print.margarita <- function(x, ...){
-    print(x[[1]])
-    cat("\n")
-    print(x[[2]])
-}
-
 #' Simulate baseline data used in construction of robust linear model and
 #' predictions from extreme value model
 #'
@@ -80,12 +17,6 @@ simBase <- function(lmod, gmod, baseline="log(alt.b)"){
     }
     nsim <- nrow(gmod$param)
     x <- lmod$x
-    vnames <- colnames(x)
-    if (!is.element(baseline, vnames)){
-        cv <- paste(vnames, collapse=" ")
-        stop(paste("Available covariates are", cv))
-    }
-
     x <- x[, colnames(x) == baseline]
     res <- sample(x, size=nsim, replace=TRUE)
     invisible(res)
@@ -282,7 +213,7 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     names(out) <- onms
     
     if (is.null(Mlabels)) Mlabels <- paste("RL =", format(M))
-#browser()
+
     out <- lapply(out, function(x, m){ colnames(x) <- m; x }, m=Mlabels)
 
     out
@@ -367,9 +298,8 @@ summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
                   "d" = invtrans(o$RLfull) - o[, baseline])
       
       res <- tapply(x, groups, quantile, prob=qu)
-      # Groups have been reordered alphabeticall. Revert to original order
+      # Groups have been reordered alphabetically. Revert to original order
       res <- res[unique(groups)]
-      
       res <- t(do.call("data.frame", res))
       colnames(res) <- paste("Q", qu*100, "%", sep = "")
       rownames(res) <- unique(groups)
@@ -385,7 +315,7 @@ summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
 #' @export
 as.data.frame.summary.margarita.sim.rl <- function(x, row.names=NULL, optional=FALSE, ...){
   M <- rep(names(x), each=nrow(x[[1]]))
-  groups <- rep(rownames(x[[1]]), each=length(x))
+  groups <- rep(rownames(x[[1]]), length.out=length(x) * nrow(x[[1]]))
 
   x <- do.call("rbind", x)
   x <- as.data.frame(x)

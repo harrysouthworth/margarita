@@ -52,6 +52,6 @@ AICtable <- function(x, digits=3, label="tab:aic",
 #' @export
 print.AICtable <- function(x, ...){
   oldClass(x) <- c("xtable", "data.frame")
-  print.xtable(x, include.rownames=FALSE, sanitize.colnames.function=function(x) x)
+  print.xtable(x, include.rownames=FALSE, sanitize.text.function=function(x) x)
   invisible()
 }

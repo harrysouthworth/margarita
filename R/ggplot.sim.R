@@ -5,6 +5,7 @@ ggplot.summary.margarita.sim.rl <- function(data=NULL, trans="log10", labels=com
                                          xlab="Return level", ylab="", main=NULL,
                                          ptcol="blue", linecol=c("blue", "blue"),
                                          ptsize=4, linesize=c(.5, 1.5),
+                                         ncol=1, as.table=TRUE,
                                          ...){
     data <- as.data.frame(data)
     data$M <- factor(data$M, levels=unique(data$M))
@@ -17,11 +18,13 @@ ggplot.summary.margarita.sim.rl <- function(data=NULL, trans="log10", labels=com
     names(data)[(ncol(data)-2)/2 + .5] <- "median" # Middle column (could be mean or median or something else)
 #    data$group <- factor(rownames(data), levels=rownames(data))
 
-    seg <- getSegmentData(data)    
+    seg <- getSegmentData(data)
+    seg[[1]]$M <- seg[[2]]$M <- data$M
 
     if (ng > 1){
       p <- ggplot(data=data, aes(median, groups)) +
              geom_point(size=ptsize, color=ptcol) +
+             facet_wrap(~M, ncol=ncol, as.table=as.table) +
              scale_x_continuous(xlab, trans=trans, labels=labels) +
              scale_y_discrete(ylab) +
              ggtitle(main) +

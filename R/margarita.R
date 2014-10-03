@@ -41,7 +41,7 @@ margarita <- function(rlm, evmSim, newdata,
   baseline <- if (ctrans != "I") paste0(ctrans, "(", rawBaseline, ")")
   else baseline
   
-  if (missing(newdata))
+  if (missing(newdata) | is.null(newdata))
     if (length(coef(evmSim)) == 2) newdata <- data.frame(1)
   else stop("There are covariates in the model: you need to provide newdata")
   

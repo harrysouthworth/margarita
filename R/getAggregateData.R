@@ -20,7 +20,7 @@
 #' @export
 getAggregateData <- function(data, subject="usubjid",
                          visit="visitnum", baseline.visit=1, max.study.visit=Inf,
-                         baseline="base", value="aval", aggregate.fun=max){
+                         baseline="baseline", value="aval", aggregate.fun=max){
   
   if (baseline %in% names(data)){
     b <- data[, c(subject, baseline)]
