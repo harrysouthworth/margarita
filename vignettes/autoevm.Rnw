@@ -11,6 +11,7 @@ source(paste0(path, "system.R"))
 \usepackage[british]{babel}
 \usepackage{fancyhdr}
 \usepackage{rotating}
+\usepackage{pdflscape}
 
 \pagestyle{fancy}
 \rfoot{DRAFT}
@@ -107,7 +108,7 @@ questions.
 \subsection{Software}
 \Sexpr{version$version.string}~\cite{R} will be used for all analyses.
 
-The seed for the random number generator was set to \Sexpr{seed}.
+The seed for the random number generator was set to \Sexpr{as.character(seed)}.
 
 A summary of the R session appears in an Appendix, and all attached packages
 and their versions can be seen there. A summary of the environment also appears
@@ -258,7 +259,7 @@ for (i in 1:length(models)){
 
 mods <- unlist(mods, recursive=FALSE)
 
-print(AICtable(mods))
+print(AICtable(mods), include.rownames=TRUE)
 
 prefmod <- which.min(sapply(mods, AIC))
 gmod <- mods[[prefmod]]
@@ -277,11 +278,13 @@ From Table~\ref{tab:aic}, we see that AIC is lowest for model
 Figure~\ref{fig:gpddiag}. The model was refit using Markov chain Monte Carlo:
 see Figure~\ref{fig:mcmcdiag}.
 
+\begin{landscape}
 <<mcmcdiag, echo=FALSE, fig.cap="Plots of the Markov chains used to simulate from the posterior distribution of the parameters in the selected GP model.">>=
 # XXX /Should/ work if gmod used penalized likelihood. Need to test
 bmod <- update(gmod, method="sim", verbose=FALSE, thin=thin, burn=burn, iter=iter)
 ggplot(bmod)
 @
+\end{landscape}
 
 \subsection{Predicted return levels}
 The $M$-subject return level for \Sexpr{testval} is the value of \Sexpr{testval}
@@ -292,43 +295,48 @@ distribution of \Sexpr{testval}. Similarly, the 1000-subject return level is
 the value expected to be exceeded once every 1000 subjects and is the
 $99.9^{th}$ percentile.
 
-Plots of predicted values of various predicted return levels appear in
-Figure~\ref{fig:returnLevels}.
+Plots of predicted values of various return levels appear in
+Figure~\ref{fig:returnLevels}. The same information appears in Table~\ref{tab:rl}.
 
 <<returnLevels, echo=FALSE, fig.cap="Predicted return levels. The heavy lines represent 50\\% interval estimates and the lighter lines represent 90\\% interval estimates.">>=
 if (prefmod != 0){ # need to construct newdata to pass into margarita
   nd <- data.frame(sort(unique(lab[, arm])))
   names(nd) <- arm
-  
-  wh <- as.list(bmod$map$formulae[[1]])[[2]]
-  as.vector(as.list(wh)[-1])
+} else {
+  nd <- NULL
 }
 
 marg <- margarita(rmod, bmod, newdata=nd, trans=tfun, invtrans=itfun,
                   baseline=baseline, minima=minmax=="min")
 
 rl <- simulate(marg, M=returnLevels)
-rl <- summary(rl)
-rl <- rl/ULN
+srl <- summary(rl)
+srl <- srl/ULN
+ggplot(srl, ncol=1, as.table=FALSE)
+
+srl <- as.data.frame(srl)[, c(7:6, 1:5)]
+srl[, 3:7] <- round(srl[, 3:7], 1)
+ng <- length(unique(lab[, arm]))
+print(xtable(srl, label="tab:rl", digits=1,
+             caption="Predicted M-subject return levels."),
+      include.rownames=FALSE, hline.after=c(-1, 0, 4*c(1:length(returnLevels))))
 @
 
-
 \clearpage
+\begin{landscape}
 \section{Appendix}
 \subsection{Information on the R session}
-% XXX NEED TO PUT THIS INTO LANDSCAPE
 Information on the R session, in the interests of reproducibility.
 <<sessionInfo, echo=FALSE, results="verbatim">>=
 sessionInfo()
 @
 
 \subsection{Environment}
-% XXX NEED TO PUT THIS INTO LANDSCAPE
 Information on the environment in which R was run.
 <<getenv, echo=FALSE, results="verbatim">>=
 as.matrix(Sys.getenv())
 @
-
+\end{landscape}
 \bibliographystyle{plain}
 \bibliography{bibliography}
 \end{document}

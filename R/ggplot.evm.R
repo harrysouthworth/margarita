@@ -219,4 +219,3 @@ function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.
     # differently.
     invisible(res)
 }
-

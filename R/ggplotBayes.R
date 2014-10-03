@@ -6,13 +6,11 @@ ggdensplots <- function(x, fill="blue", col="light blue"){
 
     for (i in 1:n){
         d <- data.frame(x$param[, i])
-        
         names(d) <- "x"
         p[[i]] <- ggplot(data=d, aes(x=x)) +
                      stat_density(fill=fill) +
                      scale_x_continuous(v[i]) +
                      scale_y_continuous("")
-    
     }
     p
 }
