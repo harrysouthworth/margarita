@@ -102,7 +102,7 @@ print(xtable(fivenumBy(lab, baseline, arm), label="tab:sb",
              caption="Summary of baseline data by treatment group."))
 
 agg <- if (minmax == "max") "maxima" else "minima"
-print(xtable(fivenumBy(lab, value, arm), label="tab:sb",
+print(xtable(fivenumBy(lab, value, arm), label="tab:sm",
              caption=paste("Summary of post-baseline", agg, "by treatment group.")))
 @
 
@@ -146,22 +146,23 @@ ggplot(gpdThresh(lab$r))
 th <- min(egp3Thresh(lab$r))
 qu <- mean(lab$r <= th) # checked and it's <=
 
-cqu <- ordinalIndicator(round(qu*100))
+cqu <- ordinalIndicator(as.integer(round(qu*100)))
 @
 
 The threshold selection plots, and a test based on the EGP3 model, suggest a
 threshold of \Sexpr{th}, representing the
-\Sexpr{cqu} percentile of the distribution of residuals.
+\Sexpr{paste0("$", as.integer(round(qu*100)), "^", cqu, "$")} percentile of the distribution of residuals.
 
 \subsection{Generalized Pareto distributions}
 We now fit GP distributions with terms for treatment in the scale parameter, the 
 (log) scale parameter, and neither. Table~\ref{tab:aic} displays the AIC and
 related information for the fitted models.
 
-<<aic, echo=FALSE, results="asis", fig.cap="Diagnostic plots for the selected GP model.">>=
+<<gpddiag, echo=FALSE, results="asis", fig.cap="Diagnostic plots for the selected GP model.">>=
 
 # XXX The sane way of constructing the models list currently escapes me...
-# XXX Need to try MLE, then try penalized if it fails.
+# XXX Need to try MLE, then try penalized if it fails. Not obvious if that can be
+#     automated in general...
 
 mods <- list()
 mods[[1]] <- list()
@@ -213,7 +214,8 @@ distribution of \Sexpr{testval}. Similarly, the 1000-subject return level is
 the value expected to be exceeded once every 1000 subjects and is the
 $99.9^{th}$ percentile.
 
-Plots of predicted values of various return levels appear in
+Plots of predicted values of various return levels, in terms of multiples of the
+ULN, appear in
 Figure~\ref{fig:returnLevels}. The same information appears in Table~\ref{tab:rl}.
 
 <<returnLevels, echo=FALSE, fig.cap="Predicted return levels in terms of multiples of ULN. The heavy lines represent 50\\% interval estimates and the lighter lines represent 90\\% interval estimates.", results="asis">>=
@@ -253,10 +255,10 @@ sep <- summary(ep)
 ggplot(sep, ncol=1, as.table=FALSE, scales="fixed")
 
 sep <- as.data.frame(sep)
-sep[, 3:ncol(se)] <- sep * 100
+sep[, 3:ncol(sep)] <- sep[, 3:ncol(sep)] * 100
 
 print(xtable(sep, label="tab:ep", digits=2,
-             caption="Predicted probability (\%) of any particular subject having a value exceed various multiples of the ULN."),
+             caption="Predicted probability (\\%) of any particular subject having a value exceed various multiples of the ULN."),
       hline.after=c(-1, 0, (1:length(multiplesOfULN))*length(unique(lab[, arm])))
       )
 @

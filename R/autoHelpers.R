@@ -12,6 +12,7 @@
 #'          where the quartiles are computed using SAS's default approach. These
 #'          will generally not be the same as the hinges as originally described
 #'          by Tukey.
+#' @export
 fivenumBy <- function(x, what, which, type=3){
   fun <- function(x) quantile(x, type=type) # type 3 should match SAS
   
@@ -23,14 +24,15 @@ fivenumBy <- function(x, what, which, type=3){
 
 #' Get a transformation function and its inverse from a character string
 #' 
-#' @parm x A character string indicating 'log', 'sqrt' or 'I'.
+#' @param x A character string indicating 'log', 'sqrt' or 'I'.
 #' @return A names list with 2 elements, the first of which, 'tfun' is the
 #'         appropriate transformation function; the second of which, 'itfun', is
 #'         the inverse of 'tfun'
+#' @export
 getTransFun <- function(x){
-  if (X == "log"){
+  if (x == "log"){
     tfun <- log; itfun <- exp
-  } else if (X == "sqrt"){
+  } else if (x == "sqrt"){
     tfun <- sqrt; itfun <- function(x) x*x
   } else if (x == "I"){
     tfun <- itfun <- I
@@ -45,10 +47,11 @@ getTransFun <- function(x){
 #' @param x An integer
 #' @return A character string giving the ordinal indicator for x: 'st' if the last
 #'         digit of x is 1, 'nd' if it is 2, 'rd' if it is 3, 'th' otherwise.
+#' @export
 ordinalIndicator <- function(x){
   if (!is.integer(x)) stop("x must by an integer")
-  x <- as.character(xL)
-  x <- x[nchar(x)]
+  x <- as.character(x)
+  x <- substring(x, nchar(x))
   switch(x, "1"="st", "2"="nd", "3"="rd", "4"=, "5"=, "6"=, "7"=, "8"=, "9"=, "0"="th")
 }
 
