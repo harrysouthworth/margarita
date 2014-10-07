@@ -6,7 +6,9 @@ NULL
 #' @param rlm An object of class 'rlm' returned by \code{lmr}.
 #' @param evmSim An object of class 'evmSim'.
 #' @param newdata A \code{data.frame} containing the new data from which
-#'        predictions are to be made.
+#'        predictions are to be made. Defaults to \code{newdata=NULL} which will
+#'        only work of there are no covariates in the linear model or the extreme
+#'        value model (with the exception of the baseline term in the linear model)
 #' @param trans A function matching that used to transform the response
 #'        in the robust regression. Defaults to \code{trans=log}. Use
 #'        \code{trans=I} if no transformation was made.
@@ -19,7 +21,7 @@ NULL
 #'       \code{simulate.margarita}.
 #' @keywords models
 #' @export margarita
-margarita <- function(rlm, evmSim, newdata,
+margarita <- function(rlm, evmSim, newdata=NULL,
                       trans=log, invtrans=exp,
                       baseline="alt.b", minima=FALSE){
   if (class(rlm)[1] != "rlm"){
@@ -31,7 +33,7 @@ margarita <- function(rlm, evmSim, newdata,
   if (class(evmSim) != "evmSim"){
     stop("object should have class 'evmSim'")
   }
-  
+
   # Construct string for transformed baseline
   if (missing(trans)){ ctrans <- "log" }
   else {
@@ -41,7 +43,7 @@ margarita <- function(rlm, evmSim, newdata,
   baseline <- if (ctrans != "I") paste0(ctrans, "(", rawBaseline, ")")
   else baseline
   
-  if (missing(newdata) | is.null(newdata))
+  if (is.null(newdata))
     if (length(coef(evmSim)) == 2) newdata <- data.frame(1)
   else stop("There are covariates in the model: you need to provide newdata")
   

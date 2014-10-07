@@ -78,7 +78,7 @@ addVariables <- function(data, additional.data, subject="usubjid", vars = "trt")
 #' @export
 getStudyDay <- function(data, datecol="vsdt", subject="usubjid", visit="visit", baseline.visit=1){
   data[, datecol] <- as.Date(data[, datecol], format="%d%b%Y")
-  s <- data[data[, visit] == base.visit, ]
+  s <- data[data[, visit] == baseline.visit, ]
   s <- s[order(s[, datecol]), ]
   s <- s[order(s[, subject]), c(subject, datecol)]
   s <- s[cumsum(rle(s[, subject])$lengths), ]
