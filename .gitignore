@@ -2,3 +2,7 @@
 *~
 *.aux
 *.pdf
+*.Rd
+*.toc
+*.tex
+.Rhistory
