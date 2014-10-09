@@ -1,3 +1,48 @@
+readAutoInputs <- function(file){
+  input <- readLines(file)
+  ii <- substr(wh, 1, 1)
+  input <- input[ii != "#"] # drop comment lines
+
+  input <- strsplit(input, "#")
+
+  # i is a list with 1 element for each line of the input file
+  # i[[j]][1] gives the object name and value, anything else is junk
+
+  input <- unlist(lapply(input, function(x) x[1]))
+
+  output <- strsplit(input, ": ")
+  nms <- unlist(lapply(output, function(x) x[1]))
+  output <- unlist(lapply(output, function(x) x[2]))
+  names(output) <- nms
+  output
+}
+
+
+#' Read a data file, figuring out if it is a SAS file or something else
+#' 
+#' @param file The name, including the full path, of the data file
+#' @param type The type, as indicated by the file extension. At present, must
+#'             be either 'sas7bdat', 'csv' or NULL (the default). If NULL, the
+#'             function uses the file extension to guess.
+#
+#' @details If the file appears to be a SAS file, the function uses read.sas7bdat
+#'          from Matt Shotwell's sas7bdat package. Currently, compressed SAS
+#'          data files are not supported (but see Shotwell's sas7bdat.parso
+#'          package).
+#' @importFrom tools file_ext
+#' 
+readData <- function(file, type=NULL){
+  if (is.null(type)) type <- file_ext(file)
+  if (type == "sas7bdat"){
+    res <- read.sas7bdat(file)
+  } else (type = ".csv") {
+    res <- read.csv(file)
+  } else {
+    stop("File type (extension) must be sas7bdat or csv")
+  }
+  invisible(res)
+}
+
 #' Five number summary for a variable in a data.frame, by a subsetting variable
 #' 
 #' @param x A \code{data.frame}
