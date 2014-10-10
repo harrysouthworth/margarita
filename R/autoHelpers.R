@@ -35,7 +35,7 @@ readData <- function(file, type=NULL){
   if (is.null(type)) type <- file_ext(file)
   if (type == "sas7bdat"){
     res <- read.sas7bdat(file)
-  } else (type = ".csv") {
+  } else if (type == ".csv") {
     res <- read.csv(file)
   } else {
     stop("File type (extension) must be sas7bdat or csv")
