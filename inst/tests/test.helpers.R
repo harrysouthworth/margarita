@@ -56,3 +56,43 @@ test_that("Segments are returned correctly", {
 
   expect_that(getSegmentData(data), throws_error())
 })
+
+test_that("summary.margarita arithmetic works", {
+  # Implicity tests as.data.frame.summary.margarita, too
+  liver$ndose <- as.numeric(liver$dose)
+  mm <- lmr(log(ALT.M) ~ log(ALT.B) + ndose, data=liver)
+  liver$r <- resid(mm)
+  em <- evm(r, data=liver, qu=.5, xi=~ndose, method="sim", iter=10500, verbose=FALSE)
+  mar <- margarita(mm, em, newdata=data.frame(ndose=1:4), baseline="ALT.B")
+
+
+  rl <- simulate(mar, M=c(100, 500, 1000))
+  srl <- summary(rl)
+
+  # division
+  d <- srl / 25
+  whd <- lapply(srl, function(x) x/25)
+  whd <- do.call("rbind", whd)
+  expect_that(as.data.frame(whd), is_equivalent_to(as.data.frame(d)[, 1:5]))
+
+  # multiplication
+  d <- srl * 25
+  whd <- lapply(srl, function(x) x*25)
+  whd <- do.call("rbind", whd)
+  expect_that(as.data.frame(whd), is_equivalent_to(as.data.frame(d)[, 1:5]))
+
+  # subtraction
+  d <- srl - 25
+  whd <- lapply(srl, function(x) x-25)
+  whd <- do.call("rbind", whd)
+  expect_that(as.data.frame(whd), is_equivalent_to(as.data.frame(d)[, 1:5]))
+  
+  # addition
+  d <- srl + 25
+  whd <- lapply(srl, function(x) x+25)
+  whd <- do.call("rbind", whd)
+  expect_that(as.data.frame(whd), is_equivalent_to(as.data.frame(d)[, 1:5]))
+  })
+
+
+
