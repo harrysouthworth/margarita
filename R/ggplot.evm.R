@@ -119,6 +119,9 @@ function(data, alpha = .050,
 #' @param xlab Labels for x-axes.
 #' @param nsim Number of simulated datasets to create to form tolerence regions.
 #' @param alpha Used to compute coverage of pointwise confidence intervals.
+#' @param jitter.width Used to control the amount of horizontal jittering of points in
+#'        the plots of the residuals versus covariates (when covariates are in the model).
+#'        Defaults to \code{jitter.width=0}.
 #' @param ptcol Colour for points. Defaults to \code{ptcol="blue"}.
 #' @param col Colour for lines. Defaults to \code{col="light blue"}.
 #' @param fill Colour for confidence regions. Defaults to \code{fill="orange"}
@@ -130,16 +133,16 @@ function(data, alpha = .050,
 #'        \code{ncol=2}. This argument is passed into \code{grid.arrange}.
 #' @param nrow The number of rows wanted in the resulting plot. Defaults to
 #'        \code{nrow=2}. This argument is passed into \code{grid.arrange}.
+#' @param ... Other arguments passed through to underlying plot functions.
 #' @details The function attempts to arrange the plots nicely. If the output
 #'          isn't what was wanted, the function returns the graphs to the user
 #'          as a list so that the user can use \code{grid.arrange} directly.
 #' @keywords hplot
 
-#' @param ... Other arguments passed through to underlying plot functions.
 #' @method ggplot evmOpt
 #' @export
 ggplot.evmOpt <-
-function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.05,
+function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.05, jitter.width=0,
          ptcol="blue", col="light blue", fill="orange", plot.=TRUE, ncol=2, nrow=2, ...){
     if (!missing(main)){
         if (length(main) != 1 & length(main) != 4){
@@ -192,7 +195,7 @@ function(data, which=1:4, main=rep(NULL,4), xlab=rep(NULL,4), nsim=1000, alpha=.
           xlab <- paste("Fitted", ParName)
           d <- data.frame(lp=lp[, i], r = resid(data))
           co[[i]] <- ggplot(d, aes(lp, r)) +
-                         geom_point(color=ptcol, alpha=.7, position=position_jitter(width=.1)) +
+                         geom_point(color=ptcol, alpha=.7, position=position_jitter(width=jitter.width)) +
                          stat_smooth(color=col, se=FALSE, span=1) + #, method="loess") +
                          ggtitle(paste("Residuals vs fitted", ParName)) +
                          ggtitle(paste("Residuals vs fitted", ParName)) +

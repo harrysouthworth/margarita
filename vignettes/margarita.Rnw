@@ -21,18 +21,19 @@ kindly made it publicly available.
 
 The major gains in efficiency in the analysis of clinical trial safety data come
 from simpler simulation of return levels and upper limit of normal exceedance
-probabilities simpler, as well as functions to support a standard approach to
+probabilities, as well as functions to support a standard approach to
 robust regression modelling.
 
-Attempts are made at automatic threshold selection, including use of the EGP3
+Attempts are made at automatic threshold selection, including use of the
+extended generalized Pareto 3 (EGP3)
 distribution of Papastathopoulos \& Tawn~\cite{egp}. However, this functionality
 relies on known context of clinical trial safety data and might not work well in
 other contexts. In any event, automatic threshold selection appears to be a tricky
 matter~\cite{scarrottMacDonald} and standard diagnostic plots should always be studied.
 
-Further, margarita attempts to make the restructuring of CDISC~\cite{CDISC} STDM lab data
+Further, margarita attempts to make the restructuring of CDISC~\cite{cdisc} STDM lab data
 straightforward, though this functionality is based on AstraZeneca's implementation
-of STDM and might be in appropriate or need adjustment for other implementations.
+of STDM and might be inappropriate or need adjustment for other implementations.
 
 <<width, echo=FALSE>>=
 options(width=60)
@@ -75,7 +76,7 @@ application programming interface for their datasets, nor do they publish their
 compression algorithm. Nevertheless, attempts have been made to reverse engineer
 the {\tt .sas7bdat} data files.
 
-The sas7bdat~\cite{sas7bdat} package for R, by Matt Shotwell works well at importing
+The sas7bdat~\cite{sas7bdat} package for R, by Matt Shotwell, works well at importing
 many SAS datasets into R, but does not attempt to work with compressed datasets.
 The SassyReader~\cite{sassyreader} project rewrote Shotwell's code into a Java
 library but still did not attempt to cope with compressed formats. More recently,
@@ -99,13 +100,20 @@ current case, we are interested only in ALT, so we subset down on that.
 alt <- lb[lb$lbtestcd == "ALT", ]
 @
 
-We now reduce the data to it's baseline values and post-baseline maxima. See the
+We now reduce the data to the baseline values and post-baseline maxima. See the
 help files for {\tt getBaselines} and {\tt getAggregateData} for further information.
 
 <<alt, echo=TRUE>>=
 alt <- getBaselines(alt, visit="visitnum")
 alt <- getAggregateData(alt)
 @
+
+Examining the help file for {\tt getAggregateData} gives more details of the
+options allowed. By default, the function assumes the test name to be held in
+a column called `lbtest' and the analysis values to be held in `aval'.
+The function as called above assumes that the baseline
+column does not exist. If that is not the case, use the {\tt baseline} argument to
+override the function's attempt to reconstruct the baseline data.
 
 If the {\tt lb} dataset already contains the treatment decodes and population
 flags, the {\tt dm} dataset will not likely be required. Supposing, though,
@@ -116,26 +124,12 @@ alt <- addVariables(alt, dm, vars="armcd")
 @
 
 The above code assumes that the unique subject identifier is called `usubjid'
-and that the treatment group and safety population flags are called `trt' and
-`saffl' respectively. See the help file for {\tt addVariables} for details on
-more control over the function:
+and that the treatment group identifier is called `armcd'. See the help file
+for {\tt addVariables} for details on more control over the function:
 
-<<help, echo=FALSE, eval=FALSE>>=
+<<help, echo=TRUE, eval=FALSE>>=
 ?addVariables
 @
-
-The above function all tells R to take the {\tt lb} dataset, subset it to cases
-where {\tt lbtest} is `ALT', treat the baseline visit to be visit 1, and take
-the analysis variable to be `aval'. The function also defaults to taking the 
-maximum post-baseline values, though this can be changed.
-
-Examining the help file for {\tt getAggregateData} gives more details of the
-options allowed. By default, the function assumes the test name to be held in
-a column called `lbtest' and the analysis values to be held in `aval'. In some
-cases, these might be a concatenation of two columns, the `paramcd' column, and
-the `lbstresn' column. Also, the function as called above assumes that the baseline
-column does not exist. If that is not the case, use the {\tt base} argument to
-override the function's attempt to reconstruct the baseline data.
 
 Note that it will often be the case that additional steps are necessary to tidy
 up the analysis dataset, such as removing screen failures and ensuring that
@@ -147,7 +141,7 @@ Finally, note that subjects who have no baseline value recorded, or no post-base
 value recorded, cannot be used in the analysis (unless some form of multiple
 imputation is to be employed, but in the extreme value setting it is not
 obvious how this would be done). As such, the dataset returned by
-{\\ getAggregateData} drops all such cases with missing values.
+{\tt getAggregateData} drops all such cases with missing values.
 
 We should now have an analysis-ready dataset, the first few rows of which look
 something like this:
@@ -164,14 +158,20 @@ shiftplot(alt, aes(baseline, aval), by=~armcd,
           ylab="Maximum ALT (U/L)")
 @
 
+\clearpage
 \section{Robust regression}
 Robust regression can be performed using the {\tt lmr}
 (linear model robust) function. This function is a
 wrapper to {\tt rlm} in the MASS~\cite{MASS} package, setting the
-method to MM and efficiency to 85\%. It also computes
+method to MM, efficiency for Gaussian data to 85\%, and using bisquare weight
+functions. It also computes
 the coefficient covariance matrix and attaches it to the
-returned object. A ggplot function for diagnostics is
+returned object. A {\tt ggplot} function for diagnostics is
 provided.
+
+The use of MM-estimation with the particular settings as described above is
+used as default as recommended by Maronna et al~\cite{maronnaMartinYoahai} and
+as described by Southworth \& Heffernan~\cite{southHeff}.
 
 In our data, dose is ordered such that $A < B < C < D$. We take advantage of
 this structure by assuming linearity in dose and recoding A -- D as 1 -- 4.
@@ -199,9 +199,9 @@ We can also look at boxplots of scaled residuals by treatment group.
 <<boxplots, echo=TRUE, fig.cap="Boxplots of residuals from the robust regression, by dose group.">>=
 boxplot(mm, by="armcd")
 @
-
+\clearpage
 In Figure~\ref{fig:boxplots} we can see a fairly clear dose-response relationship
-with there being few outliers in the lower dose groups and more, and larger,
+with there being few outliers in the lower dose groups, but more, and larger,
 outliers in the higher dose groups. In practice, it is often at this stage of the
 analysis that the presence or absence of treatment effects begins to become clear.
 Note that the residuals in Figure~\ref{fig:boxplots} have been scaled so that values
@@ -209,11 +209,11 @@ beyond about $\pm 2.5$ are inconsistent with normality, justifying the use
 of robust estimation.
 
 \section{Extreme value modelling}
-We now move on to fit generalized Pareto distributions to the
+We now move on to fit generalized Pareto (GP) distributions to the
 residuals from the robust regression.
 
 \subsection{Threshold selection}
-Before fitting GPD models, we need to select a threshold above which GPD models
+Before fitting GP models, we need to select a threshold above which GP models
 are likely to be reasonable. We proceed firstly by producing some plots to
 aid threshold selection.
 
@@ -224,10 +224,10 @@ ggplot(gpdThresh(alt$r))
 @
 
 The top row of Figure~\ref{fig:thresh} displays plots of the scale and shape
-parameters in the generalized Pareto distribution above increasing thresholds.
+parameters in the GP distribution above increasing thresholds.
 Following Coles~\cite{coles}, these should be constant above a threshold suitable
-for thresholding and, to make use of as much data as possible, we want to choose
-the lowest threshold possible. Accounting for the uncertainty represented by the
+for GP modelling and, to make use of as much data as possible, we want to choose
+the lowest suitable threshold. Accounting for the uncertainty represented by the
 approximate pointwise confidence intervals on the graphs, a threshold close to
 zero, or perhaps a little higher, looks like it should be ok.
 
@@ -251,7 +251,7 @@ of zero or a little higher might be appropriate.
 In Figure~\ref{fig:thresh}, the data are {\em all} of the residuals from the robust
 regression with no account being taken of dose (or any other covariate). As such,
 they can only be considered to be approximations of what we really want, which
-is a threshold above which GPD modelling accounting for dose is appropriate.
+is a threshold above which GP modelling accounting for dose is appropriate.
 
 \subsubsection{A test for threshold selection}
 Papastathopoulos and Tawn~\cite{egp} suggest selecting the lowest threshold above
@@ -299,25 +299,24 @@ Southworth \& Heffernan~\cite{southHeff}.
 
 \subsection{Fitting generalized Pareto distributions}
 Following the discussion in the previous section, we proceed to
-fit GPD models to the residual ALT values by maximum likelihood and look
+fit GP models to the residual ALT values by maximum likelihood and look
 at diagnostic plots. We threshold at the $60^{th}$ percentile.
 
 <<gpd, echo=TRUE, fig.cap="Diagnostic plots for the GPD model fit to the residual ALT values without accounting for dose.">>=
-# Fit GPD model by penalized ML
 mlmod <- evm(r, data=alt, qu=.6)
 ggplot(mlmod)
 @
 
 Diagnostic plots appear in Figure~\ref{fig:gpd}. No account has been taken of
 dose, so these plots can only be considered as approximate guidance on whether
-GPD models are likely to fit well above the chosen threshold. The pointwise
+GP models are likely to fit well above the chosen threshold. The pointwise
 simulated envelopes give no cause for concern. In general, the QQ-plot (the
-top right panel) is usually the one in which any lack of model fit become most
+top right panel) is usually the one in which any lack of model fit becomes most
 clear.
 
 Following Southworth \& Heffernan~\cite{southHeff}, we wish to account for dose.
 As with the robust regression modelling previously, we assume linearity in dose.
-Either one, both or none of the parameters in the GPD might be dependent on dose,
+Either one, both or none of the parameters in the GP might be dependent on dose,
 so we fit a variety of models and compare them using the Akaike Information
 Criterion (AIC). The AIC provides guidance on model selection, but not a hard
 rule, so in some cases, we might want to consider the change in deviance due to
@@ -353,6 +352,18 @@ using Markov chain Monte Carlo (MCMC).
 <<diag, echo=TRUE, fig.cap="Diagnostic plots for the chosen model.">>=
 ggplot(gpd2)
 @
+\clearpage
+The diagnostic plots in Figure~\ref{fig:diag} give no cause for concern.
+
+In this example, there is a linear dose-response relationship, with
+$\hat\xi$ increasing as dose increases. Such a relationship makes logical sense.
+In some examples, it might be the case that a decreasing or non-monotone
+dose-response is suggested. Such a relationship is unlikely to make sense
+and the analyst then needs to weight the strength of evidence in the data
+(i.e considerations of AIC and deviance) with their knowledge of the data
+generating mechanism (i.e. the treatment regimens). Statistical inference
+is only one part of the larger process of scientific data modelling.
+
 <<bmod, echo=TRUE>>=
 gmod <- evm(r, alt, qu=.6, xi=~ndose, method="sim")
 @
@@ -389,12 +400,13 @@ behave more like a random sample from the target distribution. The help file
 for {\tt evm} describes the {\tt thin} and {\tt burn} arguments that control
 these settings.
 
+\clearpage
 \section{\tt margarita}
 The main efficiency that margarita package introduces to the analysis of clinical
 trial safety data is to provide built-in functions to aid simulation of
 quantities of interest such as return levels and probabilities of exceeding
 high values. This is achieved by first creating an object that contains the
-robust linear model, the MCMC simulated GPD model, and other information
+robust linear model, the MCMC simulated GP model, and other information
 required for the calculations.
 
 <<margarita, echo=TRUE>>=
@@ -414,22 +426,24 @@ simulate.
 
 If there are no covariates in the model, {\tt simulate}
 doesn't need the {\tt newdata} argument. However, if there
-are covariates {\em in either the robust linear model, the GPD
+are covariates {\em in either the robust linear model, the GP
 model or both}, in order to deal with all kinds of trial designs, the
 {\tt simulate} function requires {\tt newdata}. The rows of {\tt newdata} should
 be unique and it should {\emph not} contain the baseline data. Baseline data are
 simulated internally by resampling from the data attached to the linear
-model object.
+model object. The rows of {\tt newdata} therefore represent combinations of
+covariates in which the user is interestd in.
 
 The {\tt trans} argument tells the simulation function how the response variable
 is transformed in the robust linear model, and the {\tt invtrans} argument gives
 the reverse transformation. These default to {\tt log} and {\tt exp}, but in some
 cases might both be {\tt I} for the identity (i.e. no) transformation, or to
 {\tt sqrt} and {\tt function(x) x*x} for the square root and square transforms.
+Note that {\tt trans} and {\tt invtrans} are functions, not character strings.
 
 \section{Return levels}
 Return levels for clinical trial data can be simulated
-using the {\tt simulate} function with {\tt type=`rl'}
+using the {\tt simulate} function with {\tt type='rl'}
 (the default). The simulations for various return levels
 can be run in a single call by passing a vector argument
 into the function.
@@ -448,7 +462,7 @@ quantiles are computed differs. M'Kada et al~\cite{mkada} describe one lab
 that calculated the ULN for ALT as the mean plus two standard deviations after
 removing the 5\% most extreme values, but later recalculated it as the mean
 plus a single standard deviation after removing the 5\% most extreme values.
-Given that ALT I skewed and subject to outliers, it is difficult to justify
+Given that ALT is skewed and subject to outliers, it is difficult to justify
 either approach.
 
 To avoid the risk of increasing variation by using local lab normal ranges, it
@@ -551,6 +565,10 @@ GGA Software Services, Parso Java Library, http://www.ggasoftware.com/opensource
 R. E. Kass and A. E. Raftery. Bayes factors, Journal of the American Statistical
 Association, 90, 773 -- 795, 1995
 
+\bibitem{merck,
+  The Merck Manual of Diagnosis and Therapy (Nineteenth Edition), Merck Manuals, 2011
+}
+
 \bibitem{mkada}
 H. M'Kada, M. Munteanu, H. Perazzo, Y. Ngo, N. Ramanujam, F. Imbert-Bismut,
 V. Ratziu, D. Bonnefont-Rousselot, B. Souberbielle, I. Schuppe-Koistinen,
@@ -567,7 +585,7 @@ estimation, Journal of Statistical Planning and Inference, 143, 131 -- 143, 2011
 computing. R Foundation for Statistical Computing, Vienna, Austria.
 URL http://www.R-project.org/.
 
-\bibitem{scarrottMacDonalt}
+\bibitem{scarrottMacDonald}
 C. Scarrott and A. MacDonald, A review of extreme value threshold estimation
 and uncertainty quantification, REVSTAT Statistical Journal, 10, 33 -- 60, 2012
 

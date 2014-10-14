@@ -17,7 +17,7 @@ lmr <- function(fo, data, method="MM", c=3.44, maxit=40){
     res <- rlm(fo, data, method=method, c=c, maxit=maxit)
     res$call$formula <- fo
     s <- summary(res)
-    res$cov <- s$cov.unscaled * s$stddev^2
+    res$cov <- s$cov.unscaled * s$sigma^2
     res$data <- data # used by boxplot.rlm
     # Can't add simulated coefs here because we don't know how many
     # to simulate yet.
@@ -163,4 +163,3 @@ shiftplot <- function(data, aes, by=NULL, ncol=NULL, trans="identity",
          if (!is.null(by)) facet_wrap(by, ncol=ncol)
   p
 }
-

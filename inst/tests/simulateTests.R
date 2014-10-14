@@ -82,7 +82,4 @@ test_that("Probabilities of threshold exceedance are calculated correctly", {
   }
 })
 
-test_that("Predicted values match published results", {
-  
-  
-})
+
