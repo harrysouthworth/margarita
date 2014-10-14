@@ -1,7 +1,7 @@
 context("margarita helpers")
 
 test_that("margaritaScale traps erroneous input and returns correct substring", {
-  
+  margaritaScale <- margarita:::margaritaScale
   expect_that(margaritaScale("robots"), matches("r"))
   expect_that(margaritaScale("pingpong"), matches("p"))
   expect_that(margaritaScale("dumbdumb"), matches("d"))
@@ -12,11 +12,13 @@ test_that("margaritaScale traps erroneous input and returns correct substring", 
     if (class(res) == "try-error"){ FALSE }
     else { TRUE }
   }
-  s <- sapply(letters, f)  
-  expect_that(letters[s], matches(c("d", "p", "r")))
+  s <- sapply(letters, f)
+  for (i in 1:sum(s)) # s is a logical vector
+    expect_that(letters[s][i], matches(c("d", "p", "r")[i]))
 })
 
 test_that("getCIquantiles behaves as expected", {
+  getCIquantiles <- margarita:::getCIquantiles
   expect_that(getCIquantiles(.05), equals(c(0.025, 0.50, 0.975)))
   expect_that(getCIquantiles(.1), equals(c(0.050, 0.50, 0.950)))
   expect_that(getCIquantiles(c(.1, .5)), equals(c(.050, .250, .50, .750, .950)))
@@ -27,29 +29,30 @@ test_that("getCIquantiles behaves as expected", {
 })
 
 test_that("Segments are returned correctly", {
+  getSegmentData <- margarita:::getSegmentData
   data <- data.frame(rmvnorm(100, rep(0, 3)))
 
   expect_that(getSegmentData(data), throws_error())
 
-  data$group <- rep(LETTERS[1:2], each=50)
+  data$groups <- rep(LETTERS[1:2], each=50)
 
   expect_that(getSegmentsData(data), throws_error())
   
   data[, 1:3] <- t(apply(data[, 1:3], 1, sort))
 
-  expect_that(getSegmentData(data)[[1]], is_equivalent_to(data[, c("X1", "X3", "group")]))
+  expect_that(getSegmentData(data)[[1]], is_equivalent_to(data[, c("X1", "X3", "groups")]))
   expect_that(getSegmentData(data)[[2]], equals(NULL))
 
   data <- data.frame(rmvnorm(100, rep(0, 7)))
-  data$group <- rep(LETTERS[1:2], each=50)
+  data$groups <- rep(LETTERS[1:2], each=50)
   data[, 1:7] <- t(apply(data[, 1:7], 1, sort))
-  
-  expect_that(getSegmentData(data)[[1]], is_equivalent_to(data[, c("X1", "X5", "group")]))
-  expect_that(getSegmentData(data)[[2]], is_equivalent_to(data[, c("X2", "X4", "group")]))
+
+  expect_that(getSegmentData(data)[[1]], is_equivalent_to(data[, c("X1", "X5", "groups")]))
+  expect_that(getSegmentData(data)[[2]], is_equivalent_to(data[, c("X2", "X4", "groups")]))
 
   data <- data.frame(rmvnorm(100, rep(0, 2)))
-  data$group <- rep(LETTERS[1:2], each=50)
+  data$groups <- rep(LETTERS[1:2], each=50)
   data[, 1:2] <- t(apply(data[, 1:2], 1, sort))
-  
+
   expect_that(getSegmentData(data), throws_error())
 })

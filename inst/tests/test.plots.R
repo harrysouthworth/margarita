@@ -40,7 +40,7 @@ test_that("ggplot.evmOpt output matches plot.evmOpt output", {
 test_that("ggplot.evmSim output matches plot.evmSim output", {
   m <- lmr(log(ALT.M) ~ log(ALT.B) + as.numeric(dose), data=liver)
   liver$r <- resid(m)
-  em <- evm(r, data=liver, qu=.5, xi=~as.numeric(dose), method="sim", iter=10500)
+  em <- evm(r, data=liver, qu=.5, xi=~as.numeric(dose), method="sim", iter=10500, verbose=FALSE)
   par(mfrow=c(3, 3))
   plot(em)
   ggplot(em)  
