@@ -57,6 +57,7 @@ margarita <- function(rlm, evmSim, newdata=NULL,
 }
 
 #' @method print margarita
+#' @export
 print.margarita <- function(x, ...){
   print(x[[1]])
   cat("\n")
