@@ -18,12 +18,7 @@ suppressMessages(library(gridExtra))
 
 \section{\label{sec:intro}Introduction}
 Clinical trials are usually designed to address a specific question
-about the effectiveness, or efficacy, of a drug in treating a particular
-condition. For example, a trial of a new antihypertension drug would
-measure how much the drug reduces blood pressure relative to a placebo
-or another drug; a trial of a new drug for treating cancer would study
-survival times between the new drug and a comparator.
-
+about the efficacy of a drug in treating a particular condition.
 Since such questions of efficacy are usually well-formed and since the
 clinical trials are designed to answer them, the analysis of the resulting
 data is usually a straightforwared, prespecified analysis using a standard
@@ -32,18 +27,15 @@ groups, or the duration of survival of the patients.
 
 However, the bulk of the data that are collected in clinical trials relates
 not to the {\em efficacy} of the drug, but to its {\em safety}. Safety
-data will typically include data on the patients' vital signs (blood
-pressure, heart rate, etc.), adverse events reported by patients to their
-doctors, other medications that patients might have been taking,
-and many measurements resulting from sending patients' blood samples
-to laboratories. Most adverse events, whether or not related to the drug,
-tend to be uncommon so that the data tend to be sparse.
+data will typically include data on the patients' vital signs, adverse events,
+concomitant medications, and clinical laboratory data. Most adverse events,
+whether or not related to the drug, tend to be uncommon so that the data tend to be sparse.
 The laboratory data often have skewed distributions
 and are subject to outliers. For safety data then, unlike efficacy,
 the questions are typically not well-defined, some of them will not
 be known until the data has been studied in some detail, and the data
 are of mixed types and messy. For these reasons, statisticians have
-tended to shy away from the analysis of safety data, leaving interpretation
+tended to be cautious in the analysis of safety data, leaving interpretation
 to clinicians.
 
 Published statistical guidance for clinical trials~\cite{e9} summarizes this
@@ -61,7 +53,7 @@ and tolerability of drugs, and means that conclusive information from
 confirmatory clinical trials is the exception rather than the rule.
 \end{quote}
 
-\section{The importance of extreme values}
+\section{Extreme values of laboratory data}
 The rest of this article focusses on the laboratory data. As already mentioned,
 the data tend to be far from normally distributed and subject to outliers.
 In fact, it is usually the outliers that indicate safety issues, as
@@ -141,7 +133,7 @@ information. Making inferences about the potential for liver toxicity
 by looking at the mean would be misleading and dangerous.
 
 \section{A novel statistical approach}
-A little thought indicates that clinical safety data can't be the
+Clinical safety data can't be the
 only setting in which it is the extreme values that are of interest.
 In fact, methods for the analysis of extreme values have a long history:
 Gumbel~\cite{gumbel} traces attempts by statisticians to handle
@@ -155,12 +147,9 @@ The first full length book on extreme value methods, by Gumbel, appeared in
 in nature, and he wrote that
 
 \begin{quote}
-Until recent years, engineers employed purely empirical
-procedures for the analysis
-of hydrological data and, especially, the evaluation
-of the frequencies of floods
-and droughts. These studies led practically nowhere
-until the statistical nature of
+Until recent years, engineers employed purely empirical procedures for the analysis
+of hydrological data and, especially, the evaluation of the frequencies of floods
+and droughts. These studies led practically nowhere until the statistical nature of
 the problem was recognized. Even then the results were meager and disappointing.
 Hence the claim that ``sound engineering judgment'' is superior to statistics,
 a statement which may have been true as long as the adequate statistical method
@@ -184,15 +173,14 @@ of the data are appropriate and the appropriate tool is known as the
 {\em generalized Pareto distribution} (GPD).
 
 The GPD has two parameters, one of which ($\sigma$) controls the scale of
-the distribution, the other of which ($\xi$) controls how heavy the tail of the
-distribution is. By examining how the value of $\sigma$ or (more often) $\xi$
-depends on the drug and dose, we can form an idea for the strength of evidence for
-treatment and dose-response effects, and for the nature of those relationships.
+the distribution, the other of which ($\xi$) controls how heavy the tail is.
+By examining how the value of $\sigma$ and $\xi$
+depend on the drug and dose, we can form an idea of the strength of evidence for
+treatment and dose-response effects, and of the nature of those relationships.
 Plots of the distribution for values of $\xi$ being $-\frac{1}{4}, 0$ and
 $\frac{1}{2}$ are shown in Figure~\ref{fig:gpd}.
 
-<<sgpd, echo=FALSE, fig.cap="The generalized Pareto distribution with $\sigma = 1$ and $\xi$ being $-\frac{1}{4}, 0$ and $\frac{1}{2}$. Small values of $\xi$ result in short-tailed distributions and large values of $\xi$ result in heavy tails and thus greater probability of outliers.">>=
-library(texmex)
+<<sgpd, echo=FALSE, fig.cap="The generalized Pareto distribution with $\\sigma = 1$ and $\\xi$ being $-\\frac{1}{4}, 0$ and $\\frac{1}{2}$. Small values of $\\xi$ result in short-tailed distributions and large values of $\\xi$ result in heavy tails and thus greater probability of outliers.">>=
 x <- seq(0, 7, len=200)
 
 d.m5 <- dgpd(x, sigma=1, xi=-.25)
@@ -239,6 +227,7 @@ for outliers to occur in some of the lower dose groups. How concerned
 should we be about the large ALT values in group D?
 
 <<shiftplots, echo=FALSE, fig.cap="Plots of pre-treatment values versus on-treatment values in each dose group. The reference lines are lines of identity -- a point above the line indicates an increase from baseline, and point below the line indicates a decrease.">>=
+if (exists("liver")) rm("liver") # tidy up after a previous run
 liver$ndose <- as.numeric(liver$dose)
 liver$dose <- paste("Dose", liver$dose)
 
@@ -290,7 +279,7 @@ the values of ALT likely to be exceeded only once every 1000 patients.
 The theory of extreme values allows us to estimate these quantities even
 though we have data on only 160 patients per dose.
 
-<<rl1000, echo=FALSE, fig.cap="Estimated 1000-patient return levels for ALT at each dose. The heavy line segments are 50\% confidence intervals, and the lighter segments are 90\% intervals.">>=
+<<rl1000, echo=FALSE, fig.cap="Estimated 1000-patient return levels for ALT at each dose. The heavy line segments are 50\\% confidence intervals, and the lighter segments are 90\\% intervals.">>=
 gmod <- evm(r, data=liver, qu=.7, xi=~ndose, method="sim", verbose=FALSE)
 
 nsim <- nrow(gmod$param)
@@ -303,7 +292,7 @@ myloc <- coef(rmod)
 mycoefs <- rmvnorm(4*nsim, mean=myloc, sigma=mycov)
 
 ElogALT <- mycoefs[,1] + mycoefs[,2]*base + rep(1:4,each=nsim)*mycoefs[,3]
-ElogALT <- matrix(ElogALT,ncol=4)
+ElogALT <- matrix(ElogALT, ncol=4)
 
 m <- c(100, 1000)
 gg <- list()
@@ -367,7 +356,7 @@ $20\times ULN$ & 4 & Life threatening\\
 \end{center}
 \end{table}
 
-<<pexceed, echo=FALSE, fig.cap="Estimated probabilities of ALT exceeding the thresholds in Table~\ref{tab:CTC} with 90\% confidence intervals. Note that the horizontal axes vary from plot to plot.">>=
+<<pexceed, echo=FALSE, fig.cap="Estimated probabilities of ALT exceeding multiples of ULN with 50\\% and 90\\% confidence intervals. Note that the horizontal axes vary from plot to plot.">>=
 rp <- function(xm, u, phi, xi, p, r) {
   res <- p * (1 + xi/exp(phi) * (xm - u))^(-1/xi)
   if (any(u > xm)){
@@ -379,7 +368,7 @@ rp <- function(xm, u, phi, xi, p, r) {
     res
 }
 
-getProbs <- function(u, phi, xi, p, r, ULN, m = c(1, 3, 10, 20)) {
+getProbs <- function(u, phi, xi, p, r, ULN, m = c(1, 2.5, 5, 20)) {
     m <- log(ULN * m)
     res <- t(sapply(m, rp, u = u, phi = phi, xi = xi, p = p, r=r))
     res <- apply(res, 1, quantile,  prob=c(.05, .25, .5, .75, .95))
@@ -388,19 +377,19 @@ getProbs <- function(u, phi, xi, p, r, ULN, m = c(1, 3, 10, 20)) {
 
 DoCalc <- function(gmod, ElogALT, xi){
     cnames <- paste("P(ALT > ", c("", "3x", "10x", "20x"), "ULN)",sep = "")
-    out <- getProbs(u = ElogALT + gmod$threshold,
-    phi = gmod$param[,1], xi = xi,
-    r=liver$r, p = 1-0.7,ULN = 36)
+    out <- getProbs(u = ElogALT + gmod$map$threshold,
+                    phi = gmod$param[,1], xi = xi,
+                    r=liver$r, p = 1-0.7, ULN = 36)
     colnames(out) <- cnames
     out
 }
 
 bmodParams <- predict(gmod, type="lp", all=TRUE)
 
-rpA <- DoCalc(gmod, ElogALT = ElogALT[,1], xi = bmodParams[[1]][,2])
-rpB <- DoCalc(gmod, ElogALT = ElogALT[,2], xi = bmodParams[[2]][,2])
-rpC <- DoCalc(gmod, ElogALT = ElogALT[,3], xi = bmodParams[[3]][,2])
-rpD <- DoCalc(gmod, ElogALT = ElogALT[,4], xi = bmodParams[[4]][,2])
+rpA <- DoCalc(gmod, ElogALT = ElogALT[,1], xi = bmodParams[[1]][[1]][,2])
+rpB <- DoCalc(gmod, ElogALT = ElogALT[,2], xi = bmodParams[[1]][[2]][,2])
+rpC <- DoCalc(gmod, ElogALT = ElogALT[,3], xi = bmodParams[[1]][[3]][,2])
+rpD <- DoCalc(gmod, ElogALT = ElogALT[,4], xi = bmodParams[[1]][[4]][,2])
 
 rpl <- list(rpA, rpB, rpC, rpD)
 
@@ -447,9 +436,7 @@ puln20 <- ggplot(uln20, aes(X50., dose)) +
                   geom_segment(aes(x=X5., y=dose, xend=X95., yend=dose), col='blue') +
                   geom_segment(aes(x=X25., y=dose, xend=X75., yend=dose), col='blue', size=2)
 
-pdf('pexceed.pdf')
 grid.arrange(puln, puln2.5, puln5, puln20)
-
 @
 
 

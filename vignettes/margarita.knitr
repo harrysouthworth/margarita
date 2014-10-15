@@ -13,7 +13,7 @@ This document illustrates some usage of the margarita
 package for R~\cite{R}. The margarita package is designed to simplify extreme
 value modelling of clinical trial lab safety data, as described by Southworth
 \& Heffernan~\cite{southHeff}. For non-clinical trial use, the package also
-provides ggplot~\cite{ggplot} replacement functions for several of the
+provides ggplot~\cite{ggplot2} replacement functions for several of the
 texmex~\cite{texmex} plot functions.
 
 Development of the margarita package was partially funded by AstraZeneca who have
@@ -31,7 +31,7 @@ relies on known context of clinical trial safety data and might not work well in
 other contexts. In any event, automatic threshold selection appears to be a tricky
 matter~\cite{scarrottMacDonald} and standard diagnostic plots should always be studied.
 
-Further, margarita attempts to make the restructuring of CDISC~\cite{cdisc} STDM lab data
+Further, margarita attempts to make the restructuring of CDISC STDM lab data
 straightforward, though this functionality is based on AstraZeneca's implementation
 of STDM and might be inappropriate or need adjustment for other implementations.
 
@@ -172,7 +172,7 @@ returned object. A {\tt ggplot} function for diagnostics is
 provided.
 
 The use of MM-estimation with the particular settings as described above is
-used as default as recommended by Maronna et al~\cite{maronnaMartinYoahai} and
+used as default as recommended by Maronna et al~\cite{maronnaMartinYohai} and
 as described by Southworth \& Heffernan~\cite{southHeff}.
 
 In our data, dose is ordered such that $A < B < C < D$. We take advantage of
@@ -324,7 +324,7 @@ Criterion (AIC). The AIC provides guidance on model selection, but not a hard
 rule, so in some cases, we might want to consider the change in deviance due to
 the addition of a single parameter more carefully. Table~\ref{tab:deviance}
 is reproduced from Kass \& Raftery~\cite{kassRaftery}, though versions of it have
-been suggested by many other authors~\cite{jeffreys, raftery, lindsey, davison}.
+been suggested by many other authors~\cite{jeffreys, raftery, lindsey, davison, royall}.
 
 <<deviance, echo=FALSE, results="asis">>=
 evidence()
@@ -546,78 +546,6 @@ ggplot(pbs, ncol=1,
        xlab="Proportion of patients with exceedance")
 @
 
-\begin{thebibliography}{99}
-
-\bibitem{cdisc}
-Clinical Data Interchange Standards Consortium, http://www.cdisc.org
-
-\bibitem{coles}
-S. Coles, An Introduction to the Statistical Modeling of Extreme Values, Springer,
-2001
-
-\bibitem{bda}
-A. Gelman, J. B. Carlin, H. S. Stern, D. B. Dunson, A. Vehtari and D. B. Rubin.
-Bayesian Data Analysis (Third Edition), CRC Press, 2014.
-
-\bibitem{parso}
-GGA Software Services, Parso Java Library, http://www.ggasoftware.com/opensource/parso,
-2014
-
-\bibitem{kassRaftery}
-R. E. Kass and A. E. Raftery. Bayes factors, Journal of the American Statistical
-Association, 90, 773 -- 795, 1995
-
-\bibitem{merck,
-  The Merck Manual of Diagnosis and Therapy (Nineteenth Edition), Merck Manuals, 2011
-}
-
-\bibitem{mkada}
-H. M'Kada, M. Munteanu, H. Perazzo, Y. Ngo, N. Ramanujam, F. Imbert-Bismut,
-V. Ratziu, D. Bonnefont-Rousselot, B. Souberbielle, I. Schuppe-Koistinen,
-T. Poynard and the DILI group of the SAFE-T consortium.
-What are the best reference values for a normal serum alanine transaminase
-activity (ALT)? Impact on the presumed prevalence of drug induced liver
-injury (DILI), Regulatory Toxicity and Pharmacology, 60, 290 -- 295, 2011
-
-\bibitem{egp}
-I. Papastathopoulos and J. A. Tawn, Extended generalised Pareto models for tail
-estimation, Journal of Statistical Planning and Inference, 143, 131 -- 143, 2011
-
-\bibitem{R}R Core Team (2014). R: A language and environment for statistical
-computing. R Foundation for Statistical Computing, Vienna, Austria.
-URL http://www.R-project.org/.
-
-\bibitem{scarrottMacDonald}
-C. Scarrott and A. MacDonald, A review of extreme value threshold estimation
-and uncertainty quantification, REVSTAT Statistical Journal, 10, 33 -- 60, 2012
-
-\bibitem{sas7bdat}
-M. Shotwell, sas7bdat: SAS Database Reader (experimental). R package version 0.4.
-  http://CRAN.R-project.org/package=sas7bdat, 2014
-
-\bibitem{sas7bdat.parso}
-M. Shotwell, sas7bdat.parso: Read sas7bdat files in R using the GGASoftware Parso library
-https://github.com/BioStatMatt/sas7bdat.parso, 2014
-
-\bibitem{sassyreader}
-K. S\/orensen, SassyReader -- Open source reader of SAS data sets for Java,
-http://kasper.eobjects.org/2011/06/sassyreader-open-source-reader-of-sas.html,
-2011
-
-\bibitem{southHeff}
-H. Southworth and J. E. Heffernan, Extreme value modelling of laboratory safety
-data from clinical studies, Pharmaceutical Statistics, 11, 361 -- 366, 2012
-
-\bibitem{texmex}
-Harry Southworth and Janet E. Heffernan. texmex: Statistical modelling of extreme
-  values. R package version 2.2, 2013
-
-\bibitem{MASS}
-W. N. Venables and B. D. Ripley Modern Applied Statistics with S. Fourth Edition.
-  Springer, New York, 2002. ISBN 0-387-95457-0
-
-\bibitem{ggplot}
-H. Wickham. ggplot2: elegant graphics for data analysis. Springer New York, 2009
-
-\end{thebibliography}
+\bibliographystyle{plain}
+\bibliography{texmex}
 \end{document}
