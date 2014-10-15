@@ -1,12 +1,14 @@
-\documentclass{article}
-\usepackage{amsmath}
-\usepackage[dvips]{graphicx}
-\usepackage{color}
-\usepackage{fancyhdr}
+%\VignetteEngine{knitr::knitr}
+%\VignetteIndexEntry{Using margarita with texmex}
+\documentclass[a4paper]{article}
+\usepackage[british]{babel}
 
-\pagestyle{fancy}
-\lhead{DRAFT}
-\rfoot{DRAFT}
+<<setup, echo=FALSE>>=
+suppressMessages(library(texmex))
+suppressMessages(library(ggplot2))
+suppressMessages(library(MASS))
+suppressMessages(library(gridExtra))
+@
 
 \begin{document}
 
@@ -189,15 +191,27 @@ treatment and dose-response effects, and for the nature of those relationships.
 Plots of the distribution for values of $\xi$ being $-\frac{1}{4}, 0$ and
 $\frac{1}{2}$ are shown in Figure~\ref{fig:gpd}.
 
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.5]{R/gpd.pdf}
-\end{center}
-\caption{\label{fig:sgpd}The generalized Pareto distribution with $\sigma = 1$
-and $\xi$ being $-\frac{1}{4}, 0$ and $\frac{1}{2}$. Small values of $\xi$
-result in short-tailed distributions and large values of $\xi$ result in
-heavy tails and thus greater probability of outliers.}
-\end{figure}
+<<sgpd, echo=FALSE, fig.cap="The generalized Pareto distribution with $\sigma = 1$ and $\xi$ being $-\frac{1}{4}, 0$ and $\frac{1}{2}$. Small values of $\xi$ result in short-tailed distributions and large values of $\xi$ result in heavy tails and thus greater probability of outliers.">>=
+library(texmex)
+x <- seq(0, 7, len=200)
+
+d.m5 <- dgpd(x, sigma=1, xi=-.25)
+d0 <- dgpd(x, sigma=1, xi=0)
+d.5 <- dgpd(x, sigma=1, xi=.5)
+
+plot(x, d.m5, lwd=2, col="blue", type="l", axes=FALSE, ylab="")
+lines(x, d0, lwd=2, col="orange")
+lines(x, d.5, lwd=2, col="cyan")
+box()
+axis(1)
+
+legend(x = 3.5, y=.9,
+       legend=c(expression(paste(xi, " = -0.25")),
+                expression(paste(xi, " = 0")),
+                expression(paste(xi, " = 0.5"))),
+       col=c("blue", "orange", "cyan"),
+       lty=1, lwd=2)
+ @
 
 The parameters in the GPD do not have a straightforward physical interpretation.
 In order to communicate the analysis to clinical colleagues, it is more
@@ -224,15 +238,18 @@ handful of large observations, and it is not clear if there is a tendency
 for outliers to occur in some of the lower dose groups. How concerned
 should we be about the large ALT values in group D?
 
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.5]{R/shiftplots.pdf}
-\end{center}
-\caption{\label{fig:shiftplots}Plots of pre-treatment values versus
-on-treatment values in each dose group. The reference lines are lines
-of identity -- a point above the line indicates an increase from
-baseline, and point below the line indicates a decrease.}
-\end{figure}
+<<shiftplots, echo=FALSE, fig.cap="Plots of pre-treatment values versus on-treatment values in each dose group. The reference lines are lines of identity -- a point above the line indicates an increase from baseline, and point below the line indicates a decrease.">>=
+liver$ndose <- as.numeric(liver$dose)
+liver$dose <- paste("Dose", liver$dose)
+
+r <- range(liver$ALT.B, liver$ALT.M)
+ggplot(liver, aes(ALT.B, ALT.M, dose)) +
+    geom_point(size=2, col='blue') +
+    facet_wrap(~ dose) +
+    scale_x_continuous('Baseline ALT (U/L)', trans='log10', limits=r) +
+    scale_y_continuous('On-treatment ALT (U/L)', trans='log10', limits=r) +
+    stat_abline(intercept=0, slope=1)
+@
 
 The baseline and on-treatment values are clearly related to each
 other: higher baselines values are associated with higher on-treatment
@@ -245,17 +262,17 @@ Plots of the residuals
 from the model (that is, what remains after the baseline effect has been
 removed) are displayed by Dose group in Figure~\ref{fig:boxplots}.
 
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.5]{R/boxplots.pdf}
-\end{center}
-\caption{\label{fig:boxplots}Boxplots of residuals from using robust
-regression to eliminate the baseline effect. If the residuals were from
-a normal distribution, we would expect them to mostly fall between
-about -2.5 and 2.5 -- within the red dashed lines. Clearly there are
-outliers indicating that the residuals come from a heavy-tailed
-distribution. A dose-response relationship now becomes more clear.}
-\end{figure}
+<<boxplots, echo=FALSE, fig.cap="Boxplots of residuals from using robust regression to eliminate the baseline effect. If the residuals were from a normal distribution, we would expect them to mostly fall between about -2.5 and 2.5 -- within the red dashed lines. Clearly there are outliers indicating that the residuals come from a heavy-tailed distribution. A dose-response relationship now becomes more clear.">>=
+rmod <- rlm(log(ALT.M) ~ log(ALT.B) + ndose, data=liver,
+            method="MM", c=3.44)
+liver$r <- resid(rmod)
+
+ggplot(liver, aes(dose, r/rmod$s)) +
+    geom_hline(aes(yintercept=c(-2.5, 2.5)), col='red', lty=2) +
+    geom_boxplot() +
+    scale_x_discrete('') +
+    scale_y_continuous('Scaled residuals')
+@
 
 In fitting extreme value models to the residuals displayed in
 Figure~\ref{fig:boxplots}, it was found that the model that allowed the
@@ -273,14 +290,48 @@ the values of ALT likely to be exceeded only once every 1000 patients.
 The theory of extreme values allows us to estimate these quantities even
 though we have data on only 160 patients per dose.
 
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.5]{R/rl1000.pdf}
-\end{center}
-\caption{\label{fig:rl1000}Estimated 1000-patient return levels for
-ALT at each dose. The heavy line segments are 50\%
-confidence intervals, and the lighter segments are 90\% intervals.}
-\end{figure}
+<<rl1000, echo=FALSE, fig.cap="Estimated 1000-patient return levels for ALT at each dose. The heavy line segments are 50\% confidence intervals, and the lighter segments are 90\% intervals.">>=
+gmod <- evm(r, data=liver, qu=.7, xi=~ndose, method="sim", verbose=FALSE)
+
+nsim <- nrow(gmod$param)
+
+# Resample baselines
+base <- sample(log(liver$ALT.B), size=nsim, replace=TRUE)
+
+mycov <- summary(rmod)$cov.unscaled * summary(rmod)$stddev^2
+myloc <- coef(rmod)
+mycoefs <- rmvnorm(4*nsim, mean=myloc, sigma=mycov)
+
+ElogALT <- mycoefs[,1] + mycoefs[,2]*base + rep(1:4,each=nsim)*mycoefs[,3]
+ElogALT <- matrix(ElogALT,ncol=4)
+
+m <- c(100, 1000)
+gg <- list()
+for (i in 1:2){
+  rl <- predict(gmod, M=m[i], all=TRUE)[[1]]
+  colnames(rl) <- LETTERS[1:4]
+
+  logRL <- rl + ElogALT
+
+  srl <- exp(apply(logRL, 2, quantile, probs=c(0.05, 0.25, 0.5, 0.75, 0.95))) / 36
+  r <- range(srl)
+
+  srl <- data.frame(t(srl))
+  srl$dose <- paste("Dose", LETTERS[1:4])
+
+  gg[[i]] <- ggplot(srl, aes(X50., dose)) +
+                    geom_point(size=4, col='blue') +
+                    geom_segment(aes(x=X5., y=dose, xend=X95., yend=dose), col='blue') +
+                    geom_segment(aes(x=X25., y=dose, xend=X75., yend=dose),
+                                 lwd=1.5, col='blue') +
+                    scale_x_continuous(paste(m[i], '-patient return level (multiples of ULN)', sep = ''),
+                                       limits=r, trans="log10",
+                                       breaks = c(1, 10, 100, 1000, 10000)) +
+    scale_y_discrete('')
+} # Close for i
+
+gg[[2]]
+@
 
 In Figure~\ref{fig:rl1000}, the dose response effect is clearly visible
 and the model indicates that if 1000 patients were to take Dose D, we should
@@ -316,14 +367,91 @@ $20\times ULN$ & 4 & Life threatening\\
 \end{center}
 \end{table}
 
-\begin{figure}
-\begin{center}
-\includegraphics[scale=0.5]{R/pexceed.pdf}
-\end{center}
-\caption{\label{fig:pexceed}Estimated probabilities of ALT exceeding
-the thresholds in Table~\ref{tab:CTC} with 90\% confidence intervals.
-Note that the horizontal axes vary from plot to plot.}
-\end{figure}
+<<pexceed, echo=FALSE, fig.cap="Estimated probabilities of ALT exceeding the thresholds in Table~\ref{tab:CTC} with 90\% confidence intervals. Note that the horizontal axes vary from plot to plot.">>=
+rp <- function(xm, u, phi, xi, p, r) {
+  res <- p * (1 + xi/exp(phi) * (xm - u))^(-1/xi)
+  if (any(u > xm)){
+    res[u > xm] <- sapply(u[u>xm],
+    function(x,r,m,p) mean((r + x - quantile(r,1-p)) > m),
+             r=r,m=xm,p=p)
+    }
+    res[xi < 0 & xm > u - exp(phi)/xi] <- 0
+    res
+}
+
+getProbs <- function(u, phi, xi, p, r, ULN, m = c(1, 3, 10, 20)) {
+    m <- log(ULN * m)
+    res <- t(sapply(m, rp, u = u, phi = phi, xi = xi, p = p, r=r))
+    res <- apply(res, 1, quantile,  prob=c(.05, .25, .5, .75, .95))
+    round(res, 4)
+}
+
+DoCalc <- function(gmod, ElogALT, xi){
+    cnames <- paste("P(ALT > ", c("", "3x", "10x", "20x"), "ULN)",sep = "")
+    out <- getProbs(u = ElogALT + gmod$threshold,
+    phi = gmod$param[,1], xi = xi,
+    r=liver$r, p = 1-0.7,ULN = 36)
+    colnames(out) <- cnames
+    out
+}
+
+bmodParams <- predict(gmod, type="lp", all=TRUE)
+
+rpA <- DoCalc(gmod, ElogALT = ElogALT[,1], xi = bmodParams[[1]][,2])
+rpB <- DoCalc(gmod, ElogALT = ElogALT[,2], xi = bmodParams[[2]][,2])
+rpC <- DoCalc(gmod, ElogALT = ElogALT[,3], xi = bmodParams[[3]][,2])
+rpD <- DoCalc(gmod, ElogALT = ElogALT[,4], xi = bmodParams[[4]][,2])
+
+rpl <- list(rpA, rpB, rpC, rpD)
+
+# Do by multiples of ULN, not dose
+
+fun <- function(o, i){
+    res <- t(sapply(o, function(x, i){ x[, i] }, i=i))
+    res <- data.frame(res)
+    res$dose <- paste('Dose', LETTERS[1:4])
+    res
+}
+
+uln <- fun(rpl, i=1)
+uln2.5 <- fun(rpl, i=2)
+uln5 <- fun(rpl, i=3)
+uln20 <- fun(rpl, i=4)
+
+
+puln <- ggplot(uln, aes(X50., dose)) +
+               geom_point(size=5, col='blue') +
+               scale_x_continuous('P(ALT > ULN)', limits=range(uln[, 1:5])) +
+               scale_y_discrete('') +
+               geom_segment(aes(x=X5., y=dose, xend=X95., yend=dose), col='blue') +
+               geom_segment(aes(x=X25., y=dose, xend=X75., yend=dose), col='blue', size=2)
+
+puln2.5 <- ggplot(uln2.5, aes(X50., dose)) +
+                  geom_point(size=5, col='blue') +
+                  scale_x_continuous('P(ALT > 2.5 ULN)', limits=range(uln2.5[, 1:5])) +
+                  scale_y_discrete('') +
+                  geom_segment(aes(x=X5., y=dose, xend=X95., yend=dose), col='blue') +
+                  geom_segment(aes(x=X25., y=dose, xend=X75., yend=dose), col='blue', size=2)
+
+puln5 <- ggplot(uln5, aes(X50., dose)) +
+                  geom_point(size=5, col='blue') +
+                  scale_x_continuous('P(ALT > 5 ULN)', limits=range(uln5[, 1:5])) +
+                  scale_y_discrete('') +
+                  geom_segment(aes(x=X5., y=dose, xend=X95., yend=dose), col='blue') +
+                  geom_segment(aes(x=X25., y=dose, xend=X75., yend=dose), col='blue', size=2)
+
+puln20 <- ggplot(uln20, aes(X50., dose)) +
+                  geom_point(size=5, col='blue') +
+                  scale_x_continuous('P(ALT > 20 ULN)', limits=range(uln20[, 1:5])) +
+                  scale_y_discrete('') +
+                  geom_segment(aes(x=X5., y=dose, xend=X95., yend=dose), col='blue') +
+                  geom_segment(aes(x=X25., y=dose, xend=X75., yend=dose), col='blue', size=2)
+
+pdf('pexceed.pdf')
+grid.arrange(puln, puln2.5, puln5, puln20)
+
+@
+
 
 In Figure~\ref{fig:pexceed}, we can again clearly see the dose-response
 relationship that the drug appears to have on ALT. Of particular note,
