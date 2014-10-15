@@ -52,6 +52,7 @@ being relative to the R workspace in use), we import using the following command
 
 <<data, echo=TRUE, eval=FALSE>>=
 library(margarita)
+library(sas7bdat)
 dataPath <- "/user/data/"
 dm <- read.sas7bdat(paste0(dataPath, "dm.sas7bdat"))
 lb <- read.sas7bdat(paste0(dataPath, "lb.sas7bdat"))
@@ -62,6 +63,7 @@ We can examine the first few rows, and summarize the data as follows:
 <<attach, echo=FALSE>>=
 # Previous codeblock was not evaluated so need to attach here.
 library(margarita)
+library(sas7bdat)
 @
 
 <<summary, echo=TRUE>>=

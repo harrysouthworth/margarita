@@ -15,13 +15,14 @@
 #'          values, they are silently dropped from the returned data object.
 #'          The code was commissioned by AstraZeneca and ought to work with their
 #'          implementation of SDTM: other implementations may differ.
-#' @examples alt <- getAggregateData(lb, test="lbtestcd", test.value="ALT")
+#' @examples alt <- getBaselines(lb[lb$lbtestcd == "ALT", ], visit="visitnum")
+#'           alt <- getAggregateData(alt, visit="visitnum")
 #'           alt <- addVariables(alt, dm, vars="armcd")
 #' @export
 getAggregateData <- function(data, subject="usubjid",
                          visit="visitnum", baseline.visit=1, max.study.visit=Inf,
                          baseline="baseline", value="aval", aggregate.fun=max){
-  
+  if (nrow(data) == 0) stop("data has 0 rows")
   if (baseline %in% names(data)){
     b <- data[, c(subject, baseline)]
     b <- b[!(is.na(b[, subject]) | is.na(b[, baseline])), ]
@@ -45,9 +46,13 @@ getAggregateData <- function(data, subject="usubjid",
 #' @param additional.data The dataset containing the new variables to be added to \code{data}
 #' @param subject The unique subject identifier. Defaults to \code{subject="usubjid"}
 #' @param vars Character vector with the names of the varialbes in \code{additional.data} to be added to \code{data}
-#' @param The function adds the first value of \code{var} as matched by \code{subject}. If that's not unique, you want to subset \code{additional.data} to make it uniqure, or sort it appropriately first.
-#' @details An alternative is to use the \code{join} function in the \code{plyr} package. NOTE that the call should
-#'          be like \code{mydata <- addVariables(mydata, otherdata, vars="trt")}: that is, the returned object is
+#' @details The function adds the first value of \code{var} as matched by \code{subject}. If
+#'          that's not unique, you want to subset \code{additional.data} to make it unique,
+#'          or sort it appropriately first.
+#'          An alternative is to use the \code{join} function in the \code{plyr}
+#'          package. NOTE that the call should
+#'          be like \code{mydata <- addVariables(mydata, otherdata, vars="trt")}:
+#'          that is, the returned object is
 #'          a \code{data.frame}, NOT a new column to be appended to \code{myhdata}.
 #' @examples lb <- addVariables(lb, dm, vars="armcd")
 #' @export
@@ -92,14 +97,20 @@ getStudyDay <- function(data, datecol="vsdt", subject="usubjid", visit="visit", 
 #' Add baseline values of the analysis variable to an analysis dataset
 #' @param data A \code{data.frame}
 #' @param subject The unique patient identifier. Defaults to \code{id = "usubid"}
-#' @param visit The name of the visit column. Defaultso to \code{visit="visit"}, but a days on study column could be used instead
-#' @param baseline.visit The value of the visit column at the time the baselne measurements are made
+#' @param visit The name of the visit column. Defaultso to \code{visit="visit"}, but
+#'        a days on study column could be used instead
+#' @param baseline.visit The value of the visit column at the time the baselne
+#'        measurements are made
+#' @param baseline The name of the baseline column. If it is already in the data and not
+#'        empty, the function will exit with a warning. Otherwise, this is the
+#'        name of the baseline variable in the output dataset.
 #' @param value The column containing the data values to be analysed
 #' @details If multiple measurements are available for some patients at baseline,
 #'          one is chosen almost arbitrarily.
 #' @export
 getBaselines <- function(data, subject="usubjid", visit="visit", baseline.visit =1,
                          value="aval", baseline="baseline"){
+  if (nrow(data) == 0) stop("data has 0 rows")
   if (baseline %in% names(data)){
     if (nrow(data) > sum(is.na(data[, baseline]))){
       warning("data contains the baseline column already, and it isn't empty")
@@ -107,8 +118,8 @@ getBaselines <- function(data, subject="usubjid", visit="visit", baseline.visit 
     }
   }
 
-  data <- data[!is.na(data[, value]), ]
   b <- data[data[, visit] == baseline.visit, ]
+#  b <- b[!is.na(b[, value]), ]
   b <- b[order(b[, subject]), c(subject, value)]
   b <- b[cumsum(rle(as.character(b[, subject]))$lengths), ]
 

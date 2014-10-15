@@ -9,11 +9,12 @@ Depends:
     texmex,
     gridExtra,
     xtable,
-    scales,
-    sas7bdat
+    scales
+Suggests: knitr, sas7bdat
 Imports:
     MASS,
     utils
+BuildVignettes: FALSE
 Author: Harry Southworth
 Maintainer: Harry Southworth <harry.southworth@gmail.com>
 Description: Functions to make simulation and presentation of return levels and

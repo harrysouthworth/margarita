@@ -1,10 +1,15 @@
 #' Plot predicted return levels of a safety lab variable with some guidance as to
 #' whether it seems safe, potentially suspect, or dangerous
 #' @param data An object created by \code{summary.simulate.margarita.prob}
-#' @param loref The lower reference level beneath which a return level is considered to be acceptably low
-#' @param hiref The upper reference level above which a return level is considered to be unacceptably high
-#' @param refcol Background colours for the acceptable, intermediate, and unaccepable return levels
-#' @param linecod Colour of the lines representing the credible intervals on the predicted return levels
+#' @param ptcol The colour of points on the plot. Defaults to \code{ptcol="blue"}
+#' @param loref The lower reference level beneath which a return level is considered
+#'        to be acceptably low
+#' @param hiref The upper reference level above which a return level is considered to
+#'        be unacceptably high
+#' @param refcol Background colours for the acceptable, intermediate, and unaccepable
+#'        return levels
+#' @param linecol Colour of the lines representing the credible intervals on the
+#'        predicted return levels
 #' @param ptsize The size of the point estimate (median) predicted return level
 #' @param linesize The weight of the lines representing the credible intervals
 #' @param scales Whether to allow trellis panel scales to match each other or be free
@@ -29,32 +34,31 @@ evmTrafficLight <- function(data=NULL, ptcol="blue",
   g <- rep(g, each=nM)
 
   # Add M to each data.frame
-  if (missing(M)){
+  if (missing(M))
     M <- factor(rownames(data[[1]]), levels=rownames(data[[1]]))
-  }
 
   data <- lapply(1:length(data), function(x, data, M) {
-    data <- as.data.frame(data[[x]])
-    data$M <- M
-    data }, data=data, M=M)
+                                   data <- as.data.frame(data[[x]])
+                                   data$M <- M
+                                   data },
+                 data=data, M=M)
 
   # Make groups to trellis on
   data <- do.call("rbind", data)
   data$groups <- factor(g, levels=unique(g))
   if (ncol(data) == 7){
     names(data)[3] <- "mid"
-  }
-  else if (ncol(data) == 5){
+  } else if (ncol(data) == 5){
     names(data)[2] <- "mid"
-  }
-  else {
+  } else {
     stop("data object has wrong number of columns (should be 5 or 7)")
   }
 
-  seg <- margarita:::getSegmentData(data)
+  seg <- getSegmentData(data)
   seg <- lapply(seg, function(x, M){ if (!is.null(x)){ x$M <- M }; x }, M=data$M)
 
-  p <- ggplot(data, aes(mid, groups)) +
+  p <-
+  ggplot(data, aes(mid, groups)) +
     annotate("rect", ymin=-Inf, ymax=Inf, xmin=-Inf, xmax=loref, fill=refcol[1], alpha=0.5) +
     annotate("rect", ymin=-Inf, ymax=Inf, xmin=loref, xmax=hiref, fill=refcol[2], alpha=0.5) +
     annotate("rect", ymin=-Inf, ymax=Inf, xmin=hiref, xmax=Inf, fill=refcol[3], alpha=0.5) +
