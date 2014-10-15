@@ -128,7 +128,11 @@ rfo <- as.formula(paste0("tfun(", value, ") ~ ", "tfun(", baseline, ") + ", arm)
 rmod <- lmr(rfo, data=lab)
 
 # XXX Need to change tfun to log in output
-print(xtable(coef(summary(rmod)), label="tab:robust",
+wh <- coef(summary(rmod))
+rownames(wh) <- tidyCoefNames(rmod)
+rownames(wh) <- gsub("tfun", trans, rownames(wh))
+
+print(xtable(wh, label="tab:robust",
              caption="Summary of the robust linear model used to eliminate effect of baseline and the effect of treatment on the location of the distribution."))
 
 ggplot(rmod)
