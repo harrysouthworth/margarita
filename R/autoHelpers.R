@@ -100,6 +100,33 @@ ordinalIndicator <- function(x){
   switch(x, "1"="st", "2"="nd", "3"="rd", "4"=, "5"=, "6"=, "7"=, "8"=, "9"=, "0"="th")
 }
 
+#' Remove the factor name from the levels in the names of model coefficients
+#' 
+#' @param x A model object with an 'xlevels' element
+#' @details If there are no factors in the model, the coefficient names are
+#'          returned. Otherwise, the function strips the factor name of each
+#'          coefficient name, for each factor. If two factors have overlapping
+#'          level names, the function will fail.
+tidyCoefNames <- function(x){
+  if (! "xlevels" %in% names(x)) stop("x should be an object with an 'xlevels' element")
+  
+  nms <- names(coef(x))
+  nf <- length(x$xlevels) # number of factors in the model
 
-
+  if (nf == 0) { # no factors
+    nms
+  } else {
+    # Check if any factors have matching levels
+    levs <- unlist(x$xlevels)
+    if (length(levs) > length(unique(levs)))
+      stop("At least one level is used in more than one factor so stripping the factor name would leave non-unique names")
+    for (i in 1:length(x$xlevels)){
+      r <- paste0(names(x$xlevels)[i], x$xlevels[[i]])
+      whn <- na.omit(match(nms, r))
+      whr <- na.omit(match(r, nms))
+      nms[whr] <- x$xlevels[[i]][whn]
+    }
+    nms
+  }
+}
 
