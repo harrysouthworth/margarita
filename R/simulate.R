@@ -230,7 +230,7 @@ simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
   ru <- rgpd(nrow(param), exp(param[, 1]), param[, 2], u=th)
   rl <- resid(object[[1]])
   rl <- sample(rl[rl <= th], size=nrow(param), replace=TRUE)
-  r <- sample(c(ru, rl))
+  r <- c(ru, rl)
   res <- s
     #data.frame(baseline=s[, object$rawBaseline], max=s$fitted + sample(r, size=nrow(s)))
   pe <- object[[2]]$map$rate # sample from ru with probability P(x > th)
