@@ -43,17 +43,17 @@ getCIquantiles <- function(alpha){
 #' @param xi The shape parameter for the GPD model.
 #' @param p The rate of threshold exceedance.
 #' @param r The data to which the original model was fit.
+#' @importFrom texmex pgpd
 margarita.rp <- function(X, xm, u, phi, xi, p, r) {
     xm <- xm[, X]
-    res <- p * (1 + xi/exp(phi) * (xm - u))^(-1/xi)
+    ## this correctly handles values above the upper limit
+    res <- p * pgpd(xm, exp(phi), xi, u, lower.tail=FALSE)
     wh <- u > xm
     if (any(wh)){
          res[wh] <- sapply(1:sum(wh),
                               function(i, x, r, m, p) mean((r + x[i] - quantile(r,1-p)) > m[i]),
                               x=u[wh], r=r, m=xm[wh], p=p)
     }
-    # Set P(x > upper limit) = 0 when upper limit exists (i.e. for any xi < 0).
-    res[xi < 0 & xm > u - exp(phi)/xi] <- 0
     res
 }
 
