@@ -1,14 +1,14 @@
 <<topmatter, echo=FALSE>>=
 path <- "~/Work/repos/github/margarita/inst/auto/"
-source(paste0(path, "topmatter.R"))
+source(file.path(path, "topmatter.R"))
 @
 
 <<system, echo=FALSE>>=
-source(paste0(path, "system.R"))
+source(file.path(path, "system.R"))
 @
 
 <<data, echo=FALSE>>=
-source(paste0(path, "data.R"))
+source(file.path(path, "data.R"))
 @
 
 \documentclass[a4paper]{article}

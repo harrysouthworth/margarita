@@ -2,8 +2,8 @@ if (dataRoot == ""){ # Run with texmex liver data
   lab <- lb
   dem <- dm  
 } else {
-  lab <- readData(paste0(dataPath, "/", labs))
-  dem <- readData(paste0(dataPath, "/", demog))
+  lab <- readData(file.path(dataPath, labs))
+  dem <- readData(file.path(dataPath, demog))
 }
 
 # Get number of unique subjects
