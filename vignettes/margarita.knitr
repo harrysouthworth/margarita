@@ -54,8 +54,8 @@ being relative to the R workspace in use), we import using the following command
 library(margarita)
 library(sas7bdat)
 dataPath <- "/user/data/"
-dm <- read.sas7bdat(paste0(dataPath, "dm.sas7bdat"))
-lb <- read.sas7bdat(paste0(dataPath, "lb.sas7bdat"))
+dm <- read.sas7bdat(file.path(dataPath, "dm.sas7bdat"))
+lb <- read.sas7bdat(file.path(dataPath, "lb.sas7bdat"))
 @
 
 We can examine the first few rows, and summarize the data as follows:

@@ -3,7 +3,7 @@ suppressMessages(library(xtable))
 suppressMessages(library(ggplot2))
 suppressMessages(library(gridExtra))
 
-dataPath <- paste0(paste(dataRoot, drug, study, sep="/"), "/")
+dataPath <- file.path(dataRoot, drug, study)
 
 author <- paste0("Author: ", Sys.getenv("LOGNAME"))
 
