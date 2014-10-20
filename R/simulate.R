@@ -384,8 +384,9 @@ as.data.frame.summary.margarita.sim.prob <- function(x, row.names=NULL, optional
 #' @method print summary.margarita.sim.prob
 #' @export
 print.summary.margarita.sim.prob <- function(x, ...){
-    for (i in 1:length(x)){
-        cat(names(x)[i], "\n")
+    n <- names(x)
+    for (i in seq_along(x)) {
+        cat(n[[i]], "\n")
         print(x[[i]])
         cat("\n")
     }

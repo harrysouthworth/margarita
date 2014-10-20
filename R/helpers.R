@@ -94,13 +94,13 @@ margarita.rp.matrix <- function(M, scale, trans, d, baseline){
     else if (scale=="p") { # M is a multiple of baseline
         m <- matrix(rep(0, nr * length(M)), ncol=length(M))
         # d[[i]][, baseline] is the same for all i
-        for (i in 1:length(M)){
+        for (i in seq_along(M)) {
             m[, i] <- trans(M[i] * baseline)
         }
     }
     else if (scale=="d"){ # difference
         m <- matrix(rep(0, nr * length(M)), ncol=length(M))
-        for (i in 1:length(M)){
+        for (i in seq_along(M)){
             m[, i] <- trans(M[i] + baseline)
         }
     }
