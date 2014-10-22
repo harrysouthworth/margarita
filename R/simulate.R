@@ -45,9 +45,9 @@ simLinear <- function(lmod, gmod, newdata=NULL,
                       baseline="log(alt.b)", rawBaseline="alt.b", invtrans=exp){
     # Check each row of newdata is unique
     ur <- nrow(unique(newdata))
-    if (ur != nrow(newdata)){
+    if (ur != nrow(newdata))
         stop("newdata should have unique rows")
-    }
+
     # Get simulated baselines
     b <- simBase(lmod, gmod, baseline=baseline)
     nsim <- length(b)
@@ -128,9 +128,8 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' @export
 simulate.margarita <- function(object, nsim=1, seed=NULL,
                                type="rl", M=NULL, scale="raw", Mlabels=NULL, ...){
-    if (missing(M) & type != "simple"){
+    if (missing(M) & type != "simple")
         stop("You must provide a value for M")
-    }
 
     res <- switch(type,
                   "rl" =, "return" =, "return level" =
@@ -211,7 +210,7 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     if (!is.matrix(onms)) onms <- as.data.frame(t(onms))
     onms <- apply(onms, 1, paste, collapse=" ")
     names(out) <- onms
-    
+
     if (is.null(Mlabels)) Mlabels <- paste("RL =", format(M))
 
     out <- lapply(out, function(x, m){ colnames(x) <- m; x }, m=Mlabels)
@@ -222,19 +221,39 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
 # Simulate pairs of baselines and on-treatment values
 simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
   if (class(object) != "margarita") stop("object should be of class margarita")
-  s <- simLinear(object[[1]], object[[2]], newdata=object$newdata,
-                 baseline=object$baseline, rawBaseline=object$rawBaseline,
-                 invtrans=object$invtrans)
-  param <- object[[2]]$param # Posterior simulated parameter estimates
+
+  nsim <- nrow(object[[2]]$param)
+
+  res <- simLinear(object[[1]], object[[2]], newdata=object$newdata,
+                   baseline=object$baseline, rawBaseline=object$rawBaseline,
+                   invtrans=object$invtrans)
+  # res has nsim * nrow(newdata) rows
+
   th <- object[[2]]$map$threshold # Threshold used in GPD fit
-  ru <- rgpd(nrow(param), exp(param[, 1]), param[, 2], u=th)
-  rl <- resid(object[[1]])
-  rl <- sample(rl[rl <= th], size=nrow(param), replace=TRUE)
+
+  # Rate of exceedance could be anything between 0 and 1, so simulate enough of
+  # each residual.
+  # Simulate residuals above the gpd fitting threshold
+  ru <- simulate(object[[2]]) # nsim values
+  if (nrow(object$newdata) > 1)
+    for (i in 2:nrow(object$newdata))
+      ru <- c(ru, simulate(object[[2]]))
+
+  # Simualte residuals below the gpd fitting threshold
+  r <- resid(object[[1]])
+  rl <- sample(r[r <= th], size=nsim, replace=TRUE)
+  if (nrow(object$newdata) > 1)
+    for (i in 2:nrow(object$newdata))
+      rl <- c(rl, sample(r[r<=th], size=nsim, replace=TRUE))
+
+  stopifnot(length(ru) == length(rl))
+  # Combine the upper and lower simulated residuals
   r <- c(ru, rl)
-  res <- s
-    #data.frame(baseline=s[, object$rawBaseline], max=s$fitted + sample(r, size=nrow(s)))
+  stopifnot(length(r) == 2 * nrow(res))
+
   pe <- object[[2]]$map$rate # sample from ru with probability P(x > th)
-  res$value <- res$fitted + sample(r, size=nrow(s), prob=rep(c(pe, 1-pe), each=nrow(param)))
+  res$value <- res$fitted + sample(r, size=nrow(res), prob=rep(c(pe, 1-pe), each=length(rl)))
+browser()
   res$value <- object$invtrans(res$value)
   rownames(res) <- NULL
   invisible(res)
