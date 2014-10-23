@@ -16,6 +16,7 @@
 #' @param ncol The number of columns in the output plots
 #' @param xlab The x-axis label
 #' @param ylab The y-axis label
+#' @param M A vector specifying the return levels used
 #' @param main The main title
 #' @param ... Other arguments to the plotting functions. Currently unused
 #' @details The function is a fairly simple modification of \code{plot.summary.simulate.margarita.prob}

@@ -10,7 +10,9 @@ Depends:
     gridExtra,
     xtable,
     scales
-Suggests: knitr, sas7bdat
+Suggests:
+    knitr,
+    sas7bdat
 Imports:
     MASS,
     utils

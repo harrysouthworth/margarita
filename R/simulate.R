@@ -218,44 +218,32 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     out
 }
 
-# Simulate pairs of baselines and on-treatment values
+# Simulate pairs of baselines and on-treatment values. Take baselines and any
+# other covariates as given and simulate the residuals, then combine the
+# residuals with the fitted values
 simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
   if (class(object) != "margarita") stop("object should be of class margarita")
 
-  nsim <- nrow(object[[2]]$param)
-
-  res <- simLinear(object[[1]], object[[2]], newdata=object$newdata,
-                   baseline=object$baseline, rawBaseline=object$rawBaseline,
-                   invtrans=object$invtrans)
-  # res has nsim * nrow(newdata) rows
+  if (!is.null(seed)) set.seed(seed)
 
   th <- object[[2]]$map$threshold # Threshold used in GPD fit
 
-  # Rate of exceedance could be anything between 0 and 1, so simulate enough of
-  # each residual.
+  # Rate of exceedance could be anything between 0 and 1, so simulate enough of each residual.
   # Simulate residuals above the gpd fitting threshold
-  ru <- simulate(object[[2]]) # nsim values
-  if (nrow(object$newdata) > 1)
-    for (i in 2:nrow(object$newdata))
-      ru <- c(ru, simulate(object[[2]]))
+  ru <- c(simulate(object[[2]], nsim=nsim)) # A new vector of 'responses' above the threshold
 
-  # Simualte residuals below the gpd fitting threshold
-  r <- resid(object[[1]])
-  rl <- sample(r[r <= th], size=nsim, replace=TRUE)
-  if (nrow(object$newdata) > 1)
-    for (i in 2:nrow(object$newdata))
-      rl <- c(rl, sample(r[r<=th], size=nsim, replace=TRUE))
+  # Replicate residuals nsim times
+  r <- rep(resid(object[[1]]), nsim)
+  # Replace threshold breaches with simulated values
+  r[r > th] <- ru
+  r[r <= th] <- sample(r[r <= th], size=nsim * (length(r) - length(ru)/nsim), replace=TRUE)
 
-  stopifnot(length(ru) == length(rl))
-  # Combine the upper and lower simulated residuals
-  r <- c(ru, rl)
-  stopifnot(length(r) == 2 * nrow(res))
+  res <- rep(fitted(object[[1]]), nsim) + r
+  # Transform to original scale and drop attributes by coercing to vector
+  res <- as.vector(object$invtrans(res))
 
-  pe <- object[[2]]$map$rate # sample from ru with probability P(x > th)
-  res$value <- res$fitted + sample(r, size=nrow(res), prob=rep(c(pe, 1-pe), each=length(rl)))
-browser()
-  res$value <- object$invtrans(res$value)
-  rownames(res) <- NULL
+  if (nsim > 1) res <- matrix(res, ncol=nsim)
+
   invisible(res)
 }
 

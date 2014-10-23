@@ -43,7 +43,6 @@ getCIquantiles <- function(alpha){
 #' @param xi The shape parameter for the GPD model.
 #' @param p The rate of threshold exceedance.
 #' @param r The data to which the original model was fit.
-#' @importFrom texmex pgpd
 margarita.rp <- function(X, xm, u, phi, xi, p, r) {
     xm <- xm[, X]
     ## this correctly handles values above the upper limit

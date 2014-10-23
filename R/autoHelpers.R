@@ -1,6 +1,6 @@
 readAutoInputs <- function(file){
   input <- readLines(file)
-  ii <- substr(wh, 1, 1)
+  ii <- substr(input, 1, 1)
   input <- input[ii != "#"] # drop comment lines
 
   input <- strsplit(input, "#")
