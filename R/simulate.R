@@ -78,7 +78,8 @@ simLinear <- function(lmod, gmod, newdata=NULL,
     invisible(newdata)
 }
 
-#' Simulate return levels, probabilities of threshold exceedences or simple datasets from a robust linear model and an extreme value model
+#' Simulate return levels, probabilities of threshold exceedences or response vectors
+#' from a robust linear model and an extreme value model
 #'
 #' Simulate return levels and probabilities of threshold exceedences from a
 #' robust linear model and an extreme value model. The procedure is specific to
@@ -94,16 +95,15 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' @aliases as.data.frame.summary.margarita.sim.prob print.summary.margarita.sim.prob
 #' @aliases "/.summary.margarita.sim.rl" "*.summary.margarita.sim.rl" "-.summary.margarita.sim.rl" "+.summary.margarita.sim.rl"
 #' @param object An object of class 'margarita'
-#' @param nsim Unused argument.
-#' @param seed Unused argument.
+#' @param nsim Only used when \code{type='simple'}. The number of simulated sets of responses
+#'        to produce. If \code{nsim=1}, the default, a vector of simulated responses is returned.
+#'        Otherwise, a matrix with \code{nsim} columns, each being a simualted response vector..
+#' @param seed Used to set the seed for the random number generator. Defaults to \code{seed=NULL}.
 #' @param type What type of prediction is required: either 'rl', 'prob' or 'simple'.
 #'        Defaults to \code{type = "rl"}. If \code{type='simple'} is used, the result
-#'        is just a \code{data.frame} containing simulated baselines, fitted values
-#'        (from the robust linear model) and values resulting from adding residuals
-#'        to the fitted values. The residuals are sampled from GP distributions with
-#'        parameters taken from the Markov chains, or are resampled from observed
-#'        residuals, in proportion to the number of observations above and below
-#'        the GP fitting threshold.
+#'        is a vector or matrix of simulated response variables. Otherwise, objects of
+#'        class 'simulate.margarita.rl' or 'simulate.margarita.prob' which have \code{summary}
+#'        functions available..
 #' @param M The return level to be predicted. Defaults to \code{M=1000}. If
 #'        \code{type="prob"}, M should be a vector containing the thresholds
 #'        whose probabilities of exceedance the user is interested in, on the
