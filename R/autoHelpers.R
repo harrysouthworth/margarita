@@ -30,7 +30,7 @@ readAutoInputs <- function(file){
 #'          data files are not supported (but see Shotwell's sas7bdat.parso
 #'          package).
 #' @importFrom tools file_ext
-#' 
+#' @export
 readData <- function(file, type=NULL){
   if (is.null(type)) type <- file_ext(file)
   if (type == "sas7bdat"){
@@ -107,6 +107,7 @@ ordinalIndicator <- function(x){
 #'          returned. Otherwise, the function strips the factor name of each
 #'          coefficient name, for each factor. If two factors have overlapping
 #'          level names, the function will fail.
+#' @export
 tidyCoefNames <- function(x){
   if (! "xlevels" %in% names(x)) stop("x should be an object with an 'xlevels' element")
   

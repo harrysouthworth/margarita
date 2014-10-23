@@ -127,7 +127,6 @@ boxplots of scaled residuals by treatment group.
 rfo <- as.formula(paste0("tfun(", value, ") ~ ", "tfun(", baseline, ") + ", arm))
 rmod <- lmr(rfo, data=lab)
 
-# XXX Need to change tfun to log in output
 wh <- coef(summary(rmod))
 rownames(wh) <- tidyCoefNames(rmod)
 rownames(wh) <- gsub("tfun", trans, rownames(wh))
@@ -151,11 +150,12 @@ th <- min(egp3Thresh(lab$r))
 qu <- mean(lab$r <= th) # checked and it's <=
 
 cqu <- ordinalIndicator(as.integer(round(qu*100)))
+cstr <- paste0("$", as.integer(round(qu*100)), "^{", cqu, "}$")
 @
 
 The threshold selection plots, and a test based on the EGP3 model, suggest a
 threshold of \Sexpr{th}, representing the
-\Sexpr{paste0("$", as.integer(round(qu*100)), "^{", cqu, "}$")} percentile of the distribution of residuals.
+\Sexpr{cstr} percentile of the distribution of residuals.
 
 \subsection{Generalized Pareto distributions}
 We now fit GP distributions with terms for treatment in the scale parameter, the 

@@ -378,12 +378,13 @@ as.data.frame.summary.margarita.sim.prob <- function(x, row.names=NULL, optional
   ng <- nrow(x[[1]])
   groups <- rep(groups, each=ng)
 
+  rn <- rownames(x[[1]])
+
   x <- as.data.frame(do.call("rbind", x))
-  x$Exceedance <- rownames(x)
+  x$Exceedance <- ordered(rownames(x), levels=rn)
   x$groups <- groups
   x <- x[, c(ncol(x)-1, ncol(x), 1:(ncol(x)-2))]
-  #x <- x[order(x[, 2]), ]
-  #x <- x[order(x[, 1]), ]
+  x <- x[order(x$Exceedance), ]
   rownames(x) <- 1:nrow(x)
   x
 }
