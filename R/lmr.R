@@ -5,22 +5,37 @@
 #' @param fo A formula describing a linear model.
 #' @param data An appropriate data frame.
 #' @param method The robust fitting method. Defaults to \code{method="MM"}.
-#' @param c Tuning parameter to the MM-algorithm. Defaults to \code{c=3.44} giving 85\% efficiency for Gaussian data.
+#' @param c Tuning parameter to the MM-algorithm. Defaults to \code{c=3.443689} giving 85\% efficiency for Gaussian data.
 #' @param maxit The maximum number of iterations to perform. Defaults to \code{maxit = 40}
 #' @return An object of class 'rlm', fit by the function in the MASS package.
 #'         \code{lmr} is just a simple wrapper to \code{rlm}. The returned
 #'         object has an additional component, \code{cov}.
+#' @return A list containing the same elements as an object of class 'rlm' but with
+#'        additional elements containing the covariance matrix of the parameter
+#'        estimates ('cov'), the data provided in the call to \code{lmr} ('data')
+#'        and the tuning constant for the bisquare loss functions ('c').
+#' @details The tuning constant for the bisquare function defaults to
+#'        \code{c=3.443689} providing 85\% efficiency for Gaussian data.
+#'        Maronna et al suggest bisquare weight functions and 85\% efficiency
+#'        with MM-estimation in Sections 5.9 and 11.2 of their book. In the setting of
+#'        eliminating baseline effects from clinical trial data, the models
+#'        considered are fairly simple and these defaults appear to work well.
+#'        The value of 3.443689 is 'borrowed' from \code{lmRob} and its support
+#'        functions in the 'robust' package. Rounded values for various Gaussian
+#'        efficiencies appear in Seciton 2.2 of Maronna et al.
+#' @references Venables, W. N. & Ripley, B. D. (2002) Modern Applied Statistics with S. Fourth Edition. Springer, New York. ISBN 0-387-95457-0
+#'             Maronna, R. A, Martin, R. D and Yohai, V. J. (2006) Robust Statistics: Theory and Methods, Wiley
 #' @keywords models
 #' @importFrom MASS rlm
 #' @export lmr
-lmr <- function(fo, data, method="MM", c=3.44, maxit=40){
+lmr <- function(fo, data, method="MM", c=3.443689, maxit=40){
     res <- rlm(fo, data, method=method, c=c, maxit=maxit)
     res$call$formula <- fo
     s <- summary(res)
     res$cov <- s$cov.unscaled * s$sigma^2
     res$data <- data # used by boxplot.rlm
-    # Can't add simulated coefs here because we don't know how many
-    # to simulate yet.
+    res$c <- c
+    class(res) <- c("lmr", "rlm") # drop "lm" because it can lead to errors
     res
 }
 

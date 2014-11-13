@@ -1,13 +1,18 @@
 #' Robust final prediction error for a linear model
 #' @param x A robust linear model, fit by \code{lmr}.
-#' @value A number representing the robust final prediction error.
+#' @return A number representing the robust final prediction error.
 #' @details The definition of robust final prediction error is given in Section 5.12
-#'     of Maronna et al. The function is generic, but so far only a method for objects
-#'     fit by \code{lmr} has been implemented. It would be straightforward to implement
-#'     for objects returned by \code{rlm} or \code{lmRob}, for example. Only bisquare
+#'     of Maronna et al. The function is generic, but so far only methods for objects
+#'     fit by \code{lmr} and \code{lmRob} have been implemented (the latter purely for
+#'     testing). It would be straightforward to implement
+#'     for objects returned by \code{rlm} or \code{lmrob}, for example. Only bisquare
 #'     weight functions are considered.
 #' @references Maronna, R. A, Martin, R. D and Yohai, V. J. (2006) Robust Statistics: Theory and Methods, Wiley
+#' @export RFPE
 RFPE <- function(x) NextMethod("RFPE", x)
+
+#' @method RFPE lmr
+#' @export RFPE.lmr
 RFPE.lmr <- function (x){
   r <- resid(x) / x$s
   if (any(is.na(r))) stop("missing values are not allowed")
@@ -25,6 +30,14 @@ RFPE.lmr <- function (x){
   a + (q*A) / (n*B)
 }
 
+#' @method RFPE lmRob
+#' @export RFPE.lmRob
+RFPE.lmRob <- function(x){
+  x$s <- x$scale
+  x$c <- x$yc
+  RFPE.lmr(x)
+}
+
 #' Bisquare weight function and its derivatives
 #' @param x Scaled residuals from a linear model.
 #' @param c The tuning constant to the bisquare function.
@@ -40,4 +53,16 @@ bisquare <- function(x, c=3.443689, d=0){
   } else {
     stop("d can take values 0, 1 or 2")
   }
+}
+
+drop1.lmr <- function(object, scope, ...){
+  
+  
+}
+
+
+step.lmr <- function(object, scope, direction="backwards", target=RFPE){
+  
+  
+  
 }
