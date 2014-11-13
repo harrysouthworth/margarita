@@ -10,10 +10,11 @@
 #' @return An object of class 'rlm', fit by the function in the MASS package.
 #'         \code{lmr} is just a simple wrapper to \code{rlm}. The returned
 #'         object has an additional component, \code{cov}.
-#' @return A list containing the same elements as an object of class 'rlm' but with
+#' @return A list containing the same elements as an object of class 'lmr' but with
 #'        additional elements containing the covariance matrix of the parameter
-#'        estimates ('cov'), the data provided in the call to \code{lmr} ('data')
-#'        and the tuning constant for the bisquare loss functions ('c').
+#'        estimates ('cov'), the data provided in the call to \code{lmr} ('data'),
+#'        the tuning constant for the bisquare loss functions ('c'), and the
+#'        residual degrees of freedom.
 #' @details The tuning constant for the bisquare function defaults to
 #'        \code{c=3.443689} providing 85\% efficiency for Gaussian data.
 #'        Maronna et al suggest bisquare weight functions and 85\% efficiency
@@ -23,18 +24,29 @@
 #'        The value of 3.443689 is 'borrowed' from \code{lmRob} and its support
 #'        functions in the 'robust' package. Rounded values for various Gaussian
 #'        efficiencies appear in Seciton 2.2 of Maronna et al.
+#'        
+#'        Note that \code{rlm} produces an object
+#'        that inherits from \code{lm}, but \code{lmr} does not in order to avoid
+#'        \code{lm} methods being used on it. Also, \code{lmr} attaches the
+#'        residual degrees of freedom to the object; \code{rlm} deliberately sets
+#'        it to NA to avoid erroneous application of \code{lm} methods.
 #' @references Venables, W. N. & Ripley, B. D. (2002) Modern Applied Statistics with S. Fourth Edition. Springer, New York. ISBN 0-387-95457-0
 #'             Maronna, R. A, Martin, R. D and Yohai, V. J. (2006) Robust Statistics: Theory and Methods, Wiley
 #' @keywords models
 #' @importFrom MASS rlm
 #' @export lmr
-lmr <- function(fo, data, method="MM", c=3.443689, maxit=40){
-    res <- rlm(fo, data, method=method, c=c, maxit=maxit)
-    res$call$formula <- fo
+lmr <- function(formula, data, method="MM", c=3.443689, maxit=40){
+    thecall <- match.call()
+    res <- rlm(formula, data, method=method, c=c, maxit=maxit)
+    #res$call$formula <- formula
     s <- summary(res)
     res$cov <- s$cov.unscaled * s$sigma^2
     res$data <- data # used by boxplot.rlm
     res$c <- c
+    res$call <- thecall
+    
+    res$df.residual <- length(res$residuals) - length(res$coefficients)
+    
     class(res) <- c("lmr", "rlm") # drop "lm" because it can lead to errors
     res
 }

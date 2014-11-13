@@ -9,12 +9,13 @@
 #'     weight functions are considered.
 #' @references Maronna, R. A, Martin, R. D and Yohai, V. J. (2006) Robust Statistics: Theory and Methods, Wiley
 #' @export RFPE
-RFPE <- function(x) NextMethod("RFPE", x)
+RFPE <- function(x, scale) NextMethod("RFPE", x)
 
 #' @method RFPE lmr
 #' @export RFPE.lmr
-RFPE.lmr <- function (x){
-  r <- resid(x) / x$s
+RFPE.lmr <- function (x, scale){
+  if (missing(scale)) scale <- x$s
+  r <- resid(x) / scale
   if (any(is.na(r))) stop("missing values are not allowed")
 
   c <- x$c
@@ -32,10 +33,11 @@ RFPE.lmr <- function (x){
 
 #' @method RFPE lmRob
 #' @export RFPE.lmRob
-RFPE.lmRob <- function(x){
-  x$s <- x$scale
+RFPE.lmRob <- function(x, scale){
+  if (missing(scale)) scale <- x$scale
+  x$s <- scale
   x$c <- x$yc
-  RFPE.lmr(x)
+  RFPE.lmr(x, scale)
 }
 
 #' Bisquare weight function and its derivatives
@@ -53,16 +55,4 @@ bisquare <- function(x, c=3.443689, d=0){
   } else {
     stop("d can take values 0, 1 or 2")
   }
-}
-
-drop1.lmr <- function(object, scope, ...){
-  
-  
-}
-
-
-step.lmr <- function(object, scope, direction="backwards", target=RFPE){
-  
-  
-  
 }

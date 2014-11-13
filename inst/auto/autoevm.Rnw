@@ -90,7 +90,7 @@ For different therapy areas, different rules will be appropriate.
 
 \section{Data}
 The data in {\tt \Sexpr{labs}}, located in {\tt \Sexpr{dataPath}} on
-\Sexpr{Sys.time()} was used in the construction of this report.
+\Sexpr{Sys.time()} were used in the construction of this report.
 
 The data were aggregated and restructured in which process \Sexpr{nMiss}
 cases with missing values were removed. A summary of the baseline values
@@ -104,6 +104,17 @@ print(xtable(fivenumBy(lab, baseline, arm), label="tab:sb",
 agg <- if (minmax == "max") "maxima" else "minima"
 print(xtable(fivenumBy(lab, value, arm), label="tab:sm",
              caption=paste("Summary of post-baseline", agg, "by treatment group.")))
+@
+
+Shiftplots appear in Figure~\ref{fig:shiftplots}. The baseline values are plotted
+on the horizontal axis and the maximum post-baseline values on the vertical axis.
+The diagonal reference lines are lines of identity: any point that falls exactly
+on the line indicates an observation for which the baseline and maximum
+post-baseline values were identical. Points above the line indicate increases
+from baseline.
+
+<<shiftplots, echo=FALSE, fig.cap="">>=
+shiftplot(lab, aes(baseline, value))
 @
 
 \section{Results}
