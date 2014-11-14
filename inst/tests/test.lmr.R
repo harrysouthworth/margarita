@@ -56,20 +56,53 @@ test_that("drop1.lmr works", {
           RFPE(lmr(log(ALT.M) ~ log(ALT.B), data=liver), scale=s))
 
   expect_equal(d$RFPE, rf)
+
+  # A bug in step.lmRob means we need to take logs and create numeric dose
+  ll <- liver
+  ll$logALT.M <- log(ll$ALT.M)
+  ll$logALT.B <- log(ll$ALT.B)
+  ll$ndose <- as.numeric(ll$dose)
+  r1 <- lmRob(logALT.M ~ logALT.B + ndose + TBL.B + TBL.M, data=ll,
+              control=lmRob.control(eff=.85, weight=c("Bisquare", "Bisquare")))
+  d1 <- drop1(r1)
+  
+  r2 <- lmr(log(ALT.M) ~ log(ALT.B) + as.numeric(dose) + TBL.B + TBL.M, data=liver)
+  d2 <- drop1(r2)
+  
+  expect_equal(d2[, 2], d1[, 2]/nrow(liver), tol=.001)
 })
 
 test_that("step.lmr works", {
-  d <- liver
-  d <- cbind(d, data.frame(rmvnorm(nrow(d), mean=rep(0, 4))))
-  m <- lmr(log(ALT.M) ~ log(ALT.B) + as.numeric(dose) + X1 + X2 + X3 + X4, data=d)
-  step.lmr(m)
+  # A bug in step.lmRob means we need to take logs and create numeric dose
+  ll <- liver
+  ll$logALT.M <- log(ll$ALT.M)
+  ll$logALT.B <- log(ll$ALT.B)
+  ll$ndose <- as.numeric(ll$dose)
+  x <- rmvnorm(nrow(ll), mean=rep(0, 10))
+  ll <- cbind(ll, data.frame(x))
+  r1 <- lmRob(logALT.M ~ logALT.B + ndose + X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10, data=ll,
+              control=lmRob.control(eff=.85, weight=c("Bisquare", "Bisquare")))
+  s1 <- step.lmRob(r1, trace=FALSE)
   
+  r2 <- lmr(logALT.M ~ logALT.B + ndose + X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10, data=ll)
+  s2 <- step.lmr(r2, trace=FALSE)
+  
+  expect_equal(coef(s2), coef(s1), tol=.001)
+
+  for (i in 1:10){
+    ll <- liver
+    x <- rmvnorm(nrow(ll), mean=rep(0, 10))
+    ll <- cbind(ll, data.frame(x))
+    r1 <- lmr(log(ALT.M) ~ log(ALT.B) + as.numeric(dose) + X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10, data=ll)
+    s1 <- step.lmr(r1, trace=FALSE)
+    expect_less_than(length(coef(s1)), length(coef(r1)))
+  }
 })
 
 
 test_that("AIC.lmr does what it ought", {
   # Define some functions using code found at 
-  #https://www.google.co.uk/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CCMQFjAA&url=http%3A%2F%2Fwww.hindawi.com%2Fjournals%2Fjam%2F2014%2F286414%2F&ei=yOhlVMKRJILuarajgMAM&usg=AFQjCNFjMXiTzTpHk7RLVY7AsoZMlb0Eeg&sig2=boog2KVw6ACXrh1SE9dlFQ&bvm=bv.79400599,d.d2s
+  #https://www.google.co.uk/url?sa=t&rct=j&q=&esrc=s&source=web&cd=2&cad=rja&uact=8&ved=0CCoQFjAB&url=https%3A%2F%2Ffeb.kuleuven.be%2Fpublic%2Fndbaf45%2Fpapers%2FTharmaratnamClaeskens.pdf&ei=cBdmVJmjHMPmaLOigfAO&usg=AFQjCNFGLJHy7L5oaMjmWX_0NmrKGJEFFg&sig2=sXjQyR-Tyz9UHEDeCZD5sQ&bvm=bv.79400599,d.d2s
   Rho = function(x, cc){
     U = x/cc; U1 = 3 * U^2 - 3 * U^4 + U^6
     U1[abs(U) > 1] = 1; return(U1)
@@ -83,20 +116,26 @@ test_that("AIC.lmr does what it ought", {
     U = x/cc; U1 = (6/(cc^2)) *(1- 6* U^2+ 5* U^4)
     U1[abs(U) > 1] = 0; return(U1)
   }
-  AIC.S<- function(y, X, beta.s,scale.s, c=r3$c){
+  AIC.S <- function(y, X, beta.s, scale.s, cc){
     n <- length(y)
     
-    a <- bisquare(resid(r3)/r3$s, c=c, d=2)
-    b <- bisquare(resid(r3)/r3$s, c=c, d=1)^2
-    
-    iJ <- solve(t(X) %*% diag(a) %*% X * (1/(scale.s^2)) / n)
-    K <- (t(X) %*% diag(b) %*% X * (1/(scale.s^2))) / n
-    
-    2 * n * log(scale.s) + 2 * sum(diag(iJ %*% K))
-  }
+    U=matrix(ncol=1,nrow=n)
+    UU=matrix(ncol=1,nrow=n)
+    UUU=matrix(ncol=1,nrow=n)
+    for(i in 1:n){
+      U[i,]=dPsi((y[i,]-X[i,] %*% beta.s)/scale.s ,cc)
+      UU[i,]=(Psi((y[i,]-X[i,] %*% beta.s)/scale.s ,cc))^2
+    }
+    J= (t(X) %*% diag(as.vector(U)) %*% X * (1/(scale.s^2)))/n
+    inv.J<- solve(J)
+    K= (t(X) %*% diag(as.vector(UU)) %*% X * (1/(scale.s^2)))/n
+    AIC =2*n*(log(scale.s))+ 2* sum(diag(inv.J %*%(K)))
+    return(AIC)
+  } # close AIC.S
   
-  AIC.S(log(liver$ALT.M), r3$x, coef(r3), r3$s)
-  
-  
+  r1 <- lmr(log(ALT.M) ~ log(ALT.B) + as.numeric(dose), data=liver)
+  a1 <- AIC.lmr(r1)
+  a2 <- AIC.S(y=as.matrix(log(liver$ALT.M), ncol=1), r1$x, coef(r1), r1$s, r1$c)
+  expect_equal(a1, a2)
 })
 

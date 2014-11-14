@@ -1,9 +1,11 @@
 #' @method drop1 lmr
 #' @export drop1.lmr
-drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", ...){
-  nm <- target
+drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, ...){
+  tnm <- target
+  aick <- k
+
   if (target == "RFPE") target <- RFPE.lmr
-  else if (target == "AIC") target <- AIC.lmr
+  else if (target == "AIC") target <- function(x) AIC.lmr(x, k=aick)
   else stop("available targets are 'RFPE' and 'AIC'")
   
   if (is.null(scale)) scale <- object$s
@@ -28,16 +30,17 @@ drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", ...){
 
   for (i in 1:k){
     curfrm <- as.formula(paste(".~.-", scope[[i]]))
-    curobj <- update(object, curfrm)
-    res[i] <- target(curobj, scale)
+    curobj <- do.call("update", list(object, curfrm))
+    if (tnm == "RFPE") res[i] <- target(curobj, scale)
+    else res[i] <- target(curobj)
   }
-  
+
   scope <- c("<none>", scope)
   dfs <- c(0, dfs)
-  res <- c(target(object, scale), res)
+  res <- c(target(object), res) # <------------------------------------------------------------------
   dfs[1] <- NA
   aod <- data.frame(Df = dfs, res = res, row.names = scope, check.names = FALSE)
-  names(aod)[2] <- nm
+  names(aod)[2] <- tnm
   head <- c("\nSingle term deletions", "\nModel:", deparse(as.vector(formula(object))))
   class(aod) <- c("anova", "data.frame")
   attr(aod, "heading") <- head
@@ -48,34 +51,36 @@ drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", ...){
 #' Stepwise model selection for a robust linear model
 #' @param object An object fit by \code{lmr}.
 #' @param scope The lowest model to consider.
+#' @param target Character string giving the method for selecting models. Defaults to "RFPE",
+#'   the only current alternative being "AIC". 
 #' @param direction What direction to take steps in. Only "backwards" is implemented.
 #' @param trace Whether or not to report progress. Defaults to \code{trace=TRUE}.
 #' @param steps The maximum number of steps to take.
 #' @details The function uses robust finite prediction error to decide when to stop
 #'        the selection process. In principle, other approaches could be implemented.
+#' @aliases drop1.lmr
 #' @export step.lmr
-step.lmr <- function (object, scope, target="RFPE", direction = "backward", trace = TRUE, steps = 1000, ...){
-  if (missing(direction)) 
-    direction <- "backward"
+step.lmr <- function (object, scope, target="RFPE", direction = "backward", trace = TRUE, steps = 1000, k=2, ...){
+  if (missing(direction)) direction <- "backward"
   if (direction != "backward") 
     stop("Presently step.lmr only supports backward model selection.")
 
-  nm <- target
+  tnm <- target
   if (target == "RFPE") target <- RFPE.lmr
   else if (target == "AIC") target <- AIC.lmr
   else stop("target should be either 'RFPE' or 'AIC'")
   
-  make.step <- function(models, fit, scale, object) {
+  make.step <- function(models, fit, tnm, object) {
     change <- sapply(models, "[[", "change")
     rdf <- sapply(models, "[[", "df.resid")
     ddf <- c(NA, diff(rdf))
-    RFPE <- sapply(models, "[[", "RFPE")
+    RES <- sapply(models, "[[", "tnm")
     heading <- c("Stepwise Model Path \nAnalysis of Deviance Table", 
                  "\nInitial Model:", deparse(as.vector(formula(object))), 
                  "\nFinal Model:", deparse(as.vector(formula(fit))), 
                  "\n")
-    aod <- data.frame(Step = change, Df = ddf, `Resid. Df` = rdf, 
-                      RFPE = RFPE, check.names = FALSE)
+    aod <- data.frame(Step = change, Df = ddf, `Resid. Df` = rdf, RES = RES, check.names=FALSE)
+    names(aod)[4] <- tnm
     attr(aod, "heading") <- heading
     class(aod) <- c("anova", "data.frame")
     fit$anova <- aod
@@ -119,17 +124,17 @@ step.lmr <- function (object, scope, target="RFPE", direction = "backward", trac
   n <- length(object$fitted)
   scale <- object$s
   fit <- object
-  bRFPE <- RFPE(fit)
+  bRES <- target(fit)
   nm <- 1
   Terms <- fit$terms
   if (trace) 
-    cat("Start:  RFPE=", format(round(bRFPE, 4)), "\n", deparse(as.vector(formula(fit))), "\n\n")
-  models[[nm]] <- list(df.resid = fit$df.residual, change = "", RFPE = bRFPE)
-  RFPE <- bRFPE + 1
+    cat("Start:  RFPE=", format(round(bRES, 4)), "\n", deparse(as.vector(formula(fit))), "\n\n")
+  models[[nm]] <- list(df.resid = fit$df.residual, change = "", tnm = bRES)
+  RES <- bRES + 1
   
-  while (bRFPE < RFPE & steps > 0) {
+  while (bRES < RES & steps > 0) {
     steps <- steps - 1
-    RFPE <- bRFPE
+    RES <- bRES
     bfit <- fit
     ffac <- attr(Terms, "factor")
     scope <- factor.scope(ffac, list(add = fadd, drop = fdrop))
@@ -137,13 +142,13 @@ step.lmr <- function (object, scope, target="RFPE", direction = "backward", trac
     change <- NULL
 
     if (ndrop <- length(scope$drop)) {
-      aod <- drop1.lmr(fit, scope$drop, scale)
+      aod <- drop1.lmr(fit, scope$drop, scale, target=tnm, k=k)
       if (trace) print(aod)
       change <- rep("-", ndrop + 1)
     }
 
     if (is.null(aod)) break
-    o <- order(aod[, "RFPE"])[1]
+    o <- order(aod[, tnm])[1]
     if (o[1] == 1) break
 
     change <- paste(change[o], dimnames(aod)[[1]][o])
@@ -151,18 +156,18 @@ step.lmr <- function (object, scope, target="RFPE", direction = "backward", trac
     attr(Terms, "formula") <- new.formula <- formula(Terms)
     newfit <- lmr(new.formula, data = object$data, c=object$c, method="MM")
 
-    bRFPE <- aod[, "RFPE"][o]
+    bRES <- aod[, tnm][o]
 
-    if (trace) cat("\nStep:  RFPE =", format(round(bRFPE, 4)), "\n", deparse(as.vector(formula(Terms))), "\n\n")
-    if (bRFPE >= RFPE) break
+    if (trace) cat("\nStep:  RFPE =", format(round(bRES, 4)), "\n", deparse(as.vector(formula(Terms))), "\n\n")
+    if (bRES >= RES) break
 
     nm <- nm + 1
-    models[[nm]] <- list(df.resid = newfit$df.resid, change = change, RFPE = bRFPE)
+    models[[nm]] <- list(df.resid = newfit$df.resid, change = change, tnm = bRES)
     fit <- c(newfit, list(formula = new.formula))
     oc <- objectcall
     oc$formula <- as.vector(fit$formula)
     fit$call <- oc
     class(fit) <- class(object)
   }
-  make.step(models = models[seq(nm)], fit, scale, object)
+  make.step(models = models[seq(nm)], fit, tnm, object)
 }

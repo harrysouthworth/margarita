@@ -8,6 +8,7 @@
 #'     for objects returned by \code{rlm} or \code{lmrob}, for example. Only bisquare
 #'     weight functions are considered.
 #' @references Maronna, R. A, Martin, R. D and Yohai, V. J. (2006) Robust Statistics: Theory and Methods, Wiley
+#' @aliases RFPE.lmr RFPE.lmRob
 #' @export RFPE
 RFPE <- function(x, scale=NULL) NextMethod("RFPE", x)
 
@@ -64,10 +65,15 @@ bisquare <- function(x, c=3.443689, d=0){
 #' @param An optional scale parameter. If not provided, it is taken from \code{object}.
 #' @param k The penalty per parameter to be used.
 #' @details The robust AIC correponds to equation (16) of Tharmaratnam and Claeskens.
+#'     The 'penalty' term is not a simple function of the number of parameters in the
+#'     model, so increaseing k does not necessarily result in simpler models being
+#'     chosen.
 #' @references Tharmaratnam, K. and Claeskens, G. A comparison of robust versions
 #'      of the AIC based on M, S and MM-estimators, Technical Report KBI 1014,
 #'      Katholieke Universiteit Leuven, 2010.
 #'      https://lirias.kuleuven.be/bitstream/123456789/274771/1/KBI_1014.pdf
+#' @method AIC lmr
+#' @export AIC.lmr
 AIC.lmr <- function(object, scale, k=2){
   if (missing(scale)) scale <- object$s
   r <- resid(object) / scale
@@ -80,5 +86,7 @@ AIC.lmr <- function(object, scale, k=2){
   iJ <- solve(t(X) %*% diag(a) %*% X * (1/(scale^2)) / n)
   K <- (t(X) %*% diag(b) %*% X * (1/(scale^2))) / n
   
-  k * n * log(scale) + k * sum(diag(iJ %*% K))
+  print(sum(diag(iJ %*% K)))
+  
+  2 * n * log(scale) + k * sum(diag(iJ %*% K))
 }
