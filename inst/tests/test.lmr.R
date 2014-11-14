@@ -65,3 +65,38 @@ test_that("step.lmr works", {
   step.lmr(m)
   
 })
+
+
+test_that("AIC.lmr does what it ought", {
+  # Define some functions using code found at 
+  #https://www.google.co.uk/url?sa=t&rct=j&q=&esrc=s&source=web&cd=1&cad=rja&uact=8&ved=0CCMQFjAA&url=http%3A%2F%2Fwww.hindawi.com%2Fjournals%2Fjam%2F2014%2F286414%2F&ei=yOhlVMKRJILuarajgMAM&usg=AFQjCNFjMXiTzTpHk7RLVY7AsoZMlb0Eeg&sig2=boog2KVw6ACXrh1SE9dlFQ&bvm=bv.79400599,d.d2s
+  Rho = function(x, cc){
+    U = x/cc; U1 = 3 * U^2 - 3 * U^4 + U^6
+    U1[abs(U) > 1] = 1; return(U1)
+  }
+  Psi = function(x, cc){
+    U = x/cc; U1 = 6/cc * U * (1 - U^2)^2
+    U1[abs(U) > 1] = 0; return(U1)
+  }
+  
+  dPsi = function(x, cc){
+    U = x/cc; U1 = (6/(cc^2)) *(1- 6* U^2+ 5* U^4)
+    U1[abs(U) > 1] = 0; return(U1)
+  }
+  AIC.S<- function(y, X, beta.s,scale.s, c=r3$c){
+    n <- length(y)
+    
+    a <- bisquare(resid(r3)/r3$s, c=c, d=2)
+    b <- bisquare(resid(r3)/r3$s, c=c, d=1)^2
+    
+    iJ <- solve(t(X) %*% diag(a) %*% X * (1/(scale.s^2)) / n)
+    K <- (t(X) %*% diag(b) %*% X * (1/(scale.s^2))) / n
+    
+    2 * n * log(scale.s) + 2 * sum(diag(iJ %*% K))
+  }
+  
+  AIC.S(log(liver$ALT.M), r3$x, coef(r3), r3$s)
+  
+  
+})
+

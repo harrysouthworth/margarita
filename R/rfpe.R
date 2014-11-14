@@ -9,12 +9,12 @@
 #'     weight functions are considered.
 #' @references Maronna, R. A, Martin, R. D and Yohai, V. J. (2006) Robust Statistics: Theory and Methods, Wiley
 #' @export RFPE
-RFPE <- function(x, scale) NextMethod("RFPE", x)
+RFPE <- function(x, scale=NULL) NextMethod("RFPE", x)
 
 #' @method RFPE lmr
 #' @export RFPE.lmr
-RFPE.lmr <- function (x, scale){
-  if (missing(scale)) scale <- x$s
+RFPE.lmr <- function (x, scale=NULL){
+  if (is.null(scale)) scale <- x$s
   r <- resid(x) / scale
   if (any(is.na(r))) stop("missing values are not allowed")
 
@@ -33,8 +33,8 @@ RFPE.lmr <- function (x, scale){
 
 #' @method RFPE lmRob
 #' @export RFPE.lmRob
-RFPE.lmRob <- function(x, scale){
-  if (missing(scale)) scale <- x$scale
+RFPE.lmRob <- function(x, scale=NULL){
+  if (is.null(scale)) scale <- x$scale
   x$s <- scale
   x$c <- x$yc
   RFPE.lmr(x, scale)
@@ -55,4 +55,30 @@ bisquare <- function(x, c=3.443689, d=0){
   } else {
     stop("d can take values 0, 1 or 2")
   }
+}
+
+
+#' Robust version of AIC for an MM-estimated linear model
+#' 
+#' @param object An object of class 'lmr'.
+#' @param An optional scale parameter. If not provided, it is taken from \code{object}.
+#' @param k The penalty per parameter to be used.
+#' @details The robust AIC correponds to equation (16) of Tharmaratnam and Claeskens.
+#' @references Tharmaratnam, K. and Claeskens, G. A comparison of robust versions
+#'      of the AIC based on M, S and MM-estimators, Technical Report KBI 1014,
+#'      Katholieke Universiteit Leuven, 2010.
+#'      https://lirias.kuleuven.be/bitstream/123456789/274771/1/KBI_1014.pdf
+AIC.lmr <- function(object, scale, k=2){
+  if (missing(scale)) scale <- object$s
+  r <- resid(object) / scale
+  n <- length(r)
+  X <- object$x
+  
+  a <- bisquare(r, c=object$c, d=2)
+  b <- bisquare(r, c=object$c, d=1)^2
+  
+  iJ <- solve(t(X) %*% diag(a) %*% X * (1/(scale^2)) / n)
+  K <- (t(X) %*% diag(b) %*% X * (1/(scale^2))) / n
+  
+  k * n * log(scale) + k * sum(diag(iJ %*% K))
 }

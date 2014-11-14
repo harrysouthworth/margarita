@@ -1,13 +1,18 @@
-
 #' @method drop1 lmr
 #' @export drop1.lmr
-drop1.lmr <- function (object, scope, scale, ...){
-  if (missing(scale)) scale <- object$s
+drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", ...){
+  nm <- target
+  if (target == "RFPE") target <- RFPE.lmr
+  else if (target == "AIC") target <- AIC.lmr
+  else stop("available targets are 'RFPE' and 'AIC'")
+  
+  if (is.null(scale)) scale <- object$s
   x <- model.matrix.lm(object)
   asgn <- attr(x, "assign")
   term.labels <- attr(object$terms, "term.labels")
   dfs <- table(asgn[asgn > 0])
   names(dfs) <- term.labels
+
   if (missing(scope))
     scope <- drop.scope(object)
   else {
@@ -16,23 +21,23 @@ drop1.lmr <- function (object, scope, scale, ...){
     if (!all(match(scope, term.labels, FALSE)))
       stop("scope is not a subset of term labels")
   }
+
   dfs <- dfs[scope]
   k <- length(scope)
-
-  rfpe <- double(k)
+  res <- double(k)
 
   for (i in 1:k){
     curfrm <- as.formula(paste(".~.-", scope[[i]]))
     curobj <- update(object, curfrm)
-    rfpe[i] <- RFPE(curobj, scale)
+    res[i] <- target(curobj, scale)
   }
   
   scope <- c("<none>", scope)
   dfs <- c(0, dfs)
-  rfpe <- c(RFPE(object, scale), rfpe)
+  res <- c(target(object, scale), res)
   dfs[1] <- NA
-  aod <- data.frame(Df = dfs, RFPE = rfpe, row.names = scope, 
-                    check.names = FALSE)
+  aod <- data.frame(Df = dfs, res = res, row.names = scope, check.names = FALSE)
+  names(aod)[2] <- nm
   head <- c("\nSingle term deletions", "\nModel:", deparse(as.vector(formula(object))))
   class(aod) <- c("anova", "data.frame")
   attr(aod, "heading") <- head
@@ -49,12 +54,17 @@ drop1.lmr <- function (object, scope, scale, ...){
 #' @details The function uses robust finite prediction error to decide when to stop
 #'        the selection process. In principle, other approaches could be implemented.
 #' @export step.lmr
-step.lmr <- function (object, scope, direction = "backward", trace = TRUE, steps = 1000, ...){
+step.lmr <- function (object, scope, target="RFPE", direction = "backward", trace = TRUE, steps = 1000, ...){
   if (missing(direction)) 
     direction <- "backward"
   if (direction != "backward") 
     stop("Presently step.lmr only supports backward model selection.")
 
+  nm <- target
+  if (target == "RFPE") target <- RFPE.lmr
+  else if (target == "AIC") target <- AIC.lmr
+  else stop("target should be either 'RFPE' or 'AIC'")
+  
   make.step <- function(models, fit, scale, object) {
     change <- sapply(models, "[[", "change")
     rdf <- sapply(models, "[[", "df.resid")
