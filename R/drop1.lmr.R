@@ -1,6 +1,6 @@
 #' @method drop1 lmr
 #' @export drop1.lmr
-drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, ...){
+drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, cores=NULL, ...){
   tnm <- target
   aick <- k
 
@@ -26,13 +26,31 @@ drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, ...){
 
   dfs <- dfs[scope]
   k <- length(scope)
-  res <- double(k)
-
-  for (i in 1:k){
-    curfrm <- as.formula(paste(".~.-", scope[[i]]))
-    curobj <- do.call("update", list(object, curfrm))
-    if (tnm == "RFPE") res[i] <- target(curobj, scale)
-    else res[i] <- target(curobj)
+  
+  getCluster <- function(n){
+    wh <- try(library(parallel))
+    if (class(wh) != "try-error"){
+      if (is.null(n)) n <- detectCores()
+      if (n == 1) { NULL }
+      else makeCluster(n)
+    }
+    else NULL
+  }
+  cluster <- getCluster(cores)
+  on.exit(if (!is.null(cluster)){ stopCluster(cluster) })
+  
+  fun <- function(X, scope, object, tnm, target){
+    curfrm <- as.formula(paste(".~.-", scope[[X]]))
+    curobj <- update(object, curfrm, data=object$data, method=object$method, c=object$c)
+    if (tnm == "RFPE") target(curobj, scale)
+    else target(curobj)
+  }
+  
+  if (!is.null(cluster)){
+    lmr <- lmr; RFPE.lmr <- RFPE.lmr; AIC.lmr <- AIC.lmr
+    res <- parallel::parSapply(cluster, X=1:k, FUN=fun, scope=scope, object=object, tnm=tnm, target=target)
+  } else {
+    suppressWarnings(res <- sapply(X=1:k, fun, scope=scope, object=object, tnm=tnm, target=target))
   }
 
   scope <- c("<none>", scope)
@@ -44,7 +62,7 @@ drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, ...){
   head <- c("\nSingle term deletions", "\nModel:", deparse(as.vector(formula(object))))
   class(aod) <- c("anova", "data.frame")
   attr(aod, "heading") <- head
-  
+
   aod
 }
 
@@ -56,11 +74,14 @@ drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, ...){
 #' @param direction What direction to take steps in. Only "backwards" is implemented.
 #' @param trace Whether or not to report progress. Defaults to \code{trace=TRUE}.
 #' @param steps The maximum number of steps to take.
+#' @param cores The number of cores to use when running \code{drop1.lmr} in parallel.
+#'    Defaults to \code{cores=NULL} and the function will try to guess how many cores
+#'    to use.
 #' @details The function uses robust finite prediction error to decide when to stop
 #'        the selection process. In principle, other approaches could be implemented.
 #' @aliases drop1.lmr
 #' @export step.lmr
-step.lmr <- function (object, scope, target="RFPE", direction = "backward", trace = TRUE, steps = 1000, k=2, ...){
+step.lmr <- function (object, scope, target="RFPE", direction = "backward", trace = TRUE, steps = 1000, k=2, cores=NULL, ...){
   if (missing(direction)) direction <- "backward"
   if (direction != "backward") 
     stop("Presently step.lmr only supports backward model selection.")
@@ -142,7 +163,7 @@ step.lmr <- function (object, scope, target="RFPE", direction = "backward", trac
     change <- NULL
 
     if (ndrop <- length(scope$drop)) {
-      aod <- drop1.lmr(fit, scope$drop, scale, target=tnm, k=k)
+      aod <- drop1.lmr(fit, scope$drop, scale, target=tnm, k=k, cores=cores)
       if (trace) print(aod)
       change <- rep("-", ndrop + 1)
     }

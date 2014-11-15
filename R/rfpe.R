@@ -79,14 +79,12 @@ AIC.lmr <- function(object, scale, k=2){
   r <- resid(object) / scale
   n <- length(r)
   X <- object$x
-  
+ 
   a <- bisquare(r, c=object$c, d=2)
   b <- bisquare(r, c=object$c, d=1)^2
-  
+
   iJ <- solve(t(X) %*% diag(a) %*% X * (1/(scale^2)) / n)
   K <- (t(X) %*% diag(b) %*% X * (1/(scale^2))) / n
-  
-  print(sum(diag(iJ %*% K)))
-  
+
   2 * n * log(scale) + k * sum(diag(iJ %*% K))
 }
