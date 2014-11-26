@@ -1,24 +1,35 @@
-#' Find out if variables in a formula are transformed
-#' Find out if each variable in a formula is transformed
+#' Find names of all, or transformed, variables in a formula
+#' 
+#' @aliases varsInFormula
 #' @param x A formula. If it isn't a formula, the function attempts to turn it into one
-#' @details The function checks for any character in '(){}*^/' and returns \code{TRUE}
-#'   for any variable in formula \code{x} that contains one or more of those.
-#' @return A logical vector with \code{TRUE} for variables that appear to contain transformations,
-#'   \code{FALSE} otherwise.
+#' @details The \code{varsInFormula} function returns a character vector containing
+#'   the names of the varialbes in \code{x} inluding any inline transformations
+#'   applied to them. The \code{transInFormula} function checks for any character
+#'   in '(){}*^/' and returns a #'   character string representing the name of the
+#'   transformed variable for any variable in formula \code{x} that contains one or
+#'   more of those.
+#' @return A character vector with the names of all, or of the transformed, variables. For
+#'   example, \code{transInFormula(~ TBL.B + as.numeric(dose))} returns
+#'   \code{"as.numeric(dose)"}.
 #' @export transInFormula
 transInFormula <- function(x){
-  warning("TODO: check for nested functions like log(as.numeric(x))")
+  x <- varsInFormula(x)
+
+  # Return logical vector with TRUE for each element that contains one of (){}*^/
+  i <- grepl("\\/|\\[|\\]|\\(|\\)|\\*|\\^", x)
+  x[i]
+}
+
+#' @export varsInFormula
+varsInFormula <- function(x){
   if (is(x, "formula")) x <- as.character(x)[-1] # -1 disards the ~
   else x <- as.character(as.formula(x))[-1]
-
+  
   # x will be a single string with var names separated by + or : or somethign else
   x <- strsplit(x, " ")[[1]]
   x <- x[seq(1, length(x), by=2)] # Discard +, :, *, ...
-
-  # Return logical vector with TRUE for each element that contains one of (){}*^/
-  grepl("\\/|\\[|\\]|\\(|\\)|\\*|\\^", x)
+  x
 }
-
 
 #' Read user input from text file in order to set up automated extreme value modelling
 #' 

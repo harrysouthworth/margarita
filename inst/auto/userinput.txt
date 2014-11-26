@@ -21,7 +21,7 @@ arm: arm # could be a vector of length > 1, e.g. drug, dose
 
 ############################## Information for EVM #############################
 trans: log # character string, anticipating a user interface
-models: ~ arm # character string, anticipating a user interface
+models: ~ arm, ~as.numeric(arm) # character string, anticipating a user interface
 returnLevels: 100, 500, 1000
 ULN: 35 # can be dropdown from normalRanges object or something
 multiplesOfULN: 3, 5, 20 # defaults can be inferred from CTC object or something
