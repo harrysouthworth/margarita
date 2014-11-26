@@ -1,3 +1,25 @@
+#' Find out if variables in a formula are transformed
+#' Find out if each variable in a formula is transformed
+#' @param x A formula. If it isn't a formula, the function attempts to turn it into one
+#' @details The function checks for any character in '(){}*^/' and returns \code{TRUE}
+#'   for any variable in formula \code{x} that contains one or more of those.
+#' @return A logical vector with \code{TRUE} for variables that appear to contain transformations,
+#'   \code{FALSE} otherwise.
+#' @export transInFormula
+transInFormula <- function(x){
+  warning("TODO: check for nested functions like log(as.numeric(x))")
+  if (is(x, "formula")) x <- as.character(x)[-1] # -1 disards the ~
+  else x <- as.character(as.formula(x))[-1]
+
+  # x will be a single string with var names separated by + or : or somethign else
+  x <- strsplit(x, " ")[[1]]
+  x <- x[seq(1, length(x), by=2)] # Discard +, :, *, ...
+
+  # Return logical vector with TRUE for each element that contains one of (){}*^/
+  grepl("\\/|\\[|\\]|\\(|\\)|\\*|\\^", x)
+}
+
+
 #' Read user input from text file in order to set up automated extreme value modelling
 #' 
 #' @aliases makeAutoEvmStuff
@@ -31,7 +53,7 @@ readAutoInputs <- function(file, make=TRUE, assign.=TRUE){
 
   # Strip trailing and leading whitespace, turn into list (so that the next few
   # lines will work)
-  output <- as.list(trim(output))
+  output <- as.list(strstrip(output))
 
   # Make numerics of things that should be numeric
   output$basevisit <- as.numeric(output$basevisit)
@@ -43,7 +65,8 @@ readAutoInputs <- function(file, make=TRUE, assign.=TRUE){
   
   # Deal with things that should be vectors (separator is comma):
   # popyes, returnLevels, multiplesOfULN
-  output$popyes <- trim(unlist(strsplit(output$popyes, ",")))
+  output$popyes <- strstrip(unlist(strsplit(output$popyes, ",")))
+  output$models <- strstrip(unlist(strsplit(output$models, ",")))
   output$returnLevels <- as.numeric(unlist(strsplit(output$returnLevels, ",")))
   output$multiplesOfULN <- as.numeric(unlist(strsplit(output$multiplesOfULN, ",")))
 
@@ -68,9 +91,6 @@ makeAutoEvmStuff <- function(x){
   x
 }
 
-
-
-
 #' Strip leading and trailing whitespace from a character string
 #' 
 #' @param x A vector of character strings.
@@ -78,8 +98,8 @@ makeAutoEvmStuff <- function(x){
 #' @param trailing Whether or not to remove trailing whitespace. Defaults to \code{trailing=TRUE}.
 #' @details Code copied from http://stackoverflow.com/questions/2261079/how-to-trim-leading-and-trailing-whitespace-in-r,
 #'   2014-11-26.
-#' @export trim
-trim <- function (x, leading=TRUE, trailing=TRUE){
+#' @export strstrip
+strstrip <- function (x, leading=TRUE, trailing=TRUE){
   if(!leading & !trailing) { x
   } else if (!leading) { sub("\\s+$", "", x)
   } else if (!trailing) {sub("^\\s+", "", x)
