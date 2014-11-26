@@ -24,7 +24,7 @@ NULL
 margarita <- function(rlm, evmSim, newdata=NULL,
                       trans=log, invtrans=exp,
                       baseline="alt.b", minima=FALSE){
-  if (class(rlm)[1] != "rlm"){
+  if (! "rlm" %in% class(rlm)){ # class is likely c("lmr", "rlm")
     stop("object should have class 'rlm'")
   }
   else if (is.null(rlm$cov)){

@@ -46,6 +46,7 @@ lmr <- function(formula, data, method="MM", c=3.443689, maxit=40){
     res$call <- thecall
     
     res$df.residual <- length(res$residuals) - length(res$coefficients)
+    res$formula <- formula
     
     class(res) <- c("lmr", "rlm") # drop "lm" because it can lead to errors
     res

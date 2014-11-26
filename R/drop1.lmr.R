@@ -26,32 +26,15 @@ drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, cores=NULL
 
   dfs <- dfs[scope]
   k <- length(scope)
-  
-  getCluster <- function(n){
-    wh <- try(library(parallel))
-    if (class(wh) != "try-error"){
-      if (is.null(n)) n <- detectCores()
-      if (n == 1) { NULL }
-      else makeCluster(n)
-    }
-    else NULL
-  }
-  cluster <- getCluster(cores)
-  on.exit(if (!is.null(cluster)){ stopCluster(cluster) })
-  
+
   fun <- function(X, scope, object, tnm, target){
     curfrm <- as.formula(paste(".~.-", scope[[X]]))
     curobj <- update(object, curfrm, data=object$data, method=object$method, c=object$c)
     if (tnm == "RFPE") target(curobj, scale)
     else target(curobj)
   }
-  
-  if (!is.null(cluster)){
-    lmr <- lmr; RFPE.lmr <- RFPE.lmr; AIC.lmr <- AIC.lmr
-    res <- parallel::parSapply(cluster, X=1:k, FUN=fun, scope=scope, object=object, tnm=tnm, target=target)
-  } else {
-    suppressWarnings(res <- sapply(X=1:k, fun, scope=scope, object=object, tnm=tnm, target=target))
-  }
+
+  suppressWarnings(res <- sapply(X=1:k, fun, scope=scope, object=object, tnm=tnm, target=target))
 
   scope <- c("<none>", scope)
   dfs <- c(0, dfs)

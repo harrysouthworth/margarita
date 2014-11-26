@@ -58,7 +58,7 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 
     newdata[, rawBaseline] <- invtrans(b) # b gets repeated nrow times
     # Get design matrix and simulate parameters from linear model
-    fo <- lmod$call$formula
+    fo <- lmod$formula
     fo[[2]] <- NULL
 
     M <- model.matrix(fo, newdata, xlev=lmod$xlevels)
