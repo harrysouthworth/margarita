@@ -1,11 +1,14 @@
-<<topmatter, echo=FALSE>>=
-path <- "~/Work/repos/github/margarita/inst/auto/"
-source(file.path(path, "topmatter.R"))
-@
-
 <<system, echo=FALSE>>=
+path <- "~/Work/repos/github/margarita/inst/auto/"
 source(file.path(path, "system.R"))
 @
+
+<<topmatter, echo=FALSE>>=
+infile <- "userinput.txt"
+#source(file.path(path, "topmatter.R"))
+readAutoInputs(file.path(infile))
+@
+
 
 <<data, echo=FALSE>>=
 source(file.path(path, "data.R"))
@@ -54,7 +57,8 @@ questions.
 \subsection{Software}
 \Sexpr{version$version.string}~\cite{R} will be used for all analyses.
 
-The seed for the random number generator was set to \Sexpr{as.character(seed)}.
+The seed for the random number generator was initialized with
+\Sexpr{as.character(seed)}.
 
 A summary of the R session appears in an Appendix, and all attached packages
 and their versions can be seen there. A summary of the environment also appears
@@ -114,7 +118,7 @@ post-baseline values were identical. Points above the line indicate increases
 from baseline.
 
 <<shiftplots, echo=FALSE, fig.cap="">>=
-shiftplot(lab, aes(baseline, value))
+shiftplot(lab, aes(base, aval), by=~arm)
 @
 
 \section{Results}
@@ -127,16 +131,19 @@ model are presented.
 
 \subsection{Robust regression}
 Following Southworth \& Heffernan, and the advice in Maronna et
-al~\cite{maronnaMartinYohai}, we eliminate the baseline effect using a robust regression
-model fit by MM-estimation using bisquare weight functions and 85\% efficiency
-for Gaussian data.
-Figure~\ref{fig:robust1} contains diagnostic plots, Table~\ref{tab:robust}
-contains a summary of the fitted model, and Figure~\ref{fig:robust2} displays
-boxplots of scaled residuals by treatment group.
+al~\cite{maronnaMartinYohai} (Section 5.9), we eliminate the baseline effect
+using a robust regression model fit by MM-estimation using bisquare weight
+functions and 85\% efficiency for Gaussian data. A backwards stepwise procedure
+based on Robust Final Prediction Error (Maronna et al~\cite{maronnaMartinYohai},
+Section 5.12) was used in an attempt to simplify the model. Table~\ref{tab:robust}
+contains a summary of the selected model, Figure~\ref{fig:robust1} contains
+diagnostic plots, and Figure~\ref{fig:robust2} displays boxplots of scaled
+residuals by treatment group.
 
 <<robust, echo=FALSE, results="asis", fig.cap="Diagnostic plots for the robust linear model.">>=
 rfo <- as.formula(paste0("tfun(", value, ") ~ ", "tfun(", baseline, ") + ", arm))
 rmod <- lmr(rfo, data=lab)
+rmod <- step.lmr(rmod, trace=FALSE)
 
 wh <- coef(summary(rmod))
 rownames(wh) <- tidyCoefNames(rmod)
@@ -214,8 +221,8 @@ see Figure~\ref{fig:mcmcdiag}.
 
 \begin{landscape}
 <<mcmcdiag, echo=FALSE, fig.cap="Plots of the Markov chains used to simulate from the posterior distribution of the parameters in the selected GP model.">>=
-# XXX /Should/ work if gmod used penalized likelihood. Need to test
-bmod <- update(gmod, method="sim", verbose=FALSE, thin=thin, burn=burn, iter=iter)
+bmod <- evm(r, data=lab, qu=qu, phi=gmod$formulae[[1]], xi=gmod$formulae[[2]],
+            method="sim", thin=thin, burn=burn, iter=iter, verbose=FALSE)
 ggplot(bmod)
 @
 \end{landscape}
@@ -252,6 +259,7 @@ ggplot(srl, ncol=1, as.table=FALSE)
 srl <- as.data.frame(srl)[, c(7:6, 1:5)]
 srl[, 3:7] <- round(srl[, 3:7], 1)
 ng <- length(unique(lab[, arm]))
+names(srl)[2] <- "Group"
 print(xtable(srl, label="tab:rl", digits=1,
              caption="Predicted M-subject return levels in terms of multiples of ULN."),
       include.rownames=FALSE, hline.after=c(-1, 0, 4*c(1:length(returnLevels))))
@@ -271,11 +279,11 @@ ggplot(sep, ncol=1, as.table=FALSE, scales="fixed")
 
 sep <- as.data.frame(sep)
 sep[, 3:ncol(sep)] <- sep[, 3:ncol(sep)] * 100
-
+names(sep)[2] <- "Group"
 print(xtable(sep, label="tab:ep", digits=2,
              caption="Predicted probability (\\%) of any particular subject having a value exceed various multiples of the ULN."),
-      hline.after=c(-1, 0, (1:length(multiplesOfULN))*length(unique(lab[, arm])))
-      )
+      hline.after=c(-1, 0, (1:length(multiplesOfULN))*length(unique(lab[, arm]))),
+      include.rownames=FALSE)
 @
 \clearpage
 \begin{landscape}
