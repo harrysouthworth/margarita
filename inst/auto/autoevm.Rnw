@@ -9,7 +9,6 @@ infile <- "userinput.txt"
 readAutoInputs(file.path(infile))
 @
 
-
 <<data, echo=FALSE>>=
 source(file.path(path, "data.R"))
 @
@@ -191,7 +190,7 @@ mods[[1]] <- list()
 mods[[1]][[1]] <- evm(r, data=lab, qu=qu) # null model
 
 for (i in 1:length(models)){
-  fo <- as.formula(models[[i]]) # do here to avoid scoping problems
+  fo <- as.formula(models[i]) # do here to avoid scoping problems
   mods[[i+1]] <- vector("list", length=3)
   mods[[i+1]][[1]] <- evm(r, data=lab, qu=qu, phi=fo)
   mods[[i+1]][[2]] <- evm(r, data=lab, qu=qu, xi=fo)
@@ -242,8 +241,24 @@ Figure~\ref{fig:returnLevels}. The same information appears in Table~\ref{tab:rl
 
 <<returnLevels, echo=FALSE, fig.cap="Predicted return levels in terms of multiples of ULN. The heavy lines represent 50\\% interval estimates and the lighter lines represent 90\\% interval estimates.", results="asis">>=
 if (prefmod != 0){ # need to construct newdata to pass into margarita
-  nd <- data.frame(sort(unique(lab[, arm])))
-  names(nd) <- arm
+  # Add any transformed variables to the data
+  for (i in 1:2){
+    tp <- transInFormula(gmod$formulae[[i]])
+    if (length(tp) > 0){
+      m <- model.matrix(gmod$formulae[[i]], lab)
+      m <- m[, tp, drop=FALSE]
+      m <- m[, ! colnames(m) %in% names(lab), drop=FALSE]
+      lab <- cbind(lab, m)
+    }
+  }
+
+  # Get names of all variables used in the models and reduce the data
+  ap <- unique(varsInFormula(gmod$formula[[1]]),
+               varsInFormula(gmod$formula[[2]]))
+  nd <- unique(lab[, ap])
+
+#  nd <- data.frame(sort(unique(lab[, arm])))
+#  names(nd) <- arm
 } else {
   nd <- NULL
 }
