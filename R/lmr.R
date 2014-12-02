@@ -60,7 +60,7 @@ lmr <- function(formula, data, method="MM", c=3.443689, maxit=40){
 #; @keywords hplot
 #' @export ggqqplot
 ggqqplot <- function(o) {
-    y <- quantile(o$resid[!is.na(o$resid)], c(0.25, 0.75))
+    y <- quantile(resid(o)[!is.na(resid(o))], c(0.25, 0.75))
     x <- qnorm(c(0.25, 0.75))
     slope <- diff(y)/diff(x)
     int <- y[1L] - slope * x[1L]
