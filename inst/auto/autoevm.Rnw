@@ -44,7 +44,7 @@ degrees of fit have been achieved.
 Current limitations include:
 \begin{itemize}
   \item The formula for the robust regression is decided by the code, not by the user;
-  \item There is no ability to pass strata into formualae;
+  \item There is no ability to pass strata or treatment regimens into formualae;
   \item The GP modelling allows a single formula in phi, xi and both and compares
         to the null model -- passing multiple formulae won't work;
   \item The data transformation steps have been developed on a single trial's data
@@ -66,6 +66,10 @@ questions.
 
 \subsection{Software}
 \Sexpr{version$version.string}~\cite{R} will be used for all analyses.
+The ggplot2 package~\cite{ggplot2} is used to produce graphs, the {\tt rlm}
+function in the MASS package~\cite{MASS} is used for robust regression, the texmex
+package~\cite{texmex} is used for extreme value modelling. Also, the margarita
+package~\cite{margarita} is used.
 
 The seed for the random number generator was initialized with
 \Sexpr{as.character(seed)}.
