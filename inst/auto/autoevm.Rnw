@@ -40,6 +40,17 @@ appropriate to the data: an experienced statistician needs to review all
 output, especially the diagnostic plots, in order to establish if reasonable
 degrees of fit have been achieved.
 
+\subsection{Limitation}
+Current limitations include:
+\begin{itemize}
+  \item The formula for the robust regression is decided by the code, not by the user;
+  \item There is no ability to pass strata into formualae;
+  \item The GP modelling allows a single formula in phi, xi and both and compares
+        to the null model -- passing multiple formulae won't work;
+  \item The data transformation steps have been developed on a single trial's data
+        and won't be very robust.
+\end{itemize}
+
 \subsection{Disclaimer}
 This document has been compiled for the purposes of describing a subset of the
 emerging information about the investigational compound and describes a range of
@@ -241,25 +252,11 @@ Figure~\ref{fig:returnLevels}. The same information appears in Table~\ref{tab:rl
 
 <<returnLevels, echo=FALSE, fig.cap="Predicted return levels in terms of multiples of ULN. The heavy lines represent 50\\% interval estimates and the lighter lines represent 90\\% interval estimates.", results="asis">>=
 if (prefmod != 0){ # need to construct newdata to pass into margarita
-  # Add any transformed variables to the data
-  for (i in 1:2){
-    tp <- transInFormula(gmod$formulae[[i]])
-    if (length(tp) > 0){
-      m <- model.matrix(gmod$formulae[[i]], lab)
-      m <- m[, tp, drop=FALSE]
-      m <- m[, ! colnames(m) %in% names(lab), drop=FALSE]
-      lab <- cbind(lab, m)
-    }
-  }
-
-  # Get names of all variables used in the models and reduce the data
-  ap <- unique(varsInFormula(gmod$formula[[1]]),
-               varsInFormula(gmod$formula[[2]]))
-  nd <- unique(lab[, ap])
-
-#  nd <- data.frame(sort(unique(lab[, arm])))
-#  names(nd) <- arm
-} else {
+  colname <- as.character(as.list(as.formula(models))[[2]])
+  nd <- unique(data.frame(lab[, colname]))
+  colnames(nd) <- colname
+  nd <- nd[order(nd[, colname]), , drop=FALSE]
+  } else {
   nd <- NULL
 }
 
