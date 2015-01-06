@@ -1,5 +1,6 @@
 #' Robust final prediction error for a linear model
 #' @param x A robust linear model, fit by \code{lmr}.
+#' @param scale The value of the scale to use. Defaults to \code{scale=NULL} and is take from \code{x}.
 #' @return A number representing the robust final prediction error.
 #' @details The definition of robust final prediction error is given in Section 5.12
 #'     of Maronna et al. The function is generic, but so far only methods for objects
@@ -62,8 +63,9 @@ bisquare <- function(x, c=3.443689, d=0){
 #' Robust version of AIC for an MM-estimated linear model
 #' 
 #' @param object An object of class 'lmr'.
-#' @param An optional scale parameter. If not provided, it is taken from \code{object}.
+#' @param scale An optional scale parameter. If not provided, it is taken from \code{object}.
 #' @param k The penalty per parameter to be used.
+#' @param ... Not used.
 #' @details The robust AIC correponds to equation (16) of Tharmaratnam and Claeskens.
 #'     The 'penalty' term is not a simple function of the number of parameters in the
 #'     model, so increaseing k does not necessarily result in simpler models being
@@ -74,7 +76,7 @@ bisquare <- function(x, c=3.443689, d=0){
 #'      https://lirias.kuleuven.be/bitstream/123456789/274771/1/KBI_1014.pdf
 #' @method AIC lmr
 #' @export AIC.lmr
-AIC.lmr <- function(object, scale, k=2){
+AIC.lmr <- function(object, scale, ..., k=2){
   if (missing(scale)) scale <- object$s
   r <- resid(object) / scale
   n <- length(r)

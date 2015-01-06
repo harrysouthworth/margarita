@@ -22,10 +22,10 @@ about the efficacy of a drug in treating a particular condition.
 Since such questions of efficacy are usually well-formed and since the
 clinical trials are designed to answer them, the analysis of the resulting
 data is usually a straightforwared, prespecified analysis using a standard
-statistical technique to compare, say, the mean values in the treatment
-groups, or the duration of survival of the patients.
+statistical technique to compare, say, mean values, or the duration of
+survival, or the patients in the different treatment groups.
 
-However, the bulk of the data that are collected in clinical trials relates
+However, the bulk of the data that are collected in clinical trials relate
 not to the {\em efficacy} of the drug, but to its {\em safety}. Safety
 data will typically include data on the patients' vital signs, adverse events,
 concomitant medications, and clinical laboratory data. Most adverse events,
@@ -33,7 +33,7 @@ whether or not related to the drug, tend to be uncommon so that the data tend to
 The laboratory data often have skewed distributions
 and are subject to outliers. For safety data then, unlike efficacy,
 the questions are typically not well-defined, some of them will not
-be known until the data has been studied in some detail, and the data
+be known until the data have been studied in some detail, and the data
 are of mixed types and messy. For these reasons, statisticians have
 tended to be cautious in the analysis of safety data, leaving interpretation
 to clinicians.
@@ -62,8 +62,8 @@ supported by the following observations.
 \begin{itemize}
 \item The USA Food and Drug Administration (FDA) has published a
 guidance document~\cite{FDAliver} which advises that extremely high values of
-alanine aminotransferase (ALT) and aspartate aminotransferase (AST),
-laboratory values that are recorded as standard in most clinical trials,
+alanine aminotransferase (ALT) and aspartate aminotransferase (AST) --
+laboratory values that are recorded as standard in most clinical trials --
 can be indicative of drug induced liver injury.
 
 \item Rhabdomyolysis, an adverse event that has been linked to certain drugs
@@ -116,7 +116,7 @@ Mean [ALT and AST] levels fell in patients receiving troglitazone in
   treatment-emergent ALT values over $3\times ULN$... In 14 of these
   23 patients, the ALT value exceeded $8\times ULN$... and in 5/23
   patients the ALT value exceeded $30\times ULN$.
-\end{quote}.
+\end{quote}
 
 The review goes on to describe how, once troglitazone was on the
 market, cases of `frank liver failure' were reported in association
@@ -174,11 +174,11 @@ of the data are appropriate and the appropriate tool is known as the
 
 The GPD has two parameters, one of which ($\sigma$) controls the scale of
 the distribution, the other of which ($\xi$) controls how heavy the tail is.
-By examining how the value of $\sigma$ and $\xi$
+By examining how the values of $\sigma$ and $\xi$
 depend on the drug and dose, we can form an idea of the strength of evidence for
 treatment and dose-response effects, and of the nature of those relationships.
 Plots of the distribution for values of $\xi$ being $-\frac{1}{4}, 0$ and
-$\frac{1}{2}$ are shown in Figure~\ref{fig:gpd}.
+$\frac{1}{2}$ are shown in Figure~\ref{fig:sgpd}.
 
 <<sgpd, echo=FALSE, fig.cap="The generalized Pareto distribution with $\\sigma = 1$ and $\\xi$ being $-\\frac{1}{4}, 0$ and $\\frac{1}{2}$. Small values of $\\xi$ result in short-tailed distributions and large values of $\\xi$ result in heavy tails and thus greater probability of outliers.">>=
 x <- seq(0, 7, len=200)
@@ -227,7 +227,7 @@ for outliers to occur in some of the lower dose groups. How concerned
 should we be about the large ALT values in group D?
 
 <<shiftplots, echo=FALSE, fig.cap="Plots of pre-treatment values versus on-treatment values in each dose group. The reference lines are lines of identity -- a point above the line indicates an increase from baseline, and point below the line indicates a decrease.">>=
-if (exists("liver")) rm("liver") # tidy up after a previous run
+#if (exists("liver")) try(rm("liver"), silent=TRUE) # tidy up after a previous run
 liver$ndose <- as.numeric(liver$dose)
 liver$dose <- paste("Dose", liver$dose)
 
@@ -242,7 +242,7 @@ ggplot(liver, aes(ALT.B, ALT.M, dose)) +
 
 The baseline and on-treatment values are clearly related to each
 other: higher baselines values are associated with higher on-treatment
-values. As such, so it makes sense to eliminate the effect of baseline and
+values. As such, it makes sense to eliminate the effect of baseline and
 apply extreme value modelling to any remaining variation. Since the
 outliers in Figure~\ref{fig:shiftplots} are not compatible with the
 data having come from a normal distribution, we use a robust
@@ -469,5 +469,5 @@ we are now embarking on a period during which {\em sound clinical judgement}
 will slowly be replaced by methods derived from the theory of extreme values.
 
 \bibliographystyle{plain}
-\bibliography{extremeLiver.bib}
+\bibliography{texmex.bib}
 \end{document}

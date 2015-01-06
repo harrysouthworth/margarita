@@ -5,7 +5,7 @@
 #' @param make Whether or not to make additional objects based on the input file
 #'   and system information. Defaults to \code{make=TRUE}.
 #' @param assign. Whether or not to assign the values to R objects. Defaults to \code{assign.=TRUE}.
-#' @param x In \code{makeAutoEvmStuff}, a named list, presumably passed by \code{readAutoInputs}.
+# @param x In \code{makeAutoEvmStuff}, a named list, presumably passed by \code{readAutoInputs}.
 #' @return Returns a names list, invisibly, containing the values of the named fields
 #'   in the input file. However, the named items in the list are also assigned to
 #'   position 1 unless the call specifies \code{assign.=FALSE}.
@@ -45,9 +45,15 @@ readAutoInputs <- function(file, make=TRUE, assign.=TRUE){
   # popyes, returnLevels, multiplesOfULN
   output$popyes <- strstrip(unlist(strsplit(output$popyes, ",")))
   output$models <- strstrip(unlist(strsplit(output$models, ",")))
+  if (length(output$models) > 1)
+    stop("Currently, only a single model formula is allowed")
   output$returnLevels <- as.numeric(unlist(strsplit(output$returnLevels, ",")))
   output$multiplesOfULN <- as.numeric(unlist(strsplit(output$multiplesOfULN, ",")))
 
+  output$stopgoULN <- eval(parse(text=output$stopgoULN))
+  output$stopProb <- eval(parse(text=output$stopProb))
+  output$goProb <- eval(parse(text=output$goProb))
+  
   if (make) output <- makeAutoEvmStuff(output)
   
   for (i in 1:length(output)){

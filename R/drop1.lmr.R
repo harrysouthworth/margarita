@@ -57,9 +57,11 @@ drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, cores=NULL
 #' @param direction What direction to take steps in. Only "backwards" is implemented.
 #' @param trace Whether or not to report progress. Defaults to \code{trace=TRUE}.
 #' @param steps The maximum number of steps to take.
+#' @param k The penalty factor to be used if AIC is being used as the target. Defaults to \code{k=2}.
 #' @param cores The number of cores to use when running \code{drop1.lmr} in parallel.
 #'    Defaults to \code{cores=NULL} and the function will try to guess how many cores
 #'    to use.
+#' @param ... Not used (for compatibility with \code{step}).
 #' @details The function uses robust finite prediction error to decide when to stop
 #'        the selection process. In principle, other approaches could be implemented.
 #' @aliases drop1.lmr

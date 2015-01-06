@@ -40,12 +40,12 @@ appropriate to the data: an experienced statistician needs to review all
 output, especially the diagnostic plots, in order to establish if reasonable
 degrees of fit have been achieved.
 
-\subsection{Limitation}
+\subsection{Limitations}
 Current limitations include:
 \begin{itemize}
   \item The formula for the robust regression is decided by the code, not by the user;
-  \item There is no ability to pass strata or treatment regimens into formualae;
-  \item The GP modelling allows a single formula in phi, xi and both and compares
+  \item There is no ability to pass strata or treatment regimens into formulae;
+  \item The GP modelling allows a single formula in $\phi$, $\xi$ and both and compares
         to the null model -- passing multiple formulae won't work;
   \item The data transformation steps have been developed on a single trial's data
         and won't be very robust.
@@ -88,23 +88,22 @@ the preferred model includes a treatment effect, simulation is used to predict
 high quantiles and the probabilities of exceeding certain thresholds defined
 by CTC~\cite{ctc}.
 
-\subsection{Stop--Caution--Go}
-For oncology studies, approximately 1 in every 1000 patients treated with
-placebo will experience an $ALT > 20\times ULN$~\cite{lovick}. At least one
-oncology treatment is known to result in approximately 1 in 400 patients
-experiencing an $ALT > 20\times ULN$, but with little or no implication for
-the probability of liver failure. These observations suggest the following
-stop--caution--go criteria:
+\subsection{\label{sec:stopgo}Stop--Caution--Go}
+The following stop-caution-go guidelines are suggested, though opinions might
+change if, for example, the efficacy results are surprisingly better or worse
+than expected.
+
+<<stopgostrings, echo=FALSE>>=
+stopgoString <- paste0("$P(ALT > ", stopgoULN, "\\times ULN)$")
+@
 
 \begin{itemize}
-  \item If more than half of the posterior predictive distribution of
-        $P(ALT > 20\times ULN)$ is less than 1 in 1000, \textcolor{green}{GO};
-  \item If more than half of the posterior predictive distribution of
-        $P(ALT > 20\times ULN)$ is greater than 1 in 200, \textcolor{red}{STOP};
+  \item If more than half of the posterior predictive distribution of\\
+        \Sexpr{stopgoString} is less than \Sexpr{as.character(goProb)}, \textcolor{green}{GO};
+  \item If more than half of the posterior predictive distribution of\\
+        \Sexpr{stopgoString} is greater than \Sexpr{as.character(stopProb)}, \textcolor{red}{STOP};
   \item Otherwise, \textcolor{orange}{consider the options}.
 \end{itemize}
-
-For different therapy areas, different rules will be appropriate.
 
 \section{Data}
 The data in {\tt \Sexpr{labs}}, located in {\tt \Sexpr{dataPath}} on
@@ -290,14 +289,29 @@ ep <- simulate(marg, type="prob", M=multiplesOfULN * ULN,
 sep <- summary(ep)
 ggplot(sep, ncol=1, as.table=FALSE, scales="fixed")
 
-sep <- as.data.frame(sep)
-sep[, 3:ncol(sep)] <- sep[, 3:ncol(sep)] * 100
-names(sep)[2] <- "Group"
-print(xtable(sep, label="tab:ep", digits=2,
+sepdf <- as.data.frame(sep)
+sepdf[, 3:ncol(sepdf)] <- sepdf[, 3:ncol(sepdf)] * 100
+names(sepdf)[2] <- "Group"
+print(xtable(sepdf, label="tab:ep", digits=2,
              caption="Predicted probability (\\%) of any particular subject having a value exceed various multiples of the ULN."),
       hline.after=c(-1, 0, (1:length(multiplesOfULN))*length(unique(lab[, arm]))),
       include.rownames=FALSE)
 @
+
+
+\section{Stop-caution-go guidance}
+Figure~\ref{fig:trafficlight} shows a `trafficlight plot' for the fitted models,
+based on guidelines described in Section~\ref{sec:stopgo}.
+
+\clearpage
+<<trafficlight, echo=FALSE, fig.cap="Traffic-light plot for the fitted model.">>=
+tl <- simulate(marg, type="prob", M=stopgoULN * ULN,
+               Mlabels=paste0(stopgoULN, "xULN"))
+stl <- summary(tl)
+
+evmTrafficLight(stl, ncol=1, loref=goProb, hiref=stopProb)
+@
+
 \clearpage
 \begin{landscape}
 \section{Appendix}
@@ -315,5 +329,5 @@ as.matrix(Sys.getenv())
 \end{landscape}
 
 \bibliographystyle{plain}
-\bibliography{texmex}
+\bibliography{autoevm}
 \end{document}

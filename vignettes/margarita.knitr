@@ -73,7 +73,7 @@ summary(dm)
 
 \subsection{Non-standard SAS datasets}
 SAS dataset can be troublesome if SAS formats catalogues (particularly broken
-ones) are used, or if compressed SAS data is used. SAS do not publish the
+ones) are used, or if compressed SAS datasets are used. SAS do not publish the
 application programming interface for their datasets, nor do they publish their
 compression algorithm. Nevertheless, attempts have been made to reverse engineer
 the {\tt .sas7bdat} data files.
@@ -318,7 +318,7 @@ clear.
 
 Following Southworth \& Heffernan~\cite{southHeff}, we wish to account for dose.
 As with the robust regression modelling previously, we assume linearity in dose.
-Either one, both or none of the parameters in the GP might be dependent on dose,
+Either one, both or none of the parameters in the GP distribution might be dependent on dose,
 so we fit a variety of models and compare them using the Akaike Information
 Criterion (AIC). The AIC provides guidance on model selection, but not a hard
 rule, so in some cases, we might want to consider the change in deviance due to
@@ -361,7 +361,7 @@ In this example, there is a linear dose-response relationship, with
 $\hat\xi$ increasing as dose increases. Such a relationship makes logical sense.
 In some examples, it might be the case that a decreasing or non-monotone
 dose-response is suggested. Such a relationship is unlikely to make sense
-and the analyst then needs to weight the strength of evidence in the data
+and the analyst then needs to weigh the strength of evidence in the data
 (i.e considerations of AIC and deviance) with their knowledge of the data
 generating mechanism (i.e. the treatment regimens). Statistical inference
 is only one part of the larger process of scientific data modelling.
@@ -395,7 +395,7 @@ well, the ACFs should rapidly decay to zero.
 
 In general, it is good practice to discard the first part of the Markov chains
 (the {\em burn-in} period) and to {\em thin} the chains by discarding values at
-regular intervals. For example, we could keep in in every 4 values from the
+regular intervals. For example, we could keep 1 in every 4 values from the
 chains. These steps improve the chances that the chains have converged on the
 target distribution, reduce autocorrelation, and make the simulated values
 behave more like a random sample from the target distribution. The help file
@@ -404,7 +404,7 @@ these settings.
 
 \clearpage
 \section{\tt margarita}
-The main efficiency that margarita package introduces to the analysis of clinical
+The main efficiency that the margarita package introduces to the analysis of clinical
 trial safety data is to provide built-in functions to aid simulation of
 quantities of interest such as return levels and probabilities of exceeding
 high values. This is achieved by first creating an object that contains the
@@ -419,7 +419,8 @@ mods <- margarita(mm, gmod, newdata=nd,
 @
 
 In the call to {\tt margarita}, we passed in the robust regression model,
-the MCMC extreme value model. The resulting margarita object is then interpreted
+the MCMC extreme value model, and a {\tt data.frame} as the {\tt newdata}
+argument. The resulting margarita object is then interpreted
 by {\tt simulate} functions and used to generate predicted values of interest.
 
 The {\tt simulate} functions infer from the number of draws from the
@@ -545,6 +546,12 @@ names(pbs) <- LETTERS[1:4]
 ggplot(pbs, ncol=1,
        xlab="Proportion of patients with exceedance")
 @
+
+Note that in the preceding Figures, the scales of the horizontal axes vary. The
+reason is that we are primarily interested in the large increases from baseline,
+but if we use the same scale for these as for the smaller increases, the useful
+information is compressed into a tidy part of the graph, making it difficult
+to read.
 
 \bibliographystyle{plain}
 \bibliography{texmex}

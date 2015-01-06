@@ -2,7 +2,7 @@
 #'
 #' Robust regression using MM-estimation with 85\% efficiency for Gaussian data.
 #'
-#' @param fo A formula describing a linear model.
+#' @param formula A formula describing a linear model.
 #' @param data An appropriate data frame.
 #' @param method The robust fitting method. Defaults to \code{method="MM"}.
 #' @param c Tuning parameter to the MM-algorithm. Defaults to \code{c=3.443689} giving 85\% efficiency for Gaussian data.

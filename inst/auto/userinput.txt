@@ -16,16 +16,22 @@ maxvisit: Inf # values of visit > maxvisit will be dropped
 test: paramcd
 testval: ALT
 value: aval
-minmax: max # character string, anticipating a user interface
-arm: arm # could be a vector of length > 1, e.g. drug, dose
+minmax: max # character string, anticipating a user interface: see ULN field below
+arm: arm # variable name containing the treatment group
 
 ############################## Information for EVM #############################
 trans: log # character string, anticipating a user interface
-models: ~ arm, ~as.numeric(arm) # character string, anticipating a user interface
+models: ~ as.numeric(arm) #, ~as.numeric(arm) # character string, anticipating a user interface
 returnLevels: 100, 500, 1000
-ULN: 35 # can be dropdown from normalRanges object or something
-multiplesOfULN: 3, 5, 20 # defaults can be inferred from CTC object or something
+ULN: 35 # can be dropdown from normalRanges object or something: enter LLN if minmax == min
+multiplesOfULN: 3, 5, 20 # defaults can be inferred from CTCAE guidance
 
+############################## Stop-Go Boundaries ##############################
+stopgoULN: 20 # What multiple of ULN is the stop-go decision to be based on
+stopProb: 1/200 # What proportion to be over stopgoULN*ULN for a stop decision
+goProb: 1/1000 # What proportion to be beneath stopgoULN*ULN for a go decision
+
+################################# MCMC settings ################################
 # XXX Next 3 are for speed whilst in dev. Get rid and use good defaults.
 thin: 1
 burn: 500
