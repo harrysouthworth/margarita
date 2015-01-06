@@ -252,14 +252,15 @@ Figure~\ref{fig:returnLevels}. The same information appears in Table~\ref{tab:rl
 
 <<returnLevels, echo=FALSE, fig.cap="Predicted return levels in terms of multiples of ULN. The heavy lines represent 50\\% interval estimates and the lighter lines represent 90\\% interval estimates.", results="asis">>=
 if (prefmod != 0){ # need to construct newdata to pass into margarita
-  colname <- as.character(as.list(as.formula(models))[[2]])
-  nd <- unique(data.frame(lab[, colname]))
-  colnames(nd) <- colname
-  nd <- nd[order(nd[, colname]), , drop=FALSE]
+#  colname <- as.character(as.list(as.formula(models))[[2]])
+#  colname <- colname[colname %in% names(lab)] # Get rid of any function calls
+  nd <- unique(get_all_vars(models, lab))
+#  nd <- unique(data.frame(lab[, colname]))
+#  colnames(nd) <- colname
+  nd <- nd[order(nd[, 1]), , drop=FALSE]
   } else {
   nd <- NULL
 }
-
 marg <- margarita(rmod, bmod, newdata=nd, trans=tfun, invtrans=itfun,
                   baseline=baseline, minima=minmax=="min")
 
