@@ -473,7 +473,14 @@ is recommended to use fixed ranges as published in the public domain. A little
 searching reveals estimated ULNs for ALT ranging from 26 U/L to 72 U/L. The
 Merck manual~\cite{merck} suggests 35 U/L, and it is recommended that the Merck
 manual be the first place to look when attempting to decide on a reasonable
-reference range.
+reference range. Information on the ULN and LLN for a subset of the variables
+listed in the Merck manual appears in {\tt normalRanges} for convenience. The
+ULN and LLN values are given in SI units and in `conventional' units.
+
+<<normalRanges, echo=TRUE>>=
+names(normalRanges)
+normalRanges[, c("test", "uln.conventional", "uln.si")]
+@
 
 Finally, in clinical trials we observe patients at baseline (i.e. before
 treatment) and then after a period of treatment. Baseline values are almost

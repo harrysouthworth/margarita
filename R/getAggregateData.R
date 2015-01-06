@@ -8,11 +8,15 @@
 #' @param baseline The name of the column containing the baseline values, if any. Defaults to \code{base}
 #' @param value The name of the column containing the test values. Defaults to \code{aval}
 #' @param aggregate.fun The function to do the aggregation. Defaults to \code{max}
+#' @param also.keep The names of any additional variables to keep (like a treatment factor). Defaults
+#'   to \code{also.keep=NULL}.
 #' @details Subjects with no post-baseline values are excluded from the output data.
 #'          Also, no treatment codes are included in the output; these should be spliced
 #'          in from another dataset.
 #'          Also, if a patient has a missing baseline value or no non-missing post-baseline
 #'          values, they are silently dropped from the returned data object.
+#'          If there are any factors (as a result of specifying \code{also.keep}), unused
+#'          levels are silently dropped.
 #'          The code was commissioned by AstraZeneca and ought to work with their
 #'          implementation of SDTM: other implementations may differ.
 #' @examples alt <- getBaselines(lb[lb$lbtestcd == "ALT", ], visit="visitnum")
@@ -21,7 +25,8 @@
 #' @export
 getAggregateData <- function(data, subject="usubjid",
                          visit="visitnum", baseline.visit=1, max.study.visit=Inf,
-                         baseline="baseline", value="aval", aggregate.fun=max){
+                         baseline="baseline", value="aval", aggregate.fun=max,
+                         also.keep=NULL){
   if (nrow(data) == 0) stop("data has 0 rows")
   if (baseline %in% names(data)){
     b <- data[, c(subject, baseline)]
@@ -38,7 +43,14 @@ getAggregateData <- function(data, subject="usubjid",
   b <- b[b[, subject] %in% m$Group.1, ] # Dropping cases where there is no maximum
   b[, value] <- m$x[match(b[, subject], m$Group.1)]
   b <- b[b[, value] > -Inf, ]
-  invisible(na.omit(b))
+  
+  # Put also.keep back in if it exists
+  if (!is.null(also.keep)){
+    d <- unique(data[, c(subject, also.keep)])
+    b[, also.keep] <- d[match(b[, subject], d[, subject]), also.keep]
+  }
+  
+  invisible(droplevels(na.omit(b)))
 }
 
 #' Add variables from another data set, matching by patient identifier.
@@ -54,6 +66,7 @@ getAggregateData <- function(data, subject="usubjid",
 #'          be like \code{mydata <- addVariables(mydata, otherdata, vars="trt")}:
 #'          that is, the returned object is
 #'          a \code{data.frame}, NOT a new column to be appended to \code{myhdata}.
+#'          If there are any factors in the data, unused levels are silently dropped.
 #' @examples lb <- addVariables(lb, dm, vars="armcd")
 #' @export
 addVariables <- function(data, additional.data, subject="usubjid", vars = "trt"){
@@ -69,7 +82,7 @@ addVariables <- function(data, additional.data, subject="usubjid", vars = "trt")
       data[, var] <- additional.data[m, var]
     }
   }
-  invisible(data)
+  invisible(droplevels(data))
 }
 
 #' Compute study day (days since randomization, screening, or whatever), from date fields
