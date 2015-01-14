@@ -47,8 +47,6 @@ Current limitations include:
   \item There is no ability to pass strata or treatment regimens into formulae;
   \item The GP modelling allows a single formula in $\phi$, $\xi$ and both and compares
         to the null model -- passing multiple formulae won't work;
-  \item The data transformation steps have been developed on a single trial's data
-        and won't be very robust.
 \end{itemize}
 
 \subsection{Disclaimer}
