@@ -67,12 +67,16 @@ ggtraceplots <- function(x, trace="light blue", mean="blue", burn="orange"){
 #'   plots of the Markov chains to 2 and autocorrelation function plots to 3.
 #' @param denscol Colour for the density plots. Defaults to 'blue'.
 #' @param acfcol Colour for the ACF plots. Defaults to 'light blue'.
+#' @param plot.it Whether or not to actually print the plots. Defaults to \code{plot.it=TRUE}.
+#'   If \code{plot.it=FALSE}, you might want to control the layout. Do this with
+#'   \code{do.call("grid.arrange", c(plots, ncol=2))}, for example, where \code{plots}
+#'   is the objected returned by \code{ggplot.evmSim}.
 #' @param ... Additional arguments to \code{ggplot}, currently unused.
 #' @aliases ggtraceplots ggdensplots ggacfplots
 #' @keywords hplot
 #' @method ggplot evmSim
 #' @export
-ggplot.evmSim <- function(data=NULL, which.plots=1:3, denscol="blue", acfcol="light blue", ...){
+ggplot.evmSim <- function(data=NULL, which.plots=1:3, denscol="blue", acfcol="light blue", plot.it=TRUE, ...){
     d <- if (1 %in% which.plots) ggdensplots(data, fill=denscol)
          else NULL
     tr <- if (2 %in% which.plots) ggtraceplots(data)
@@ -80,6 +84,6 @@ ggplot.evmSim <- function(data=NULL, which.plots=1:3, denscol="blue", acfcol="li
     a <- if (3 %in% which.plots) ggacfplots(data, fill=acfcol)
          else NULL
     res <- c(d, tr, a)
-    do.call("grid.arrange", c(res, ncol=length(d)))
+    if (plot.it) do.call("grid.arrange", c(res, ncol=length(d)))
     invisible(res)
 }
