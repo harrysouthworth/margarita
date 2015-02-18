@@ -23,7 +23,7 @@ evidence <- function(){
 #' @details Use \code{print(res, sanitize.text.function=function(x) x, include.rownames=FALSE)}.
 #' @export
 AICtable <- function(x, digits=3, label="tab:aic",
-                     caption="Comparison of various GPD models in terms of number of coefficients, log-likelihood, AIC and change in deviance from the null model."){
+                     caption="Comparison of various generalized Pareto models in terms of number of coefficients, log-likelihood, AIC and change in deviance from the null model."){
     aic <- sapply(x, function(x){ AIC(x) })
     ll <- sapply(x, function(x){ x$loglik })
     dev <- as.character(signif(2*(ll - ll[1]), digits))
