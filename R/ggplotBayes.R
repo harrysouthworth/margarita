@@ -63,7 +63,8 @@ ggtraceplots <- function(x, trace="light blue", mean="blue", burn="orange"){
 
 #' Diagnostic plots for the Markov chains in an evmSim object
 #' @param data An object of class 'evmSim'.
-#' @param which.plots Which plots to produce. Currently ignored.
+#' @param which.plots Which plots to produce. Density plots correspond to 1, trace
+#'   plots of the Markov chains to 2 and autocorrelation function plots to 3.
 #' @param denscol Colour for the density plots. Defaults to 'blue'.
 #' @param acfcol Colour for the ACF plots. Defaults to 'light blue'.
 #' @param ... Additional arguments to \code{ggplot}, currently unused.
@@ -72,9 +73,12 @@ ggtraceplots <- function(x, trace="light blue", mean="blue", burn="orange"){
 #' @method ggplot evmSim
 #' @export
 ggplot.evmSim <- function(data=NULL, which.plots=1:3, denscol="blue", acfcol="light blue", ...){
-    d <- ggdensplots(data, fill=denscol)
-    tr <- ggtraceplots(data)
-    a <- ggacfplots(data, fill=acfcol)
+    d <- if (1 %in% which.plots) ggdensplots(data, fill=denscol)
+         else NULL
+    tr <- if (2 %in% which.plots) ggtraceplots(data)
+          else NULL
+    a <- if (3 %in% which.plots) ggacfplots(data, fill=acfcol)
+         else NULL
     res <- c(d, tr, a)
     do.call("grid.arrange", c(res, ncol=length(d)))
     invisible(res)
