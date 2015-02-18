@@ -84,6 +84,6 @@ ggplot.evmSim <- function(data=NULL, which.plots=1:3, denscol="blue", acfcol="li
     a <- if (3 %in% which.plots) ggacfplots(data, fill=acfcol)
          else NULL
     res <- c(d, tr, a)
-    if (plot.it) do.call("grid.arrange", c(res, ncol=length(d)))
+    if (plot.it) do.call("grid.arrange", c(res, ncol=ncol(data$param)))
     invisible(res)
 }
