@@ -125,6 +125,8 @@ readData <- function(file, type=NULL){
 #' @param type A number passd into \code{quantile} telling it how to compute the
 #'        quantiles. Defaults to \code{type=3} which should give output that
 #'        matches the default output from SAS.
+#' @param N Whether to include the sample size in the summary (making it a 6 number
+#'        summary). Defaults to \code{N=FALSE}.
 #' @return A matrix, each row of which gives the five number summary of
 #'         \code{x[, what]} for each value of \code{x[, which]}.
 #' @details The 'five number summary' is the minimum, quartiles and maximum,
@@ -132,12 +134,14 @@ readData <- function(file, type=NULL){
 #'          will generally not be the same as the hinges as originally described
 #'          by Tukey.
 #' @export
-fivenumBy <- function(x, what, which, type=3){
-  fun <- function(x) quantile(x, type=type) # type 3 should match SAS
-  
+fivenumBy <- function(x, what, which, type=3, N=FALSE){
+  if (!N) fun <- function(x) quantile(x, type=type) # type 3 should match SAS
+  else fun <- function(x) c(N=length(x), quantile(x, type=type))
+
   res <- tapply(x[, what], x[, which], FUN=fun)
   res <- t(sapply(res, as.vector))
-  colnames(res) <- c("Min.", "Q1", "Median", "Q3", "Max.")
+  if (!N) colnames(res) <- c("Min.", "Q1", "Median", "Q3", "Max.")
+  else colnames(res) <- c("N", "Min.", "Q1", "Median", "Q3", "Max.")
   res
 } 
 
