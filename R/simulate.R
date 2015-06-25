@@ -368,53 +368,12 @@ head.margarita.sim.prob <- function(x, ...){
 #'   length of \code{object}.
 #' @export
 summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), method="quantile", N=NULL, ...){
-    nms <- names(object)
     object <- unclass(object)
 
     qu <- getCIquantiles(alpha)
 
-    summat <- function(x, qu){
-        t(apply(x, 2, quantile, prob=qu))
-    }
-    if (method == "quantile"){
-      res <- lapply(object, function(X, qu) t(apply(X, 2, quantile, qu)), qu=qu)
-    } else {
-      l <- function(x) log(x / (1 - x))
-      il <- function(x) 1 / (1 + exp(-x))
-      cifun <- function(x, qu){
-        z <- qnorm(qu)
-        x <- l(x) # logit
-        mx <- mean(x)
-        sx <- sd(x)
-        mx + sx * z
-      }
+    res <- lapply(object, function(X, qu) t(apply(X, 2, quantile, qu)), qu=qu)
 
-      if (method == "logit"){
-        res <- lapply(object, function(X, qu) t(apply(X, 2, cifun, qu)), qu=qu)
-      } else if (method == "mlogit"){
-        if (length(N) > 1 & length(N) < length(object))
-          stop("N should have length 1 or the same length as object")
-        else if (length(N) == 1)
-          N <- rep(N, length.out=length(object)) # The number of treatment groups
-        res <- lapply(1:length(object),
-                      function(X) apply(object[[X]], 2, function(x, n) (x*n +.50) / (n+1),
-                                          n=N[X])
-                     ) # Close lapply
-
-        res <- lapply(res, function(X, qu) t(apply(X, 2, cifun, qu=qu)), qu=qu)
-      } # Close else if
-      else {
-        stop("Implemented methods are 'quantile', 'logit' and 'mlogit'")
-      }
-
-      res <- lapply(res, il) # Back transform to scale of probabilities
-      res <- lapply(res, function(X, qu) {
-                          colnames(X) <- paste0(as.integer(100*qu), "%")
-                          X
-                          }, qu=qu)
-    } # Close else
-
-    names(res) <- nms
     oldClass(res) <- "summary.margarita.sim.prob"
     res
 }
