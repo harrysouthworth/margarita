@@ -35,7 +35,7 @@ getCIquantiles <- function(alpha){
 
 #' Return period for GPD
 #'
-#' Compute the return period for a genralized Pareto distribution
+#' Compute the return period for a generalized Pareto distribution
 #' @param X An indexing parameter used in a call to \code{sapply} or \code{lapply}.
 #' @param xm The threshold above which we wish to estimated the exceedance rate.
 #' @param u The threshold.

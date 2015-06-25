@@ -180,7 +180,7 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
                      baseline=object$baseline, rawBaseline=object$rawBaseline,
                      invtrans=object$invtrans)
 
-    # Need res to be a list of length 4
+    # Need res to be a list of length equal to the number of levels of the treatment factor
     nr <- nrow(res)
     nn <- nrow(object$newdata)
     g <- rep(1:nn, each=nr/nn)
@@ -352,18 +352,69 @@ head.margarita.sim.prob <- function(x, ...){
 }
 
 #' @method summary margarita.sim.prob
+#' @param object An object of class 'summary.margarita.sim.prob
+#' @param alpha 1- the size of the credible intervals
+#' @param method Defaults to \code{method="quantile"} in which case quantiles of the
+#'   posterior distrbution of predicted probabilities are used to construct point estimates
+#'   (medians) and credible intervals. Two alternatives are allowed: \code{method="logit"}
+#'   in which case the predicted probabilities are passed through the logit function and
+#'   then assumed to be Gaussian, which will fail if there are 0s or 1s;
+#'   \code{method="mlogit"} in which case \code{N} must be given and the predicted
+#'   probabilities are modifiec to \code{(p + .50)/(N + 1)} prior to being passed through
+#'   the logit function.
+#' @param N Used when \code{method="mlogit"}. Choice of N is arbitrary but the total
+#'   sample size, or the sample size in each group could be used. \code{N} should have
+#'   length 1, in which case the same value is used for all estimates, or the same
+#'   length of \code{object}.
 #' @export
-summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), ...){
+summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), method="quantile", N=NULL, ...){
+    nms <- names(object)
     object <- unclass(object)
 
-    qu <- getCIquantiles(alpha)    
-    
+    qu <- getCIquantiles(alpha)
+
     summat <- function(x, qu){
         t(apply(x, 2, quantile, prob=qu))
     }
-    
-    res <- lapply(object, summat, qu=qu)
+    if (method == "quantile"){
+      res <- lapply(object, function(X, qu) t(apply(X, 2, quantile, qu)), qu=qu)
+    } else {
+      l <- function(x) log(x / (1 - x))
+      il <- function(x) 1 / (1 + exp(-x))
+      cifun <- function(x, qu){
+        z <- qnorm(qu)
+        x <- l(x) # logit
+        mx <- mean(x)
+        sx <- sd(x)
+        mx + sx * z
+      }
 
+      if (method == "logit"){
+        res <- lapply(object, function(X, qu) t(apply(X, 2, cifun, qu)), qu=qu)
+      } else if (method == "mlogit"){
+        if (length(N) > 1 & length(N) < length(object))
+          stop("N should have length 1 or the same length as object")
+        else if (length(N) == 1)
+          N <- rep(N, length.out=length(object)) # The number of treatment groups
+        res <- lapply(1:length(object),
+                      function(X) apply(object[[X]], 2, function(x, n) (x*n +.50) / (n+1),
+                                          n=N[X])
+                     ) # Close lapply
+
+        res <- lapply(res, function(X, qu) t(apply(X, 2, cifun, qu=qu)), qu=qu)
+      } # Close else if
+      else {
+        stop("Implemented methods are 'quantile', 'logit' and 'mlogit'")
+      }
+
+      res <- lapply(res, il) # Back transform to scale of probabilities
+      res <- lapply(res, function(X, qu) {
+                          colnames(X) <- paste0(as.integer(100*qu), "%")
+                          X
+                          }, qu=qu)
+    } # Close else
+
+    names(res) <- nms
     oldClass(res) <- "summary.margarita.sim.prob"
     res
 }

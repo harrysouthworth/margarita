@@ -42,7 +42,7 @@ margarita <- function(rlm, evmSim, newdata=NULL,
   rawBaseline <- baseline
   baseline <- if (ctrans != "I") paste0(ctrans, "(", rawBaseline, ")")
   else baseline
-  
+
   if (! baseline %in% colnames(rlm$x))
     stop(paste0("Baseline variable '", baseline, "' is not in the linear model"))
   
