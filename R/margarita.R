@@ -34,6 +34,13 @@ margarita <- function(rlm, evmSim, newdata=NULL,
     stop("object should have class 'evmSim'")
   }
 
+  # Check each row of newdata is unique
+  ur <- nrow(unique(newdata))
+  if (ur != nrow(newdata))
+    stop("newdata should have unique rows")
+  if (ncol(newdata) > 1)
+    stop("newdata should have only one column")
+
   # Construct string for transformed baseline
   if (missing(trans)){ ctrans <- "log" }
   else {

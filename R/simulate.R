@@ -43,18 +43,13 @@ simBase <- function(lmod, gmod, baseline="log(alt.b)"){
 #' @export simLinear
 simLinear <- function(lmod, gmod, newdata=NULL,
                       baseline="log(alt.b)", rawBaseline="alt.b", invtrans=exp){
-    # Check each row of newdata is unique
-    ur <- nrow(unique(newdata))
-    if (ur != nrow(newdata))
-        stop("newdata should have unique rows")
-
     # Get simulated baselines
     b <- simBase(lmod, gmod, baseline=baseline)
     nsim <- length(b)
     nrep <- nrow(newdata)
 
     # Repeat each row of newdata nsim times, add baseline
-    newdata <- newdata[rep(1:nrep, each=nsim),, drop=FALSE]
+    newdata <- newdata[rep(1:nrow(newdata), each=nsim),, drop=FALSE]
 
     newdata[, rawBaseline] <- invtrans(b) # b gets repeated nrow times
     # Get design matrix and simulate parameters from linear model
