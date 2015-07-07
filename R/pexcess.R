@@ -1,7 +1,8 @@
 #' Compute the probability of a threshold exceedance across a range of baseline values
 #' 
 #' @param object An object of class 'margarita'
-#' @param M The threshold of interest. \code{M} must be of length 1
+#' @param M The threshold of interest. \code{M} must be of length 1 and is assumed to be
+#'   on the scale of the raw data.
 #' @param n The number of values to compute the probability at. Defaults to \code{n=200}. Using
 #'   \code{n=50} would be faster, but the resulting graph would be less smooth.
 #' @details Creates a sequency of \code{n} equally spaced values between the minimum and
@@ -32,8 +33,11 @@ pExcessByBaseline <- function(object, M, n=200){
   baseline <- object$baseline
   rawBaseline <- object$rawBaseline
   newdata <- object$newdata
+  trans <- object$trans
   invtrans <- object$invtrans
 
+  M <- trans(M)
+  
   group <- names(newdata) # Should only be treatment group
   if (is.factor(newdata[, group])) nms <- levels(newdata[, group])
   else nms <- unique(newdata[, group])
