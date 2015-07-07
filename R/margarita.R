@@ -44,7 +44,7 @@ margarita <- function(rlm, evmSim, newdata=NULL,
   }
   
   # Ensure factor levels are in the same order in newdata and rlm
-  if (!all(levels(newdata[, 1]) == rlm$xlevels[[1]]))
+  if (length(rlm$xlevels) > 0 && !all(levels(newdata[, 1]) == rlm$xlevels[[1]]))
       stop("Levels of the factor in newdata don't match those in the robust linear model (it might just be the ordering)")
 
   # Construct string for transformed baseline

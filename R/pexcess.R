@@ -4,6 +4,23 @@
 #' @param M The threshold of interest. \code{M} must be of length 1
 #' @param n The number of values to compute the probability at. Defaults to \code{n=200}. Using
 #'   \code{n=50} would be faster, but the resulting graph would be less smooth.
+#' @details Creates a sequency of \code{n} equally spaced values between the minimum and
+#'   maximum of the baseline values in the robust regression component of the margarita
+#'   object, repeats this sequence for each level of the treatment factor, gets the fitted
+#'   values from the robust regression for each baseline and treatment, then adds the
+#'   GP modelling threshold as obtained from the evmSim component of the margarita object.
+#'   The function then uses \code{predict.evmSim} to compute the parameter matrix from
+#'   the Markov chains and then computes the probability of exceeding \code{M} across
+#'   the range of baseline values and treatment factors.
+#' @note THE FUNCTION HAS NOT BEEN TESTED WITH LINEAR TERMS IN TREATMENT, only simple treatment
+#'   factors.
+#' @return A \code{data.frame} with columns for baseline, treatment, threshold (linear model
+#'   fitted value plus GP threshold) and a summary of the distribution of the probabilities
+#'   of exceeding \code{M}. The means and medians ought to be similar. Presumably a plot
+#'   of the mean over the range of baseline values is desired. The expected probabilities
+#'   could also be used to integrate over the observed baseline distribution to obtain an
+#'   estimate of the population probability of exceeding \code{M}.
+#' @export pExcessByBaseline
 pExcessByBaseline <- function(object, M, n=200){
   if (class(object) != "margarita")
     stop("object should be of class 'margarita'")
