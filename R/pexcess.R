@@ -12,8 +12,9 @@
 #'   The function then uses \code{predict.evmSim} to compute the parameter matrix from
 #'   the Markov chains and then computes the probability of exceeding \code{M} across
 #'   the range of baseline values and treatment factors.
-#' @note THE FUNCTION HAS NOT BEEN TESTED WITH LINEAR TERMS IN TREATMENT, only simple treatment
-#'   factors.
+#' @note WARNING: the code has been tested with treatment as a factor and as linear numeric.
+#'   More complicated structures, such as a combo of a factor and a linear effect are unliekly
+#'   to work. There is a test function. Take a look at it.
 #' @return A \code{data.frame} with columns for baseline, treatment, threshold (linear model
 #'   fitted value plus GP threshold) and a summary of the distribution of the probabilities
 #'   of exceeding \code{M}. The means and medians ought to be similar. Presumably a plot
@@ -26,46 +27,45 @@ pExcessByBaseline <- function(object, M, n=200){
     stop("object should be of class 'margarita'")
   if (missing(M))
     stop("You need to provide the level above which you're interested in exceedances")
-  
+
   lmod <- object[[1]]
   baseline <- object$baseline
   rawBaseline <- object$rawBaseline
   newdata <- object$newdata
   invtrans <- object$invtrans
-  
+
   group <- names(newdata) # Should only be treatment group
-  
+  if (is.factor(newdata[, group])) nms <- levels(newdata[, group])
+  else nms <- unique(newdata[, group])
+
   # Get sequence from minimum baseline to maximum
   x <- lmod$x
   x <- x[, colnames(x) == baseline]
   base <- seq(min(x, na.rm=TRUE), max(x, na.rm=TRUE), length.out=n)
-  
+
   # Repeat it once for each treatment group
   base <- rep(base, length.out=nrow(newdata) * n)
-  
+
   # Get fitted values given baselines and treatment groups
   newdata <- newdata[rep(1:nrow(newdata), each=n),, drop=FALSE]
   newdata[, rawBaseline] <- invtrans(base)
-  
+
   # Add the GP modelling thresholds to newdata
   newdata$threshold <- suppressWarnings(predict.lm(lmod, newdata)) + object[[2]]$map$threshold
-  
+
   # And split it on group
   snd <- split(newdata, newdata[, group])
-  
+
   # Get the fitted parameters from the evmSim object. Need to get full posterior:
   # can't use ci.fit=TRUE because of relationships between parameters
   param <- predict(object[[2]], type = "lp", newdata=newdata, all=TRUE)$link
   # ^^^^^ XXX XXX XXX POSSIBLE BUG IN predict.evmSim. IF YOU PUT unique=FALSE IN THE ABOVE
   #                   THE OUTPUT IS WRONG! XXX
-  
+
   # Reorder the elements of param to match snd
-  nms <- unlist(lapply(param, function(X) colnames(X)[3:ncol(X)][colSums(X[, 3:ncol(X)]) > 0]))
-  nms <- gsub(group, "", nms)
-  nms <- c(nms, names(snd)[!(names(snd) %in% nms)])
   names(param) <- nms
   param <- param[names(snd)]
-  
+
   # Summarize P(x > u) for every value of baseline for each treatment
   sumfun <- function(x) c(mean(x), quantile(x, prob=c(.05, .25, .5, .75, .95)))
   p <- matrix(0, ncol=6, nrow=n)
@@ -74,13 +74,13 @@ pExcessByBaseline <- function(object, M, n=200){
   theta <- object[[2]]$map$rate # P(x > u) for GP fitting threshold u
   r <- resid(object[[1]]) # Residuals from robust regression
   r <- r[r <= object[[2]]$map$threshold] # Resids beneath GP threshold
-  
+
   bfun <- function(){
     r <- sample(r, length(fitted(object[[1]])), replace=TRUE) + u
     r[1:round(theta * length(fitted(object[[1]])))] <- u + 1
     mean(r > M)
   }
-  
+
   for (i in 1:length(snd)){
     for (j in 1:n){
       u <- snd[[i]]$threshold[j]
@@ -94,7 +94,7 @@ pExcessByBaseline <- function(object, M, n=200){
     }
     p <- as.data.frame(p)
     names(p) <- c("mean", ".05", ".25", ".5", ".75", ".95")
-    
+ 
     res[[i]] <- cbind(snd[[i]], p)
   }
   invisible(do.call("rbind", res))
