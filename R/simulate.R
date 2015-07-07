@@ -347,22 +347,8 @@ head.margarita.sim.prob <- function(x, ...){
 }
 
 #' @method summary margarita.sim.prob
-#' @param object An object of class 'summary.margarita.sim.prob
-#' @param alpha 1- the size of the credible intervals
-#' @param method Defaults to \code{method="quantile"} in which case quantiles of the
-#'   posterior distrbution of predicted probabilities are used to construct point estimates
-#'   (medians) and credible intervals. Two alternatives are allowed: \code{method="logit"}
-#'   in which case the predicted probabilities are passed through the logit function and
-#'   then assumed to be Gaussian, which will fail if there are 0s or 1s;
-#'   \code{method="mlogit"} in which case \code{N} must be given and the predicted
-#'   probabilities are modifiec to \code{(p + .50)/(N + 1)} prior to being passed through
-#'   the logit function.
-#' @param N Used when \code{method="mlogit"}. Choice of N is arbitrary but the total
-#'   sample size, or the sample size in each group could be used. \code{N} should have
-#'   length 1, in which case the same value is used for all estimates, or the same
-#'   length of \code{object}.
 #' @export
-summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), method="quantile", N=NULL, ...){
+summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), ...){
     object <- unclass(object)
 
     qu <- getCIquantiles(alpha)
