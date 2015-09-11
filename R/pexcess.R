@@ -66,8 +66,14 @@ pExcessByBaseline <- function(object, M, n=200){
   # ^^^^^ XXX XXX XXX POSSIBLE BUG IN predict.evmSim. IF YOU PUT unique=FALSE IN THE ABOVE
   #                   THE OUTPUT IS WRONG! XXX
 
-  # Reorder the elements of param to match snd
-  names(param) <- nms
+  # Reorder the elements of param to match snd. Need to be careful because the
+  # order returned by predict.evmSim isn't necessarily what we'd expect
+  
+  # XXX DON'T unlist the line below or you lose a string with zero length
+  wh <- lapply(param, function(x) colnames(x)[apply(x, 2, function(x) all(x == 1))])
+  wh <- lapply(wh, function(X) gsub(group, "", X))
+  names(param)[sapply(wh, function(x) length(x) == 0)] <- nms[1]
+  names(param)[sapply(wh, function(x) length(x) > 0)] <- wh[sapply(wh, function(x) length(x) > 0)]
   param <- param[names(snd)]
 
   # Summarize P(x > u) for every value of baseline for each treatment

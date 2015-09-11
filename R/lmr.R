@@ -7,6 +7,7 @@
 #' @param method The robust fitting method. Defaults to \code{method="MM"}.
 #' @param c Tuning parameter to the MM-algorithm. Defaults to \code{c=3.443689} giving 85\% efficiency for Gaussian data.
 #' @param maxit The maximum number of iterations to perform. Defaults to \code{maxit = 40}
+#' @param ... Other arguments to be passed to \code{rlm} (like contrasts)
 #' @return An object of class 'rlm', fit by the function in the MASS package.
 #'         \code{lmr} is just a simple wrapper to \code{rlm}. The returned
 #'         object has an additional component, \code{cov}.
@@ -35,9 +36,9 @@
 #' @keywords models
 #' @importFrom MASS rlm
 #' @export lmr
-lmr <- function(formula, data, method="MM", c=3.443689, maxit=40){
+lmr <- function(formula, data, method="MM", c=3.443689, maxit=40, ...){
     thecall <- match.call()
-    res <- rlm(formula, data, method=method, c=c, maxit=maxit)
+    res <- rlm(formula, data, method=method, c=c, maxit=maxit, ...)
     #res$call$formula <- formula
     s <- summary(res)
     res$cov <- s$cov.unscaled * s$sigma^2
