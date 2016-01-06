@@ -117,7 +117,11 @@ gpdThresh <- function(x, umin=quantile(x, .05),
                          umax=quantile(x, .95),
                          nint=25, which=1:3,
                          priorParameters=NULL, cov="observed"){
-    p <- list()
+  if (class(x) != "numeric"){
+    stop(paste("x has class ", class(x), ": should be numeric", sep = ""))
+  }
+
+  p <- list()
     
     wh <- x[x>=umin & x<=umax]
     nint <- min(nint, length(wh))
