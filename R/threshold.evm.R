@@ -1,4 +1,5 @@
 #' @method ggplot mrl
+#' @export
 ggplot.mrl <- function(data, xlab = "Threshold", ylab = "Mean excess", main=NULL,
                        fill="light blue", col="blue",
                        addNexcesses=TRUE, textsize=4, ...){
@@ -29,6 +30,7 @@ ggplot.mrl <- function(data, xlab = "Threshold", ylab = "Mean excess", main=NULL
 }
 
 #' @method ggplot gpdRangeFit
+#' @export
 ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NULL,
                                fill="orange", col="blue",
                                addNexcesses = TRUE, textsize=4, ...){
@@ -41,18 +43,18 @@ ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NUL
     if (!missing(main) && length(main) != 2) {
         stop("length of main should be 2")
     }
-    
+
     x <- data
     data <- data$data
 
     p <- vector("list", 2)
-    
+
     for (i in 1:2) {
         yl <- range(x$hi[, i], x$lo[, i])
-        
+
         d <- data.frame(th=x$th, par=x$par[, i])
         poly <- data.frame(x=c(x$th, rev(x$th)), y=c(x$lo[, i], rev(x$hi[, i])))
-        
+
         p[[i]] <- ggplot(poly, aes(x, y)) +
                     geom_polygon(fill=fill, alpha=.5) +
                     geom_line(data=d, aes(th, par), color=col) +
@@ -68,6 +70,7 @@ ggplot.gpdRangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NUL
 }
 
 #' @method ggplot egp3RangeFit
+#' @export
 ggplot.egp3RangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NULL,
                                fill="cyan", col="orange", reflinecol="blue",
                                addNexcesses = TRUE, textsize=4, ...){
@@ -78,10 +81,10 @@ ggplot.egp3RangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NU
   data <- data$data
 
   yl <- range(x$hi, x$lo, 1)
-  
+
   d <- data.frame(th=x$th, par=x$par)
   poly <- data.frame(x=c(x$th, rev(x$th)), y=c(x$lo, rev(x$hi)))
-  
+
   p <- ggplot(poly, aes(x, y)) +
     geom_polygon(fill=fill, alpha=.5) +
     geom_line(data=d, aes(th, par), color=col) +
@@ -90,7 +93,7 @@ ggplot.egp3RangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NU
     scale_y_continuous(ylab) +
     theme(axis.title.y=element_text(angle=0)) +
     if (!missing(main)) ggtitle(main)
-  
+
   if (addNexcesses)
     p <- addExcesses(p, poly$x, poly$y, data=data, u=u, textsize=textsize)
   p
@@ -122,20 +125,20 @@ gpdThresh <- function(x, umin=quantile(x, .05),
   }
 
   p <- list()
-    
+
     wh <- x[x>=umin & x<=umax]
     nint <- min(nint, length(wh))
-    
+
     if (1 %in% which)
       p <- ggplot(gpdRangeFit(x, umin=umin, umax=umax, nint=nint,
                                    priorParameters=priorParameters, cov=cov))
     if (2 %in% which)
       p <- c(p, mrl=list(ggplot(mrl(x, nint=length(x)))))
-    
+
     if (3 %in% which)
       p <- c(p, egp3=list(ggplot(egp3RangeFit(x, umin=umin, umax=umax, nint=nint,
                                          priorParameters=priorParameters))))
-    
+
     oldClass(p) <- 'gpdThresh'
     invisible(p)
 }
