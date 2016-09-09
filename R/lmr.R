@@ -25,7 +25,7 @@
 #'        The value of 3.443689 is 'borrowed' from \code{lmRob} and its support
 #'        functions in the 'robust' package. Rounded values for various Gaussian
 #'        efficiencies appear in Seciton 2.2 of Maronna et al.
-#'        
+#'
 #'        Note that \code{rlm} produces an object
 #'        that inherits from \code{lm}, but \code{lmr} does not in order to avoid
 #'        \code{lm} methods being used on it. Also, \code{lmr} attaches the
@@ -45,10 +45,10 @@ lmr <- function(formula, data, method="MM", c=3.443689, maxit=40, ...){
     res$data <- data # used by boxplot.rlm
     res$c <- c
     res$call <- thecall
-    
+
     res$df.residual <- length(res$residuals) - length(res$coefficients)
     res$formula <- formula
-    
+
     class(res) <- c("lmr", "rlm") # drop "lm" because it can lead to errors
     res
 }
@@ -86,9 +86,9 @@ ggqqplot <- function(o) {
 #' @export
 ggplot.rlm <- function(data=NULL, hist.scale=10, ...){
     d <- data.frame(r = resid(data), f=fitted(data), o=resid(data) + fitted(data))
-    
+
     qq <- ggqqplot(data)
-    
+
     bin <- diff(range(d$r, na.rm=TRUE) / hist.scale)
     hist <- ggplot() +
               geom_histogram(data=d, aes(r, ..density..), fill="blue", binwidth=bin) +
@@ -98,13 +98,15 @@ ggplot.rlm <- function(data=NULL, hist.scale=10, ...){
 
     fr <- ggplot(d, aes(f, r)) +
             geom_point(color="blue") +
-            stat_smooth(method="loess", color="orange", span=2/3, family="symmetric", degree=1) +
+            stat_smooth(method="loess", color="orange",
+                        method.args=list(span=2/3, family="symmetric", degree=1)) +
             scale_x_continuous("Fitted values") +
             scale_y_continuous("Residuals")
 
     fo <-  ggplot(d, aes(f, o)) +
              geom_point(color="blue") +
-             stat_smooth(method="loess", color="orange", span=2/3, family="symmetric", degree=1) +
+             stat_smooth(method="loess", color="orange",
+                         method.args=list(span=2/3, family="symmetric", degree=1)) +
              scale_x_continuous("Fitted values") +
              scale_y_continuous("Observed values")
 
