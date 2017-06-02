@@ -4,6 +4,8 @@
 #'
 #' @param formula A formula describing a linear model.
 #' @param data An appropriate data frame.
+#' @param weights Not used. This is only here because \code{ggplot2::geom_smooth}
+#'   appears to require any custom smoother to take the argument.
 #' @param method The robust fitting method. Defaults to \code{method="MM"}.
 #' @param c Tuning parameter to the MM-algorithm. Defaults to \code{c=3.443689} giving 85\% efficiency for Gaussian data.
 #' @param maxit The maximum number of iterations to perform. Defaults to \code{maxit = 40}
@@ -36,8 +38,9 @@
 #' @keywords models
 #' @importFrom MASS rlm
 #' @export lmr
-lmr <- function(formula, data, method="MM", c=3.443689, maxit=40, ...){
+lmr <- function(formula, data, weights, method="MM", c=3.443689, maxit=40, ...){
     thecall <- match.call()
+
     res <- rlm(formula, data, method=method, c=c, maxit=maxit, ...)
     #res$call$formula <- formula
     s <- summary(res)
