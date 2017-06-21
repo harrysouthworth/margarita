@@ -157,7 +157,7 @@ simulate.margarita.rl <- function(object, nsim=1, seed=NULL, M=NULL, ...){
     for (m in M){
       nmM <- paste("RL:", m)
       fullres[[nmM]] <- res
-      p <- predict(object[[2]], newdata=object$newdata, all=TRUE, M=m, unique.=FALSE)
+      p <- predict(object[[2]], newdata=object$newdata, all=TRUE, M=m, unique.=FALSE)$obj
       p <- c(unclass(p)[[1]])
       fullres[[nmM]]$RLraw <- p
       fullres[[nmM]]$RLfull <- fullres[[nmM]]$RLraw + res$fitted
