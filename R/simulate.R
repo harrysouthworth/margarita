@@ -129,20 +129,20 @@ simulate.margarita <- function(object, nsim=1, seed=NULL,
     res <- switch(type,
                   "rl" =, "return" =, "return level" =
                       simulate.margarita.rl(object, nsim=nsim, seed=seed, M=M, ...),
-                  "prob" =, "probability"=, "excess probability" = 
+                  "prob" =, "probability"=, "excess probability" =
                       simulate.margarita.prob(object, nsim=nsim, seed=seed, M=M, scale=scale, Mlabels=Mlabels, ...),
                   "simple"= simulate.margarita.simple(object, nsim=nsim, seed=seed, ...)
                   )
     attr(res, "baseline") <- object$rawBaseline
     attr(res, "trans") <- object$trans
     attr(res, "invtrans") <- object$invtrans
-    
+
     if (type %in% c("rl", "return", "return level"))
       oldClass(res) <- "margarita.sim.rl"
     else if (type %in% c("prob", "probability", "excess probability"))
       oldClass(res) <- "margarita.sim.prob"
     # otherwise it's just a data.frame
-    
+
     res
 }
 
@@ -166,7 +166,7 @@ simulate.margarita.rl <- function(object, nsim=1, seed=NULL, M=NULL, ...){
     fullres
 }
 
-simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="raw", 
+simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="raw",
                                     Mlabels=NULL, ...){
     object <- unclass(object)
     scale <- margaritaScale(scale)
@@ -182,7 +182,8 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
 
     res <- split(res, g)
 
-    par <- predict(object[[2]], newdata=object$newdata, type="lp", unique.=FALSE, all=TRUE)[[1]]
+    par <- predict(object[[2]], newdata=object$newdata, type="lp", unique.=FALSE, all=TRUE)$obj$link
+
     # par is a list with an entry for each row of newdata.
     # Each entry is a matrix containing the parameters in the first two columns.
 
@@ -195,6 +196,7 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
 
     out <- lapply(1:nn, margarita.getProbs, u = u, par=par, m=m,
                                  r=object[[2]]$map$data$y, p = object[[2]]$map$rate)
+
     out <- lapply(out, do.call, what="cbind")
     # out is a list. Each element is a matrix with one column for each value of M
 
@@ -279,10 +281,10 @@ summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
     baseline <- attr(object, "baseline")
     invtrans <- attr(object, "invtrans")
     scale <- margaritaScale(scale)
-    
+
     # Get quantiles for credible interval
     qu <- getCIquantiles(alpha)
-       
+
     sims <- c(baseline, "fitted", "RLraw", "RLfull")
     groups <- names(object[[1]])[!is.element(names(object[[1]]), sims)]
 
@@ -297,7 +299,7 @@ summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
                   "r" = invtrans(o$RLfull),
                   "p" = invtrans(o$RLfull)/o[, baseline],
                   "d" = invtrans(o$RLfull) - o[, baseline])
-      
+
       res <- tapply(x, groups, quantile, prob=qu)
       # Groups have been reordered alphabetically. Revert to original order
       res <- res[unique(groups)]
