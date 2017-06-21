@@ -133,7 +133,7 @@ ggplot.rlm <- function(data=NULL, hist.scale=10, ...){
 #' @param boxfill The fill colour of the boxplots. Defaults to \code{"light blue"}.
 #' @param ... Additional arguments to \code{boxplot}. Not currently used.
 #' @method boxplot rlm
-#' @export
+#' @export boxplot.rlm
 #' @importFrom graphics boxplot
 boxplot.rlm <- function(x, by, jitter.width=.1, box=TRUE, xlab="", ylab="Scaled residuals",
                         main="", size=3, ptcol="orange", boxcol="blue", boxfill="light blue", ...){
