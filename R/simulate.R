@@ -161,7 +161,7 @@ simulate.margarita.rl <- function(object, nsim=1, seed=NULL, M=NULL, ...){
       p <- c(unclass(p)[[1]])
       fullres[[nmM]]$RLraw <- p
       fullres[[nmM]]$RLfull <- fullres[[nmM]]$RLraw + res$fitted
-      if (object$minima) { fullres[[nmM]]$RLfull <- -fullres[[nmM]]$RLfull }
+      #if (object$minima) { fullres[[nmM]]$RLfull <- -fullres[[nmM]]$RLfull }
     }
     fullres
 }

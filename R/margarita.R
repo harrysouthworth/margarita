@@ -24,6 +24,10 @@ NULL
 margarita <- function(rlm, evmSim, newdata=NULL,
                       trans=log, invtrans=exp,
                       baseline="alt.b", minima=FALSE){
+  if (minima){
+    stop("If working with minima, multiply the response and baseline by -1 at the very start. Then call this function specifying -M, not M")
+  }
+
   if (! "rlm" %in% class(rlm)){ # class is likely c("lmr", "rlm")
     stop("object should have class 'rlm'")
   }
@@ -42,7 +46,7 @@ margarita <- function(rlm, evmSim, newdata=NULL,
     if (ncol(newdata) > 1)
       stop("newdata should have only one column")
   }
-  
+
   # Ensure factor levels are in the same order in newdata and rlm
   if (length(rlm$xlevels) > 0 && !all(levels(newdata[, 1]) == rlm$xlevels[[1]]))
       stop("Levels of the factor in newdata don't match those in the robust linear model (it might just be the ordering)")
@@ -58,11 +62,11 @@ margarita <- function(rlm, evmSim, newdata=NULL,
 
   if (! baseline %in% colnames(rlm$x))
     stop(paste0("Baseline variable '", baseline, "' is not in the linear model"))
-  
+
   if (is.null(newdata))
     if (length(coef(evmSim)) == 2) newdata <- data.frame(1)
   else stop("There are covariates in the model: you need to provide newdata")
-  
+
   # Construct output object and return
   res <- list(rlm, evmSim, newdata=newdata,
               baseline=baseline, rawBaseline=rawBaseline,
