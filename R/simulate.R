@@ -211,6 +211,12 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
 
     out <- lapply(out, function(x, m){ colnames(x) <- m; x }, m=Mlabels)
 
+    # We now have a simulated population of patients' individual probabilities.
+    # Later we'll want to make inferences about expected proportions, and will
+    # need to account for the original sample size
+
+    out$n <- object$n
+
     out
 }
 
@@ -330,7 +336,6 @@ as.data.frame.summary.margarita.sim.rl <- function(x, row.names=NULL, optional=F
   x
 }
 
-
 #' @method print summary.margarita.sim.rl
 #' @export
 print.summary.margarita.sim.rl <- function(x, ...){ print(as.data.frame(x), ...) }
@@ -350,12 +355,35 @@ head.margarita.sim.prob <- function(x, ...){
 
 #' @method summary margarita.sim.prob
 #' @export
-summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), ...){
+summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), B=1000, ...){
+    n <- object$n
+    object$n <- NULL
+
     object <- unclass(object)
 
     qu <- getCIquantiles(alpha)
 
-    res <- lapply(object, function(X, qu) t(apply(X, 2, quantile, qu)), qu=qu)
+    bfun <- function(x, n){
+      # Resample from posterior population to make inferences about means
+      colMeans(x[sample(1:nrow(x), size=n, replace=FALSE), ])
+    }
+
+    sumfun <- function(X, x, qu, n){
+      x <- x[[X]]
+      n <- n[X]
+
+      res <- t(replicate(B, bfun(x, n)))
+
+      t(apply(res, 2, function(X){
+        c(quantile(X, qu[1:ceiling(length(qu) / 2)]),
+          mean = mean(X),
+          quantile(X, qu[(ceiling(length(qu) / 2) + 1):length(qu)]))
+      }))
+    }
+
+    res <- lapply(1:length(object), function(X, x, n, qu) sumfun(X, x, qu, n),
+                  x=object, qu=qu, n=n)
+    names(res) <- names(object)
 
     oldClass(res) <- "summary.margarita.sim.prob"
     res

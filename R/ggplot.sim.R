@@ -9,10 +9,10 @@ ggplot.summary.margarita.sim.rl <- function(data=NULL, trans="log10", labels=com
                                          ...){
     data <- as.data.frame(data)
     data$M <- factor(data$M, levels=unique(data$M))
-    
+
     ng <- length(unique(data$groups))
     if (ng == 1) data$groups <- data$M # <------------------ Redundant now???
-    
+
     nint <- ncol(data)/2 - .5 # Number of intervals
 
     names(data)[(ncol(data)-2)/2 + .5] <- "median" # Middle column (could be mean or median or something else)
@@ -54,6 +54,7 @@ ggplot.summary.margarita.sim.rl <- function(data=NULL, trans="log10", labels=com
 #' @method ggplot summary.margarita.sim.prob
 #' @export
 ggplot.summary.margarita.sim.prob <- function(data=NULL, ptcol="blue",
+                                              pointest="median",
                                            linecol=c("blue", "blue"),
                                            ptsize=4, linesize=c(.5, 1.5),
                                            scales="free", ncol=NULL, as.table=TRUE,
@@ -63,6 +64,14 @@ ggplot.summary.margarita.sim.prob <- function(data=NULL, ptcol="blue",
     data <- unclass(data)
     nM <- nrow(data[[1]])
     g <- rep(g, each=nM)
+
+    if (pointest == "mean"){
+      data <- lapply(data, function(x) if (ncol(x) == 6) x[, -3] else x[, -2])
+    } else if (pointest == "median"){
+      data <- lapply(data, function(x) if (ncol(x) == 6) x[, -4] else x[, -3])
+    } else {
+      stop("pointest should be either 'mean' or 'median'")
+    }
 
     # Add M to each data.frame
     if (missing(M))
@@ -83,7 +92,7 @@ ggplot.summary.margarita.sim.prob <- function(data=NULL, ptcol="blue",
         names(data)[2] <- "mid"
     }
     else {
-        stop("data object has wrong number of columns (should be 5 or 7)")
+        stop("data object has wrong number of columns")
     }
 
     seg <- getSegmentData(data)
