@@ -69,7 +69,7 @@ margarita <- function(rlm, evmSim, newdata=NULL,
 
   cbt <- cor(b, invtrans(bt))
 
-  if (is.na(cbt) | cbt != 1){
+  if (is.na(cbt) | !all.equal(cbt, 1)){
     stop("trans and invtrans don't undo each other")
   }
 

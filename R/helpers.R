@@ -48,6 +48,7 @@ margarita.rp <- function(X, xm, u, phi, xi, p, r) {
     ## this correctly handles values above the upper limit
     res <- p * pgpd(xm, exp(phi), xi, u, lower.tail=FALSE)
     wh <- u > xm
+
     if (any(wh)){
          res[wh] <- sapply(1:sum(wh),
                               function(i, x, r, m, p) mean((r + x[i] - quantile(r,1-p)) > m[i]),
@@ -100,7 +101,7 @@ margarita.rp.matrix <- function(M, scale, trans, d, baseline){
     else if (scale=="d"){ # difference
         m <- matrix(rep(0, nr * length(M)), ncol=length(M))
         for (i in seq_along(M)){
-            m[, i] <- trans(M[i] + baseline)
+            m[, i] <- trans(baseline) + M[i]
         }
     }
     m
@@ -113,7 +114,7 @@ margarita.rp.matrix <- function(M, scale, trans, d, baseline){
 #'         or an abbreviation of one of those. Only the first letter is returned.
 margaritaScale <- function(s){
     if (length(s) > 1 | !is.character(s)){
-        stop("scale should be a character string of length 1")
+        stop("scale should be a character vector of length 1")
     }
     s <- substring(casefold(s), 1, 1)
     if (!is.element(s, c("r", "p", "d"))){

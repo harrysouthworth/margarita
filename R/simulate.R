@@ -126,6 +126,10 @@ simulate.margarita <- function(object, nsim=1, seed=NULL,
     if (missing(M) & type != "simple")
         stop("You must provide a value for M")
 
+    if (type == "rl" & !missing(scale)){
+      stop("With type == 'rl', the scale argument should be used in the call to summary.")
+    }
+
     res <- switch(type,
                   "rl" =, "return" =, "return level" =
                       simulate.margarita.rl(object, nsim=nsim, seed=seed, M=M, ...),
@@ -195,7 +199,7 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
                              d=res, baseline=object$rawBaseline)
 
     out <- lapply(1:nn, margarita.getProbs, u = u, par=par, m=m,
-                                 r=object[[2]]$map$data$y, p = object[[2]]$map$rate)
+                  r=object[[2]]$map$data$y, p = object[[2]]$map$rate)
 
     out <- lapply(out, do.call, what="cbind")
     # out is a list. Each element is a matrix with one column for each value of M

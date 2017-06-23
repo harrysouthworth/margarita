@@ -1,33 +1,3 @@
-#' @method ggplot egp3RangeFit
-#' @export
-ggplot.egp3RangeFit <- function(data, xlab = "Threshold", ylab = NULL, main = NULL,
-                               fill="cyan", col="orange", reflinecol="blue",
-                               addNexcesses = TRUE, textsize=4, ...){
-  if (is.null(ylab))
-    ylab <- expression(hat(kappa))
-
-  x <- data
-  data <- data$data
-
-#  yl <- range(x$hi, x$lo, 1)
-
-  d <- data.frame(th=x$th, par=x$par)
-  poly <- data.frame(x=c(x$th, rev(x$th)), y=c(x$lo, rev(x$hi)))
-
-  p <- ggplot(poly, aes(x, y)) +
-    geom_polygon(fill=fill, alpha=.5) +
-    geom_line(data=d, aes(th, par), color=col) +
-    geom_hline(yintercept=1, linetype=2, col=reflinecol) +
-    scale_x_continuous(xlab) +
-    scale_y_continuous(ylab) +
-    theme(axis.title.y=element_text(angle=0)) +
-    if (!missing(main)) ggtitle(main)
-
-  if (addNexcesses)
-    p <- addExcesses(p, poly$x, poly$y, data=data, u=u, textsize=textsize)
-  p
-}
-
 #' Produce plots to aid threshold selection for GPD models
 #'
 #' @aliases gpdThresh, ggplot.gpdThresh ggplot.mrl ggplot.gpdRangeFit
