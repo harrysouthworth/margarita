@@ -534,7 +534,7 @@ ps <- summary(pULNs)
 
 # Manually set the treatment group names
 names(ps) <- LETTERS[1:4]
-ggplot(ps, ncol=1)
+ggplot(ps, ncol=1, pointest="median")
 
 # Simulate fold-changes from baseline
 pBase <- simulate(mods, type="prob", M=c(2, 5, 10, 20),
@@ -554,5 +554,28 @@ reason is that we are primarily interested in the large increases from baseline,
 but if we use the same scale for these as for the smaller increases, the useful
 information is compressed into a tidy part of the graph, making it difficult
 to read.
+
+Note some of the complexity caused by the weird geometry of having a fixed
+threshold (multiples of the ULN) against which to compare changes from baseline.
+It is possible for any particular patient to have a baseline value and regression
+coefficients that cause his expected on-treatment value to be above threshold _M_.
+So we need to simulate exceedance proabilities in 2 steps.
+
+We are interested in _P(y = r + u > M | u > M)_. If the simulated patient is in
+the group whose residuals fall above the threshold, the probability is equal to
+the probability of exceeding the modelling threshold in the original GP model.
+Otherwise, the probability depends on the distribution of residuals _beneath_
+the modelling threshold. We thus have a mixture distribution:
+
+$f(y) = \theta g(y) + (1 - \theta) h(y)$
+
+in which $\theta$ is our modelling threshold, $g(y)$ is the GP distribution and
+$h(y) = P(y > M | u > M)$.
+
+$g(y)$ is what most of the focus of this article has been on. To account for
+the second component of the mixture distribution, we resample residuals below
+the threshold and count how many of them breach the return level _M_. We then
+adjust for the mixture distribution structure by multiplying by $(1 - \theta)$
+and adding $\theta$.
 
 # References

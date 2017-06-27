@@ -44,17 +44,27 @@ getCIquantiles <- function(alpha){
 #' @param p The rate of threshold exceedance.
 #' @param r The data to which the original model was fit.
 margarita.rp <- function(X, xm, u, phi, xi, p, r) {
-    xm <- xm[, X]
-    ## this correctly handles values above the upper limit
-    res <- p * pgpd(xm, exp(phi), xi, u, lower.tail=FALSE)
-    wh <- u > xm
+  # r are the residuals above the modelling threshold
+  xm <- xm[, X]
+  ## this correctly handles values above the upper limit
+  res <- p * pgpd(xm, exp(phi), xi, u, lower.tail=FALSE)
+  wh <- u > xm
 
-    if (any(wh)){
-         res[wh] <- sapply(1:sum(wh),
-                              function(i, x, r, m, p) mean((r + x[i] - quantile(r,1-p)) > m[i]),
-                              x=u[wh], r=r, m=xm[wh], p=p)
-    }
-    res
+  if (any(wh)){
+    r <- r[r < quantile(r, 1 - p)]
+    res[wh] <- sapply(1:sum(wh),
+                      function(i, x, r, m, p){
+                        rr <- r + x[i]# - quantile(r, 1-p)
+                        mean(rr > m[i])
+                      },
+                      x=u[wh], r=r, m=xm[wh], p=p)
+
+    # Account for mixture distribution structure
+    res[wh] <- p + (1 - p) * res[wh]
+  }
+
+
+  res
 }
 
 #' Get probabilities of threshold exceedance for a GPD model.
@@ -88,17 +98,15 @@ margarita.rp.matrix <- function(M, scale, trans, d, baseline){
     baseline <- d[[1]][, baseline]
     nr <- nrow(d[[1]])
 
-    if (scale=="r"){ # raw
+    if (scale == "r"){ # raw
         m <- matrix(rep(trans(M), nr), ncol=length(M), byrow=TRUE)
-    }
-    else if (scale=="p") { # M is a multiple of baseline
+    } else if (scale == "p") { # M is a multiple of baseline
         m <- matrix(rep(0, nr * length(M)), ncol=length(M))
         # d[[i]][, baseline] is the same for all i
         for (i in seq_along(M)) {
             m[, i] <- trans(M[i] * baseline)
         }
-    }
-    else if (scale=="d"){ # difference
+    } else if (scale == "d"){ # difference
         m <- matrix(rep(0, nr * length(M)), ncol=length(M))
         for (i in seq_along(M)){
             m[, i] <- trans(baseline) + M[i]

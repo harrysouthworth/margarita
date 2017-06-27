@@ -1,0 +1,460 @@
+---
+title: "The analysis of safety data from clinical trials"
+author: Harry Southworth
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    toc_depth: 3
+    fig_width: 7
+    fig_height: 4.5
+    fig_caption: true
+    number_sections: true
+bibliography: texmex.bib
+vignette: >
+  %\VignetteIndexEntry{Using margarita with texmex}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+---
+
+```{r setup, echo=FALSE, warning=FALSE, message=FALSE}
+library(texmex)
+library(ggplot2)
+library(MASS)
+library(gridExtra)
+library(knitr)
+```
+
+# Introduction
+Clinical trials are usually designed to address a specific question
+about the efficacy of a drug in treating a particular condition.
+Since such questions of efficacy are usually well-formed and since the
+clinical trials are designed to answer them, the analysis of the resulting
+data is usually a straightforwared, prespecified analysis using a standard
+statistical technique to compare, say, mean values, or the duration of
+survival, or the patients in the different treatment groups.
+
+However, the bulk of the data that are collected in clinical trials relate
+not to the _efficacy_ of the drug, but to its _safety_. Safety
+data will typically include data on the patients' vital signs, adverse events,
+concomitant medications, and clinical laboratory data. Most adverse events,
+whether or not related to the drug, tend to be uncommon so that the data tend to be sparse.
+The laboratory data often have skewed distributions
+and are subject to outliers. For safety data then, unlike efficacy,
+the questions are typically not well-defined, some of them will not
+be known until the data have been studied in some detail, and the data
+are of mixed types and messy. For these reasons, statisticians have
+tended to be cautious in the analysis of safety data, leaving interpretation
+to clinicians.
+
+Published statistical guidance for clinical trials [-@e9] summarizes this
+position:
+
+> The investigation of safety and tolerability is a multidimensional problem.
+> Although some specific adverse effects can usually be anticipated and
+> specifically monitored for any drug, the range of possible adverse effects
+> is very large, and new and unforeseeable effects are always possible. Further,
+> an adverse event experienced after a protocol violation, such as use of an
+> excluded medication, may introduce a bias. This background underlies the
+> statistical difficulties associated with the analytical evaluation of safety
+> and tolerability of drugs, and means that conclusive information from
+> confirmatory clinical trials is the exception rather than the rule.
+
+# Extreme values of laboratory data
+The rest of this article focusses on the laboratory data. As already mentioned,
+the data tend to be far from normally distributed and subject to outliers.
+In fact, it is usually the outliers that indicate safety issues, as
+supported by the following observations.
+
+* The USA Food and Drug Administration (FDA) has published a
+guidance document~\cite{FDAliver} which advises that extremely high values of
+alanine aminotransferase (ALT) and aspartate aminotransferase (AST) --
+laboratory values that are recorded as standard in most clinical trials --
+can be indicative of drug induced liver injury.
+*  Rhabdomyolysis, an adverse event that has been linked to certain drugs
+in the past, involves the breakdown of muscles and the release of their
+contents into the blood. Typically, if the muscles have begun to break
+down, levels of creatine kinase in the blood rise dramatically.
+* In the USA, the National Insitutes of Health and the National Cancer
+Institute jointly publish the Common Toxicity Criteria
+(CTC) [-@CTC], a guideline listing many laboratory variables and
+categorizing abnormally high (or sometimes low) levels by severity. The
+guideline is used by clinicians to aid interpretation of safety data.
+* Various guidelines exist for the diagnosis of kidney failure,
+usually relying on high values of creatinine in the blood.
+
+Since it is the extreme values of laboratory variables that tend to
+indicate toxicity, it is usual for them to have an associated
+_upper limit of normal_ (ULN) and _lower limit of normal_
+(LLN). The way in which these quantities are calculated can vary
+from laboratory to laboratory, but they represent high and low
+quantiles, such as the $5^{th}$ and $95^{th}$ percentiles, of the
+distribution. Thus any observation that is above the ULN, or some
+multiple of it, is considered to be abnormal and potentially
+relating to a safety issue.
+
+The clinical trial statistician concerned with efficacy is concerned
+with characterizing the _expected_ response patients have to the drug.
+When it comes to safety, it is characterization of the _unexpected_
+responses, the extreme values, that is important. As such, measures of
+central tendency such as means and medians, and the familiar tools
+in the clinical trial statistician's toolbox -- analysis of
+variance, regression, tests for equality of means, etc. -- are useless
+in the interpretation of clinical safety data.
+
+# An illustrative example
+To illustrate the problems that can arise, consider the case of
+troglitazone, a drug used for the treatment of diabetes, and liver
+toxicity. An FDA review [-@FDAreview] of the available data states:
+
+> Mean [ALT and AST] levels fell in patients receiving troglitazone in
+>  phase 3 trials... It was also stated that 2.2\% of patients in phase
+>  3 trials had a transaminase (ALT or AST) level exceeding
+>  $3 \times ULN$...  What was not appreciated by [FDA] was that many of the
+>  patients classified as ALT $> 3\times ULN$ actually had ALT values
+>  that were VERY much higher than $3\times ULN$... 23 patients had
+>  treatment-emergent ALT values over $3\times ULN$... In 14 of these
+>  23 patients, the ALT value exceeded $8\times ULN$... and in 5/23
+>  patients the ALT value exceeded $30\times ULN$.
+
+The review goes on to describe how, once troglitazone was on the
+market, cases of 'frank liver failure' were reported in association
+with the drug. Further, in a postmarketing clinical trial, a patient
+developed irreversible liver damage and ultimately died. The drug
+was withdrawn from the market.
+
+The apparent toxicity of troglitazone was not at all predicted by
+the central tendency of the distributions of ALT and AST -- the
+means and medians went _down_, intuitively suggesting a beneficial
+effect of the drug on the liver!
+It was the extreme values of ALT and AST that contained the useful
+information. Making inferences about the potential for liver toxicity
+by looking at the mean would be misleading and dangerous.
+
+# A novel statistical approach
+Clinical safety data can't be the
+only setting in which it is the extreme values that are of interest.
+In fact, methods for the analysis of extreme values have a long history:
+Gumbel [-@gumbel] traces attempts by statisticians to handle
+extreme value problems back to the early $18^{th}$ century,  but
+it was in 1928 that Fisher and Tippett [-@fisherTippett]
+published a landmark paper which led to a flurry of research which
+continues today.
+
+The first full length book on extreme value methods, by Gumbel, appeared in
+1958 [-@gumbel]. Many of the statistical applications Gumbel faced were hydrological
+in nature, and he wrote that
+
+> Until recent years, engineers employed purely empirical procedures for the analysis
+> of hydrological data and, especially, the evaluation of the frequencies of floods
+> and droughts. These studies led practically nowhere until the statistical nature of
+> the problem was recognized. Even then the results were meager and disappointing.
+> Hence the claim that "sound engineering judgment" is superior to statistics,
+> a statement which may have been true as long as the adequate statistical method
+> was unknown. At present the statistical nature of
+> these problems has been realized  and the empirical procedures are
+> slowly being replaced by methods derived from the theory of extreme values.
+
+Hydrology, though, is not the only field in which it is the extreme values
+of the data that are of interest. Beirlant et al [-@beirlant] cite
+examples of extreme value methods being used in the fields of geology,
+metallurgy, the study of network traffic, demography, economics, geography,
+travel, traffic, psychology and others.
+
+# Application to clinical trial safety data
+Different extreme value models exist for dealing with data arising in a variety
+of settings. In the clinical trial setting, we typically have a fairly small number of
+observed values from each of several dozen or a few hundred patients. Here,
+methods which enable us to characterize the upper tail of the distribution
+of the data are appropriate and the appropriate tool is known as the
+_generalized Pareto_ (GP) distribution.
+
+The GP distribution has two parameters, one of which ($\sigma$) controls the scale of
+the distribution, the other of which ($\xi$) controls how heavy the tail is.
+By examining how the values of $\sigma$ and $\xi$
+depend on the drug and dose, we can form an idea of the strength of evidence for
+treatment and dose-response effects, and of the nature of those relationships.
+Plots of the distribution for values of $\xi$ being $-\frac{1}{4}, 0$ and
+$\frac{1}{2}$ are shown in the following figure.
+
+```{r sgpd, echo=FALSE, fig.cap="The generalized Pareto distribution with $\\sigma = 1$ and $\\xi$ being $-\\frac{1}{4}, 0$ and $\\frac{1}{2}$. Small values of $\\xi$ result in short-tailed distributions and large values of $\\xi$ result in heavy tails and thus greater probability of outliers."}
+x <- seq(0, 7, len=200)
+
+d.m5 <- dgpd(x, sigma=1, xi=-.25)
+d0 <- dgpd(x, sigma=1, xi=0)
+d.5 <- dgpd(x, sigma=1, xi=.5)
+
+plot(x, d.m5, lwd=2, col="blue", type="l", axes=FALSE, ylab="")
+lines(x, d0, lwd=2, col="orange")
+lines(x, d.5, lwd=2, col="cyan")
+box()
+axis(1)
+
+legend(x = 3.5, y=.9,
+       legend=c(expression(paste(xi, " = -0.25")),
+                expression(paste(xi, " = 0")),
+                expression(paste(xi, " = 0.5"))),
+       col=c("blue", "orange", "cyan"),
+       lty=1, lwd=2)
+```
+
+The parameters in the GPD do not have a straightforward physical interpretation.
+In order to communicate the analysis to clinical colleagues, it is more
+useful to work with predictions from the fitted models.
+For example, we can use fitted models to predict how large the values that
+we see are likely to get if we expose larger numbers of patients to the
+experimental drug, or we can predict quantities such as the probability
+of any particular value being above _ULN_, _3\times ULN_ or some other
+multiple.
+
+# Example
+A clinical trial collected data from patients receiving
+one of four different doses of an experimental drug. There were approximately
+160 patients in each dose group. The doses are ordered such that Dose A
+is the lowest and Dose D is the highest. The ULN for ALT is 36 international
+units per litre (U/L). A detailed analysis of this example is provided by
+Southworth and Heffernan [-@southHeff].
+
+The figure below shows
+baseline (i.e. pre-treatment) values of ALT against the on-treatment values.
+It can be seen that there are some outliers in the on-treatment values,
+particularly in the patients receiving Dose D. However, there are only a
+handful of large observations, and it is not clear if there is a tendency
+for outliers to occur in some of the lower dose groups. How concerned
+should we be about the large ALT values in group D?
+
+```{r shiftplots, echo=FALSE, fig.cap="Plots of pre-treatment values versus on-treatment values in each dose group. The reference lines are lines of identity -- a point above the line indicates an increase from baseline, and point below the line indicates a decrease."}
+if (exists("liver")) try(rm("liver"), silent=TRUE) # tidy up after a previous run
+liver$ndose <- as.numeric(liver$dose)
+liver$dose <- paste("Dose", liver$dose)
+
+r <- range(liver$ALT.B, liver$ALT.M)
+ggplot(liver, aes(ALT.B, ALT.M, dose)) +
+    geom_point(size=2, col='blue') +
+    facet_wrap(~ dose) +
+    scale_x_continuous('Baseline ALT (U/L)', trans='log10', limits=r) +
+    scale_y_continuous('On-treatment ALT (U/L)', trans='log10', limits=r) +
+    geom_abline(intercept=0, slope=1)
+```
+
+The baseline and on-treatment values are clearly related to each
+other: higher baselines values are associated with higher on-treatment
+values. As such, it makes sense to eliminate the effect of baseline and
+apply extreme value modelling to any remaining variation. Since the
+outliers in the shiftplots above are not compatible with the
+data having come from a normal distribution, we use a robust
+regression method that is not unduly influenced by them.
+Plots of the residuals
+from the model (that is, what remains after the baseline effect has been
+removed) are displayed by Dose group in the following boxplots.
+
+```{r boxplots, echo=FALSE, fig.cap="Boxplots of residuals from using robust regression to eliminate the baseline effect. If the residuals were from a normal distribution, we would expect them to mostly fall between about -2.5 and 2.5 -- within the red dashed lines. Clearly there are outliers indicating that the residuals come from a heavy-tailed distribution. A dose-response relationship now becomes more clear."}
+rmod <- rlm(log(ALT.M) ~ log(ALT.B) + ndose, data=liver,
+            method="MM", c=3.44)
+liver$r <- resid(rmod)
+liver$sr <- liver$r / rmod$s
+
+ggplot(liver, aes(dose, sr)) +
+    geom_hline(yintercept=c(-2.5, 2.5), col='red', lty=2) +
+    geom_boxplot() +
+    scale_x_discrete('') +
+    scale_y_continuous('Scaled residuals')
+```
+
+In fitting extreme value models to the residuals displayed in
+the boxplots, it was found that the model that allowed the
+shape parameter to depend on log _Dose_ was the best fit to the data.
+In order to interpret the model, we simulate values from it and then
+re-apply the baseline effect.
+
+In general, we will likely be interested in just how high ALT is
+likely to get on each dose if we treat increasing numbers of patients.
+To address this question, we compute _return levels_. The
+$M$-patient return level is defined as the level of ALT likely to be
+exceeded only once every _M_ patients observed. The figure below
+displays the estimated 1000-patient return levels for ALT -- that is,
+the values of ALT likely to be exceeded only once every 1000 patients.
+The theory of extreme values allows us to estimate these quantities even
+though we have data on only 160 patients per dose.
+
+```{r rl1000, echo=FALSE, fig.cap="Estimated 1000-patient return levels for ALT at each dose. The heavy line segments are 50\\% confidence intervals, and the lighter segments are 90\\% intervals."}
+gmod <- evm(r, data=liver, qu=.7, xi=~ndose, method="sim", verbose=FALSE)
+
+nsim <- nrow(gmod$param)
+
+# Resample baselines
+base <- sample(log(liver$ALT.B), size=nsim, replace=TRUE)
+
+mycov <- summary(rmod)$cov.unscaled * summary(rmod)$stddev^2
+myloc <- coef(rmod)
+mycoefs <- rmvnorm(4*nsim, mean=myloc, sigma=mycov)
+
+ElogALT <- mycoefs[,1] + mycoefs[,2]*base + rep(1:4,each=nsim)*mycoefs[,3]
+ElogALT <- matrix(ElogALT, ncol=4)
+
+m <- c(100, 1000)
+gg <- list()
+for (i in 1:2){
+  rl <- predict(gmod, M=m[i], all=TRUE)[[1]][[1]]
+  colnames(rl) <- LETTERS[1:4]
+
+  logRL <- rl + ElogALT
+
+  srl <- exp(apply(logRL, 2, quantile, probs=c(0.05, 0.25, 0.5, 0.75, 0.95))) / 36
+  r <- range(srl)
+
+  srl <- data.frame(t(srl))
+  srl$dose <- paste("Dose", LETTERS[1:4])
+
+  gg[[i]] <- ggplot(srl, aes(X50., dose)) +
+                    geom_point(size=4, col='blue') +
+                    geom_segment(aes(x=X5., y=dose, xend=X95., yend=dose), col='blue') +
+                    geom_segment(aes(x=X25., y=dose, xend=X75., yend=dose),
+                                 lwd=1.5, col='blue') +
+                    scale_x_continuous(paste(m[i], '-patient return level (multiples of ULN)', sep = ''),
+                                       limits=r, trans="log10",
+                                       breaks = c(1, 10, 100, 1000, 10000)) +
+    scale_y_discrete('')
+} # Close for i
+
+gg[[2]]
+```
+
+In the figure above, the dose response effect is clearly visible
+and the model indicates that if 1000 patients were to take Dose D, we should
+expect one of them to have an ALT greater than $50\times ULN$. Such
+high values of ALT can be observed in practice. However, the 90\% interval
+estimate for Dose D contains values of ALT so high that it is unlikely
+they ever could be observed because either the patient would experience
+symptoms and stop taking the drug, the patient's doctor would
+notice the change in ALT and stop the drug, or the patient would die.
+
+Another way to assess the nature of the ALT effect that the drug
+appears to have is to consider the probability of breaches of certain
+thresholds. Published guidance [-@CTC]  provides the toxicity
+grading displayed in the following table, so we use our extreme
+value and robust regression models to estimate the probabilities
+of these thresholds being exceeded. The results appear in
+the figure below.
+
+```{r ctc, echo=FALSE}
+tbl <- data.frame(Threshold=c("$ULN$", "$3\\times ULN$", "$5\\times ULN$", "$20\\times ULN$"),
+                  Grade = 1:4,
+                  Toxicity = c("Mild", "Moderate", "Severe", "Life threatening"))
+kable(tbl)
+```
+
+
+```{r pexceed, echo=FALSE, fig.cap="Estimated probabilities of ALT exceeding multiples of ULN with 50\\% and 90\\% confidence intervals. Note that the horizontal axes vary from plot to plot."}
+rp <- function(xm, u, phi, xi, p, r) {
+  res <- p * (1 + xi/exp(phi) * (xm - u))^(-1/xi)
+  if (any(u > xm)){
+    res[u > xm] <- sapply(u[u>xm],
+    function(x,r,m,p) mean((r + x - quantile(r,1-p)) > m),
+             r=r,m=xm,p=p)
+    }
+    res[xi < 0 & xm > u - exp(phi)/xi] <- 0
+    res
+}
+
+getProbs <- function(u, phi, xi, p, r, ULN, m = c(1, 2.5, 5, 20)) {
+    m <- log(ULN * m)
+    res <- t(sapply(m, rp, u = u, phi = phi, xi = xi, p = p, r=r))
+    res <- apply(res, 1, quantile,  prob=c(.05, .25, .5, .75, .95))
+    round(res, 4)
+}
+
+DoCalc <- function(gmod, ElogALT, xi){
+    cnames <- paste("P(ALT > ", c("", "3x", "10x", "20x"), "ULN)",sep = "")
+    out <- getProbs(u = ElogALT + gmod$map$threshold,
+                    phi = gmod$param[,1], xi = xi,
+                    r=liver$r, p = 1-0.7, ULN = 36)
+    colnames(out) <- cnames
+    out
+}
+
+bmodParams <- predict(gmod, type="lp", all=TRUE)[[1]]
+
+rpA <- DoCalc(gmod, ElogALT = ElogALT[,1], xi = bmodParams[[1]][[1]][,2])
+rpB <- DoCalc(gmod, ElogALT = ElogALT[,2], xi = bmodParams[[1]][[2]][,2])
+rpC <- DoCalc(gmod, ElogALT = ElogALT[,3], xi = bmodParams[[1]][[3]][,2])
+rpD <- DoCalc(gmod, ElogALT = ElogALT[,4], xi = bmodParams[[1]][[4]][,2])
+
+rpl <- list(rpA, rpB, rpC, rpD)
+
+# Do by multiples of ULN, not dose
+
+fun <- function(o, i){
+    res <- t(sapply(o, function(x, i){ x[, i] }, i=i))
+    res <- data.frame(res)
+    res$dose <- paste('Dose', LETTERS[1:4])
+    res
+}
+
+uln <- fun(rpl, i=1)
+uln2.5 <- fun(rpl, i=2)
+uln5 <- fun(rpl, i=3)
+uln20 <- fun(rpl, i=4)
+
+
+puln <- ggplot(uln, aes(X50., dose)) +
+               geom_point(size=5, col='blue') +
+               scale_x_continuous('P(ALT > ULN)', limits=range(uln[, 1:5])) +
+               scale_y_discrete('') +
+               geom_segment(aes(x=X5., y=dose, xend=X95., yend=dose), col='blue') +
+               geom_segment(aes(x=X25., y=dose, xend=X75., yend=dose), col='blue', size=2)
+
+puln2.5 <- ggplot(uln2.5, aes(X50., dose)) +
+                  geom_point(size=5, col='blue') +
+                  scale_x_continuous('P(ALT > 2.5 ULN)', limits=range(uln2.5[, 1:5])) +
+                  scale_y_discrete('') +
+                  geom_segment(aes(x=X5., y=dose, xend=X95., yend=dose), col='blue') +
+                  geom_segment(aes(x=X25., y=dose, xend=X75., yend=dose), col='blue', size=2)
+
+puln5 <- ggplot(uln5, aes(X50., dose)) +
+                  geom_point(size=5, col='blue') +
+                  scale_x_continuous('P(ALT > 5 ULN)', limits=range(uln5[, 1:5])) +
+                  scale_y_discrete('') +
+                  geom_segment(aes(x=X5., y=dose, xend=X95., yend=dose), col='blue') +
+                  geom_segment(aes(x=X25., y=dose, xend=X75., yend=dose), col='blue', size=2)
+
+puln20 <- ggplot(uln20, aes(X50., dose)) +
+                  geom_point(size=5, col='blue') +
+                  scale_x_continuous('P(ALT > 20 ULN)', limits=range(uln20[, 1:5])) +
+                  scale_y_discrete('') +
+                  geom_segment(aes(x=X5., y=dose, xend=X95., yend=dose), col='blue') +
+                  geom_segment(aes(x=X25., y=dose, xend=X75., yend=dose), col='blue', size=2)
+
+grid.arrange(puln, puln2.5, puln5, puln20)
+```
+
+
+In the above figure, we can again clearly see the dose-response
+relationship that the drug appears to have on ALT. Of particular note,
+the model suggests that Dose D could result in an $ALT > 20\times ULN$
+in approximately 1 in 400 patients, though there is no obvious cause
+for concern for Dose A.
+
+In practice, it is known that the incidence
+of severe liver-related adverse events such as jaundice and hepatitis
+that occur with Dose D is approximately 1 in 500 patients whereas there
+is no evidence that such events occur with Dose A.
+
+# Conclusion
+Clinical trial safety data are complicated, messy and high-dimensional, and
+the traditional statistical methods that are useful for the analysis of
+efficacy data are of little or no use in the context of safety. These observations have
+led to the belief that statisticians have little of value to add to the
+interpretation of such data. However, recent experiences suggest that
+the field is ripe for more statistical input,
+and clinical trial statisticians would benefit from looking further
+afield than the set of tools they are taught on typical medical statistics
+courses, or in the clinical trials textbooks.
+
+Application of extreme value modelling to laboratory and other
+clinical trial safety data suggests it might be the case that
+"the statistical nature of these problems has been realized"" and
+we are now embarking on a period during which _sound clinical judgement_
+will slowly be replaced by methods derived from the theory of extreme values.
+
+# References

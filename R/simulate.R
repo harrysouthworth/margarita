@@ -198,8 +198,11 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     m <- margarita.rp.matrix(M, scale=scale, trans=object$trans,
                              d=res, baseline=object$rawBaseline)
 
+    r <- resid(object[[1]])
     out <- lapply(1:nn, margarita.getProbs, u = u, par=par, m=m,
-                  r=object[[2]]$map$data$y, p = object[[2]]$map$rate)
+                  #r=object[[2]]$map$data$y,
+                  r = r,
+                  p = object[[2]]$map$rate)
 
     out <- lapply(out, do.call, what="cbind")
     # out is a list. Each element is a matrix with one column for each value of M
@@ -220,6 +223,7 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     # need to account for the original sample size
 
     out$n <- object$n
+    out$scale <- scale
 
     out
 }
@@ -361,32 +365,21 @@ head.margarita.sim.prob <- function(x, ...){
 #' @export
 summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), B=1000, ...){
     n <- object$n
-    object$n <- NULL
+    scale <- object$scale
+    object$scale <- object$n <- NULL
 
     object <- unclass(object)
 
     qu <- getCIquantiles(alpha)
 
-    bfun <- function(x, n){
-      # Resample from posterior population to make inferences about means
-      colMeans(x[sample(1:nrow(x), size=n, replace=FALSE), ])
+    sumfun <- function(x, qu){
+      c(quantile(x, qu[1:ceiling(length(qu) / 2)]),
+        mean = mean(x),
+        quantile(x, qu[(ceiling(length(qu) / 2) + 1):length(qu)]))
     }
 
-    sumfun <- function(X, x, qu, n){
-      x <- x[[X]]
-      n <- n[X]
+    res <- lapply(object, function(X, qu) t(apply(X, 2, sumfun, qu)), qu=qu)
 
-      res <- t(replicate(B, bfun(x, n)))
-
-      t(apply(res, 2, function(X){
-        c(quantile(X, qu[1:ceiling(length(qu) / 2)]),
-          mean = mean(X),
-          quantile(X, qu[(ceiling(length(qu) / 2) + 1):length(qu)]))
-      }))
-    }
-
-    res <- lapply(1:length(object), function(X, x, n, qu) sumfun(X, x, qu, n),
-                  x=object, qu=qu, n=n)
     names(res) <- names(object)
 
     oldClass(res) <- "summary.margarita.sim.prob"
