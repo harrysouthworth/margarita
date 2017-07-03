@@ -1,8 +1,8 @@
 Package: margarita
 Type: Package
 Title: Support functions for texmex
-Version: 0.14
-Date: 2016-05-13
+Version: 0.15
+Date: 2017-06-22
 Depends:
     mvtnorm,
     ggplot2,
@@ -11,8 +11,7 @@ Depends:
     xtable,
     scales
 Suggests:
-    knitr,
-    sas7bdat
+    knitr
 Imports:
     MASS,
     utils
@@ -29,4 +28,4 @@ LazyLoad: yes
 LazyData: yes
 URL: https://github.com/harrysouthworth/margarita
 VignetteBuilder: knitr
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1
