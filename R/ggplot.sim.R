@@ -54,24 +54,15 @@ ggplot.summary.margarita.sim.rl <- function(data=NULL, trans="log10", labels=com
 #' @method ggplot summary.margarita.sim.prob
 #' @export
 ggplot.summary.margarita.sim.prob <- function(data=NULL, ptcol="blue",
-                                              pointest="median",
-                                           linecol=c("blue", "blue"),
-                                           ptsize=4, linesize=c(.5, 1.5),
-                                           scales="free", ncol=NULL, as.table=TRUE,
-                                           xlab="P( > RL)", ylab="", M, main=NULL,
-                                           ...){
+                                              linecol=c("blue", "blue"),
+                                              ptsize=4, linesize=c(.5, 1.5),
+                                              scales="free", ncol=NULL, as.table=TRUE,
+                                              xlab="P( > RL)", ylab="", M, main=NULL,
+                                              ...){
     g <- names(data)
     data <- unclass(data)
     nM <- nrow(data[[1]])
     g <- rep(g, each=nM)
-
-    if (pointest == "mean"){
-      data <- lapply(data, function(x) if (ncol(x) == 6) x[, -3] else x[, -2])
-    } else if (pointest == "median"){
-      data <- lapply(data, function(x) if (ncol(x) == 6) x[, -4] else x[, -3])
-    } else {
-      stop("pointest should be either 'mean' or 'median'")
-    }
 
     # Add M to each data.frame
     if (missing(M))
@@ -85,6 +76,7 @@ ggplot.summary.margarita.sim.prob <- function(data=NULL, ptcol="blue",
     # Make groups to trellis on
     data <- do.call("rbind", data)
     data$groups <- factor(g, levels=unique(g))
+
     if (ncol(data) == 7){
         names(data)[3] <- "mid"
     }

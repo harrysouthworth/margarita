@@ -118,6 +118,13 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' @param Mlabels Labels to be used in the output. Defaults to \code{Mlabels=NULL}
 #'        in which case the function guesses at meaningful labels.
 #' @param ... Other agruments passed to \code{simulate}. Currently unused.
+#' @details If \code{type="prob"}, the function computes simulated probabilities of
+#'   breaching thresholds \code{M}. These are posterior probabilities, not expected
+#'   proportions. The shape of the distribution will often have a mode at 0. If
+#'   \code{M} is quite low, it might also have a mode at 1. Simple point estimates
+#'   and intervals for such a distribution do not convey its shape. The \code{summary}
+#'   function reports the median and quantiles. The median will often be lower
+#'   than the mean. If you need the expected value, you'll need to do more work.
 #' @keywords datagen
 #' @method simulate margarita
 #' @export
@@ -363,7 +370,7 @@ head.margarita.sim.prob <- function(x, ...){
 
 #' @method summary margarita.sim.prob
 #' @export
-summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), B=1000, ...){
+summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), ...){
     n <- object$n
     scale <- object$scale
     object$scale <- object$n <- NULL
@@ -372,13 +379,9 @@ summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), B=1000, ...){
 
     qu <- getCIquantiles(alpha)
 
-    sumfun <- function(x, qu){
-      c(quantile(x, qu[1:ceiling(length(qu) / 2)]),
-        mean = mean(x),
-        quantile(x, qu[(ceiling(length(qu) / 2) + 1):length(qu)]))
-    }
+    nsim <- nrow(object[[1]])
 
-    res <- lapply(object, function(X, qu) t(apply(X, 2, sumfun, qu)), qu=qu)
+    res <- lapply(object, function(X) t(apply(X, 2, quantile, prob=qu)))
 
     names(res) <- names(object)
 

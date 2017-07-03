@@ -574,8 +574,17 @@ $h(y) = P(y > M | u > M)$.
 
 $g(y)$ is what most of the focus of this article has been on. To account for
 the second component of the mixture distribution, we resample residuals below
-the threshold and count how many of them breach the return level _M_. We then
-adjust for the mixture distribution structure by multiplying by $(1 - \theta)$
-and adding $\theta$.
+the threshold and count how many of them breach the return level _M_.
+
+Note that the distribution of probabilities of threshold exceedance will usually
+be highly skewed with a mode at 0. As such, the expected value (mean) will often
+be greater than the median and can fall outside of the interval estimates
+(especially the 50% interval estimate). To avoid confusion, the point estimate
+that is computed by default is the median, which will _underestimate_ the expected
+proportion.
+
+```{r summary}
+lapply(unclass(pULNs)[1:4], function(x) apply(x, 2, summary))
+```
 
 # References
