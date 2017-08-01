@@ -24,4 +24,3 @@ margarita.rp(X, xm, u, phi, xi, p, r)
 \description{
 Compute the return period for a generalized Pareto distribution
 }
-

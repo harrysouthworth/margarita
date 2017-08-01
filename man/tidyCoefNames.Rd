@@ -18,4 +18,3 @@ If there are no factors in the model, the coefficient names are
          coefficient name, for each factor. If two factors have overlapping
          level names, the function will fail.
 }
-

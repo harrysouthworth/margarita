@@ -22,4 +22,3 @@ If the file appears to be a SAS file, the function uses read.sas7bdat
          data files are not supported (but see Shotwell's sas7bdat.parso
          package).
 }
-

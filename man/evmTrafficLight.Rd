@@ -52,4 +52,3 @@ whether it seems safe, potentially suspect, or dangerous
 \details{
 The function is a fairly simple modification of \code{plot.summary.simulate.margarita.prob}
 }
-

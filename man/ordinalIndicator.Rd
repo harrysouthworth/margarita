@@ -16,4 +16,3 @@ A character string giving the ordinal indicator for x: 'st' if the last
 \description{
 Get the ordinal indicator for an integer
 }
-

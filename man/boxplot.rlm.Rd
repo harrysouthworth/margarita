@@ -37,4 +37,3 @@ to just plot the jittered points. Defaults to \code{box=TRUE}.}
 \description{
 Boxplots of scaled residuals, split by a factor in the model.
 }
-

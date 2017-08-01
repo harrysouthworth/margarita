@@ -16,4 +16,3 @@ a \code{ggplot2} plot representing the Gaussian QQ-plot of the residuals
 \description{
 QQ-plot for residuals from a model using ggplot2
 }
-

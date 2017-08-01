@@ -4,12 +4,15 @@
 \alias{AICtable}
 \title{Take a list of evmOpt objects and return an xtable}
 \usage{
-AICtable(x, digits = 3, label = "tab:aic",
+AICtable(x, kable = FALSE, digits = 3, label = "tab:aic",
   caption = "Comparison of various generalized Pareto models in terms of number of coefficients, log-likelihood, AIC and change in deviance from the null model.")
 }
 \arguments{
 \item{x}{A list, each element of which is an object of class "evm". It is
 assumed that the first element of \code{x} is the null model.}
+
+\item{kable}{Whether to return a \code{kable} object. Defaults to \code{kable=FALSE}
+and an \code{xtable} object is returned.}
 
 \item{digits}{The number of significant digits to display.}
 
@@ -23,4 +26,3 @@ Take a list of evmOpt objects and return an xtable
 \details{
 Use \code{print(res, sanitize.text.function=function(x) x, include.rownames=FALSE)}.
 }
-

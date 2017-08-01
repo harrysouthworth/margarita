@@ -11,4 +11,3 @@ details here
 harry.southworth@gmail.com
 }
 \keyword{package}
-

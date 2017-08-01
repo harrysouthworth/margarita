@@ -2,8 +2,8 @@
 % Please edit documentation in R/dataHelp.R
 \docType{data}
 \name{lb}
-\alias{dm}
 \alias{lb}
+\alias{dm}
 \title{Data included in the margarita package}
 \description{
 Data included in the margarita package
@@ -19,12 +19,11 @@ The \code{liver} data, as found in the texmex (Southworth and Heffernan)
          by margarita to aid transformation of SDTM data into evm-ready analysis
          data.
 }
-\author{
-Harry Southworth \email{harry.southworth@gmail.com}
-}
 \references{
 Harry Southworth and Janet E. Heffernan (2014). texmex: Statistical
              modelling of extreme values. R package version 2.3.
 }
+\author{
+Harry Southworth \email{harry.southworth@gmail.com}
+}
 \keyword{data}
-

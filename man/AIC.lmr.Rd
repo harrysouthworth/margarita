@@ -30,4 +30,3 @@ Tharmaratnam, K. and Claeskens, G. A comparison of robust versions
      Katholieke Universiteit Leuven, 2010.
      https://lirias.kuleuven.be/bitstream/123456789/274771/1/KBI_1014.pdf
 }
-

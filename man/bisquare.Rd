@@ -17,4 +17,3 @@ to \code{d=0}, the other allowed values being 1 and 2.}
 \description{
 Bisquare weight function and its derivatives
 }
-

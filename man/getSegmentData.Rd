@@ -12,4 +12,3 @@ getSegmentData(data)
 \description{
 Get data for plotting segments representing interval estimates.
 }
-

@@ -18,4 +18,3 @@ Stack a list of data.frames or matrices that have the same number of columns
 A rudimentary check is performed to see if the objects in \code{x} have the
          same number of columns. If so, \code{rbind} is used to stack them.
 }
-

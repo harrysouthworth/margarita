@@ -23,4 +23,3 @@ The function decides how many baselines to simulate based on the
        number of simulated values in the \code{param} component of \code{gmod}.
 }
 \keyword{datagen}
-

@@ -34,4 +34,3 @@ The EPG3 model of Papastathopoulos and Tawn is fit across a range of
          thresholds for GPD modelling. The usual diagnostic checks should always be
          performed.
 }
-

@@ -13,4 +13,3 @@ returned. \code{alpha} can have length either 1 or 2.}
 \description{
 Get quantiles representing confidence limits from a given test size.
 }
-

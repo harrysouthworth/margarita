@@ -2,13 +2,16 @@
 % Please edit documentation in R/AICtab.R
 \name{evidence}
 \alias{evidence}
-\title{Get an xtable object that describes change in deviance in terms of
+\title{Get an xtable or kable object that describes change in deviance in terms of
 strength of evidence}
 \usage{
-evidence()
+evidence(kable = FALSE)
+}
+\arguments{
+\item{kable}{Whether to return a kable. Defaults to \code{kable=FALSE} and an
+\code{xtable} object is returned.}
 }
 \description{
-Get an xtable object that describes change in deviance in terms of
+Get an xtable or kable object that describes change in deviance in terms of
 strength of evidence
 }
-

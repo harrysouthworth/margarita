@@ -34,4 +34,3 @@ Simulate expected responses from a robust linear model, accounting for
 uncertainty in the parameter estimates.
 }
 \keyword{datagen}
-

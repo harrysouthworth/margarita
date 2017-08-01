@@ -12,10 +12,9 @@ The normal ranges for some common laboratory variables, as obtained
   from the Merck Manual, January 2015. In each case, 'lln' refers to the lower
   limit of normal and 'uln' to the upper limit of normal.
 }
-\author{
-Harry Southworth
-}
 \references{
 Merck Manual, http://www.merckmanuals.com/professional/appendixes/normal_laboratory_values/blood_tests_normal_values.html#v8508814
 }
-
+\author{
+Harry Southworth
+}

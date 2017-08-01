@@ -5,7 +5,7 @@
 \title{Create an object of class 'margarita'}
 \usage{
 margarita(rlm, evmSim, newdata = NULL, trans = log, invtrans = exp,
-  baseline = "alt.b", minima = FALSE)
+  baseline = "alt.b", arm = "arm", minima = FALSE)
 }
 \arguments{
 \item{rlm}{An object of class 'rlm' returned by \code{lmr}.}
@@ -25,9 +25,15 @@ in the robust regression. Defaults to \code{trans=log}. Use
 
 \item{baseline}{Character string giving the name of the baseline variable.}
 
+\item{arm}{Character string giving the name of the treatment group variable.
+Defaults to \code{arm = "arm"}.}
+
 \item{minima}{Are the extremes minima rather than maxima (i.e. the response
 was multiplied by -1 prior to all modelling). Defaults to
-\code{minima=FALSE}.}
+\code{minima=FALSE}. Note that if you specify \code{minima=TRUE} the
+function will fail and you will be told to multiply by -1 at the very
+start of the analysis, and to then multiply M by -1 in the call to
+this function.}
 }
 \description{
 Create an object of class 'margarita'
@@ -37,4 +43,3 @@ Returns a list with class 'margarita', to be used with
       \code{simulate.margarita}.
 }
 \keyword{models}
-

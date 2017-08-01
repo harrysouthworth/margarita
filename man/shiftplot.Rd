@@ -45,4 +45,3 @@ transformation is to take place.}
 \description{
 Shiftplots using ggplot with optional trellising
 }
-

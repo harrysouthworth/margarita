@@ -2,8 +2,8 @@
 % Please edit documentation in R/simulate.R
 \name{simulate.margarita}
 \alias{simulate.margarita}
-\alias{simulate.margarita.prob}
 \alias{simulate.margarita.rl}
+\alias{simulate.margarita.prob}
 \alias{simulate.margarita.simple}
 \title{Simulate return levels, probabilities of threshold exceedences or response vectors
 from a robust linear model and an extreme value model}
@@ -55,5 +55,13 @@ robust linear model and an extreme value model. The procedure is specific to
 the situation of extreme value modelling of residuals when predictions on
 the scale of the original data are required.
 }
+\details{
+If \code{type="prob"}, the function computes simulated probabilities of
+  breaching thresholds \code{M}. These are posterior probabilities, not expected
+  proportions. The shape of the distribution will often have a mode at 0. If
+  \code{M} is quite low, it might also have a mode at 1. Simple point estimates
+  and intervals for such a distribution do not convey its shape. The \code{summary}
+  function reports the median and quantiles. The median will often be lower
+  than the mean. If you need the expected value, you'll need to do more work.
+}
 \keyword{datagen}
-

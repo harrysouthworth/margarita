@@ -17,4 +17,3 @@ A names list with 2 elements, the first of which, 'tfun' is the
 \description{
 Get a transformation function and its inverse from a character string
 }
-

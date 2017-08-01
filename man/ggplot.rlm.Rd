@@ -18,4 +18,3 @@ which is smaler than the \code{ggplot} default of 30.}
 \description{
 ggplot for rlm results
 }
-

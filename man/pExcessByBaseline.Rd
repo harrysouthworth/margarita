@@ -41,4 +41,3 @@ WARNING: the code has been tested with treatment as a factor and as linear numer
   More complicated structures, such as a combo of a factor and a linear effect are unliekly
   to work. There is a test function. Take a look at it.
 }
-

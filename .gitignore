@@ -1,3 +1,4 @@
+man/*.Rd
 *.bbl
 *.blg
 *.log
@@ -9,3 +10,4 @@
 *.tex
 .Rhistory
 ..roxygen
+.Rproj.user

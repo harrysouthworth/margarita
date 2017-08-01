@@ -15,4 +15,3 @@ or an abbreviation of one of those. Only the first letter is returned.}
 Check an allowed value of the scale argument has been given and reduce it to
 its first letter
 }
-

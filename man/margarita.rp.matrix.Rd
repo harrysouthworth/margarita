@@ -23,4 +23,3 @@ used to transform the data before fitting the original linear model.}
 \description{
 Construct a matrix of thresholds whose rate of exceedance we wish to estimate.
 }
-

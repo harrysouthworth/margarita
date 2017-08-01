@@ -22,4 +22,3 @@ margarita.getProbs(X, par, u, p, r, m)
 \description{
 Get probabilities of threshold exceedance for a genralized Pareto model.
 }
-

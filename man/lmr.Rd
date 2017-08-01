@@ -4,12 +4,18 @@
 \alias{lmr}
 \title{Robust regression using MM-estimation}
 \usage{
-lmr(formula, data, method = "MM", c = 3.443689, maxit = 40, ...)
+lmr(formula, data, weights, psi = psi.bisquare, method = "MM",
+  c = 3.443689, maxit = 40, ...)
 }
 \arguments{
 \item{formula}{A formula describing a linear model.}
 
 \item{data}{An appropriate data frame.}
+
+\item{weights}{Not used. This is only here because \code{ggplot2::geom_smooth}
+appears to require any custom smoother to take the argument.}
+
+\item{psi}{The psi function to use. Defaults to \code{psi=psi.bisquare}.}
 
 \item{method}{The robust fitting method. Defaults to \code{method="MM"}.}
 
@@ -43,7 +49,7 @@ The tuning constant for the bisquare function defaults to
        The value of 3.443689 is 'borrowed' from \code{lmRob} and its support
        functions in the 'robust' package. Rounded values for various Gaussian
        efficiencies appear in Seciton 2.2 of Maronna et al.
-       
+
        Note that \code{rlm} produces an object
        that inherits from \code{lm}, but \code{lmr} does not in order to avoid
        \code{lm} methods being used on it. Also, \code{lmr} attaches the
@@ -55,4 +61,3 @@ Venables, W. N. & Ripley, B. D. (2002) Modern Applied Statistics with S. Fourth 
             Maronna, R. A, Martin, R. D and Yohai, V. J. (2006) Robust Statistics: Theory and Methods, Wiley
 }
 \keyword{models}
-

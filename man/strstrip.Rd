@@ -20,4 +20,3 @@ Strip leading and trailing whitespace from a character string
 Code copied from http://stackoverflow.com/questions/2261079/how-to-trim-leading-and-trailing-whitespace-in-r,
   2014-11-26.
 }
-

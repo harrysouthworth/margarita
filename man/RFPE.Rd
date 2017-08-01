@@ -2,8 +2,8 @@
 % Please edit documentation in R/rfpe.R
 \name{RFPE}
 \alias{RFPE}
-\alias{RFPE.lmRob}
 \alias{RFPE.lmr}
+\alias{RFPE.lmRob}
 \title{Robust final prediction error for a linear model}
 \usage{
 RFPE(x, scale = NULL)
@@ -30,4 +30,3 @@ The definition of robust final prediction error is given in Section 5.12
 \references{
 Maronna, R. A, Martin, R. D and Yohai, V. J. (2006) Robust Statistics: Theory and Methods, Wiley
 }
-

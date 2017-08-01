@@ -33,4 +33,3 @@ The 'five number summary' is the minimum, quartiles and maximum,
          will generally not be the same as the hinges as originally described
          by Tukey.
 }
-
