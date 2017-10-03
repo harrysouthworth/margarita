@@ -57,6 +57,12 @@ lmr <- function(formula, data, weights, psi=psi.bisquare, method="MM", c=3.44368
     res
 }
 
+#' @method predict lmr
+#' @export
+predict.lmr <- function(object, newdata=NULL, interval="conf", level=0.95, ...){
+  suppressWarnings(suppressMessages(stats::predict.lm(object, newdata=newdata, interval=interval, level=level, ...)))
+}
+
 #' QQ-plot for residuals from a model using ggplot2
 #'
 #' @param o A fitted model with a \code{resid} component.
