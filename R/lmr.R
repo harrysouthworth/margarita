@@ -58,7 +58,7 @@ lmr <- function(formula, data, weights, psi=psi.bisquare, method="MM", c=3.44368
 }
 
 #' @method predict lmr
-#' @export
+#' @export predict.lmr
 predict.lmr <- function(object, newdata=NULL, interval="conf", level=0.95, ...){
   suppressWarnings(suppressMessages(stats::predict.lm(object, newdata=newdata, interval=interval, level=level, ...)))
 }
