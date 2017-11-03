@@ -1,4 +1,3 @@
-
 #' Get an xtable or kable object that describes change in deviance in terms of
 #' strength of evidence
 #'
@@ -33,7 +32,7 @@ evidence <- function(kable=FALSE){
 #' @export
 AICtable <- function(x, kable=FALSE, digits=3, label="tab:aic",
                      caption="Comparison of various generalized Pareto models in terms of number of coefficients, log-likelihood, AIC and change in deviance from the null model."){
-    aic <- sapply(x, function(x){ AIC(x) })
+    aic <- sapply(x, function(x){ unname(AIC(x)["AIC"]) })
     ll <- sapply(x, function(x){ x$loglik })
     dev <- as.character(signif(2*(ll - ll[1]), digits))
     dev[1] <- "-"
@@ -49,6 +48,7 @@ AICtable <- function(x, kable=FALSE, digits=3, label="tab:aic",
     fo <- sapply(x, getfo)
 
     res <- cbind(fo, np, signif(ll, digits), signif(aic, digits), dev)
+
     colnames(res) <- c("Model", "\\#Coef.", "Loglik.", "AIC", "$\\Delta$ Dev.")
     # Even if print.xtable is told to ignore rownames, the align argument needs to assume
     # they're there, which is why it appears to have the wrong length.
