@@ -9,7 +9,7 @@
 \title{Produce plots to aid threshold selection for GPD models}
 \usage{
 gpdThresh(x, umin = quantile(x, 0.05), umax = quantile(x, 0.95),
-  nint = 25, which = 1:3, priorParameters = NULL, cov = "observed")
+  nint = 25, which = 1:2, priorParameters = NULL, cov = "observed")
 }
 \arguments{
 \item{x}{A numeric vector.}
@@ -35,8 +35,10 @@ A list of graphical objects created by \code{ggplot}.
 Produce plots to aid threshold selection for GPD models
 }
 \details{
-The only argument is the data, so there is no control over other
-   settings used by \code{mrl}, \code{gpdRangeFit} and their plot functions.
-   If more control is needed, use those functions directly.
+The use of egp3 was experimental. Experience suggests it's better to think
+  carefully about where a sensible threshold might be before using egp3. Note that
+  the dimension of the parameter vector for egp3 is greater than that for gp so
+  that if you use non-NULL prior parameters, the function can't cope. If you really
+  want to use prior parameters, call the functions separately (egp3RangeFit, mrl, gpdRangeFit).
 }
 \keyword{models}
