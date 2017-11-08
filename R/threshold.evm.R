@@ -10,14 +10,16 @@
 #' @param cov How to compute the covariance, passed through to \code{evm}. Defaults to \code{cov='observed'}, but you might want to use \code{cov='numeric'} if the computations are unstable.
 #' @param ... Additional arguments passed to \code{ggplot}.
 #' @return A list of graphical objects created by \code{ggplot}.
-#' @details The only argument is the data, so there is no control over other
-#'    settings used by \code{mrl}, \code{gpdRangeFit} and their plot functions.
-#'    If more control is needed, use those functions directly.
+#' @details The use of egp3 was experimental. Experience suggests it's better to think
+#'   carefully about where a sensible threshold might be before using egp3. Note that
+#'   the dimension of the parameter vector for egp3 is greater than that for gp so
+#'   that if you use non-NULL prior parameters, the function can't cope. If you really
+#'   want to use prior parameters, call the functions separately (egp3RangeFit, mrl, gpdRangeFit).
 #' @keywords models
 #' @export gpdThresh
 gpdThresh <- function(x, umin=quantile(x, .05),
                          umax=quantile(x, .95),
-                         nint=25, which=1:3,
+                         nint=25, which=1:2,
                          priorParameters=NULL, cov="observed"){
   if (class(x) != "numeric"){
     stop(paste("x has class ", class(x), ": should be numeric", sep = ""))
@@ -34,9 +36,14 @@ gpdThresh <- function(x, umin=quantile(x, .05),
     if (2 %in% which)
       p <- c(p, mrl=list(ggplot(mrl(x, nint=length(x)))))
 
-    if (3 %in% which)
+    if (3 %in% which){
+      if (!is.null(priorParameters)){
+        message("egp3 in gpdThresh does not currently support priorParameters: setting to NULL (dimension differs from standard gpd parameters - call egp3RangeFit yourself if it matters)")
+      }
+
       p <- c(p, egp3=list(ggplot(egp3RangeFit(x, umin=umin, umax=umax, nint=nint,
-                                         priorParameters=priorParameters))))
+                                         priorParameters=NULL))))
+    }
 
     oldClass(p) <- 'gpdThresh'
     invisible(p)
