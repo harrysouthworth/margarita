@@ -39,15 +39,17 @@ getCIquantiles <- function(alpha){
 #' @param X An indexing parameter used in a call to \code{sapply} or \code{lapply}.
 #' @param xm The threshold above which we wish to estimated the exceedance rate.
 #' @param u The threshold.
-#' @param phi The log-scale parameter for the GPD model.
-#' @param xi The shape parameter for the GPD model.
+#' @param par Matrix of parameter values.
 #' @param p The rate of threshold exceedance.
 #' @param r The data to which the original model was fit.
-margarita.rp <- function(X, xm, u, phi, xi, p, r) {
+#' @param family The family object.
+#' @param th The threshold used in fitting the model.
+margarita.rp <- function(X, xm, u, par, p, r, family, th) {
   # r are the residuals above the modelling threshold
   xm <- xm[, X]
   ## this correctly handles values above the upper limit
-  res <- p * pgpd(xm, exp(phi), xi, u, lower.tail=FALSE)
+
+  res <- p * (1 - family$prob(xm, par, list(threshold=u)))# pgpd(xm, exp(phi), xi, u, lower.tail=FALSE)
   wh <- u > xm
 
   if (any(wh)){
@@ -71,16 +73,17 @@ margarita.rp <- function(X, xm, u, phi, xi, p, r) {
 #'
 #' Get probabilities of threshold exceedance for a genralized Pareto model.
 #' @param X An index parameter used in a call to \code{sapply} or \code{lapply}.
-#' @param par A numberic vector containin the parameters for the GPD model.
+#' @param par A numeric matrix with 2 columns containing the parameters for the GPD model.
 #' @param u The threshold.
 #' @param p The rate of threshold exceedance.
 #' @param r The original data to which the model was fit.
 #' @param m The threshold above which we wish to estimated the exceedance rate.
-margarita.getProbs <- function(X, par, u, p, r, m) {
+#' @param family The family object used in extreme value modelling.
+#' @param th The threshold used to fit the model.
+margarita.getProbs <- function(X, par, u, p, r, m, family, th) {
     u <- u[[X]]
-    phi <- par[[X]][, 1]
-    xi <- par[[X]][, 2]
-    lapply(1:ncol(m), margarita.rp, u=u, phi=phi, xi=xi, p=p, r=r, xm=m)
+    par <- par[[X]]
+    lapply(1:ncol(m), margarita.rp, u=u, par=par, p=p, r=r, xm=m, family=family, th=th)
 }
 
 #' Construct a matrix of thresholds whose rate of exceedance we wish to estimate.
