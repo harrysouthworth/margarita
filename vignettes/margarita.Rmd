@@ -1,11 +1,7 @@
 ---
 title: "margarita: making texmex more digestible"
-output: rmarkdown::html_vignette
-bibliography: "texmex.bib"
-vignette: >
-  %\VignetteIndexEntry{Using margarita with texmex}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
+output: html_document
+bibliography: texmex.bib
 ---
 
 # Introduction
@@ -97,7 +93,8 @@ Finally, we join the two.
 b.alt <- filter(alt, visit == "Baseline") %>%
   select(usubjid, baseline=aval)
 
-alt <- group_by(alt, usubjid) %>%
+alt <- filter(alt, visit == "Week 6") %>%
+  group_by(usubjid) %>%
   summarize(alt = max(aval, na.rm=TRUE)) %>%
   left_join(b.alt, by="usubjid")
 ```
