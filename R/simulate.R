@@ -117,6 +117,9 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #'        assumed.
 #' @param Mlabels Labels to be used in the output. Defaults to \code{Mlabels=NULL}
 #'        in which case the function guesses at meaningful labels.
+#' @param alpha In the corresponding \code{summary} methods, the levels of alpha
+#'   for posterior interval estimates. Defaults to \code{alpha=c(0.1, 0.5)}
+#'   resulting in 90\% and 50\% interval estimates.
 #' @param ... Other agruments passed to \code{simulate}. Currently unused.
 #' @details If \code{type="prob"}, the function computes simulated probabilities of
 #'   breaching thresholds \code{M}. These are posterior probabilities, not expected
@@ -206,10 +209,13 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
                              d=res, baseline=object$rawBaseline)
 
     r <- resid(object[[1]])
+
     out <- lapply(1:nn, margarita.getProbs, u = u, par=par, m=m,
                   #r=object[[2]]$map$data$y,
                   r = r,
-                  p = object[[2]]$map$rate)
+                  p = object[[2]]$map$rate,
+                  family=object[[2]]$map$family,
+                  th=object[[2]]$map$threshold)
 
     out <- lapply(out, do.call, what="cbind")
     # out is a list. Each element is a matrix with one column for each value of M
