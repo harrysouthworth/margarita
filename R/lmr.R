@@ -120,7 +120,7 @@ ggqqplot <- function(o) {
 #' @param plot. Logical indicating whether to plot. If FALSE, the function
 #'   returns a list of ggplot objects that can be passed to \code{gridExtra::grid.arrange}.
 #' @param ... Additional arguments passed to \code{ggplot}. Currently unused.
-#' @method ggplot rlm
+#' @method ggplot lmr
 #' @importFrom gridExtra grid.arrange
 #' @export
 ggplot.lmr <- function(data=NULL, hist.scale=10, plot.=TRUE, ...){
@@ -172,10 +172,10 @@ ggplot.lmr <- function(data=NULL, hist.scale=10, plot.=TRUE, ...){
 #' @param boxcol The colour of the outline of the boxplots. Defaults to \code{"blue"}.
 #' @param boxfill The fill colour of the boxplots. Defaults to \code{"light blue"}.
 #' @param ... Additional arguments to \code{boxplot}. Not currently used.
-#' @method boxplot rlm
-#' @export boxplot.rlm
+#' @method boxplot lmr
+#' @export boxplot.lmr
 #' @importFrom graphics boxplot
-boxplot.rlm <- function(x, by, jitter.width=.1, box=TRUE, xlab="", ylab="Scaled residuals",
+boxplot.lmr <- function(x, by, jitter.width=.1, box=TRUE, xlab="", ylab="Scaled residuals",
                         main="", size=3, ptcol="orange", boxcol="blue", boxfill="light blue", ...){
     trt <- x$data[, by]
     data <- data.frame(sr = resid(x) / x$s, trt=as.factor(trt))

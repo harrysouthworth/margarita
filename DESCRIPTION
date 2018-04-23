@@ -1,8 +1,8 @@
 Package: margarita
 Type: Package
 Title: Support functions for texmex
-Version: 0.16
-Date: 2017-11-09
+Version: 0.17
+Date: 2018-04-23
 Depends:
     mvtnorm,
     ggplot2,
