@@ -9,6 +9,10 @@
 #' @param psi The psi function to use. Defaults to \code{psi=psi.bisquare}.
 #' @param method The robust fitting method. Defaults to \code{method="MM"}.
 #' @param c Tuning parameter to the MM-algorithm. Defaults to \code{c=3.443689} giving 85\% efficiency for Gaussian data.
+#' @param engine Character string specifying either 'rlm' in which case \code{MASS::rlm} is used,
+#'   or 'lmrob' in which case \code{robustbase::lmrob} is used. In the latter case, a robust
+#'   version of R^2 is provided, but the default output produces p-values based on t-distributions
+#'   that have no theoretical justification. Bootstrapping would be much better.
 #' @param maxit The maximum number of iterations to perform. Defaults to \code{maxit = 40}
 #' @param ... Other arguments to be passed to \code{rlm} (like contrasts)
 #' @return An object of class 'rlm', fit by the function in the MASS package.
@@ -39,23 +43,46 @@
 #' @keywords models
 #' @importFrom MASS rlm
 #' @export lmr
-lmr <- function(formula, data, weights, psi=psi.bisquare, method="MM", c=3.443689, maxit=40, ...){
+lmr <- function(formula, data, weights, psi=psi.bisquare, method="MM", c=3.443689, engine="rlm", maxit=40, ...){
     thecall <- match.call()
 
-    res <- rlm(formula, data, psi=psi, method=method, c=c, maxit=maxit, ...)
-    #res$call$formula <- formula
-    s <- summary(res)
-    res$cov <- s$cov.unscaled * s$sigma^2
-    res$data <- data # used by boxplot.rlm
-    res$c <- c
-    res$call <- thecall
+    if (engine == "rlm") {
+      res <- MASS::rlm(formula, data, psi=psi, method=method, c=c, maxit=maxit, ...)
 
-    res$df.residual <- length(res$residuals) - length(res$coefficients)
-    res$formula <- formula
+      s <- summary(res)
+      res$cov <- s$cov.unscaled * s$sigma^2
+      res$data <- data # used by boxplot.rlm
+      res$c <- c
+      res$call <- thecall
 
-    class(res) <- c("lmr", "rlm") # drop "lm" because it can lead to errors
+      res$df.residual <- length(res$residuals) - length(res$coefficients)
+      res$formula <- formula
+    } else if (engine == "lmrob"){
+      res <- robustbase::lmrob(formula, data, control=robustbase::lmrob.control(tuning.psi = c))
+    } else {
+      stop("engine should be either 'rlm' or 'lmrob'")
+    }
+
+    if (engine == "rlm") {
+      class(res) <- c("lmr", "rlm") # drop "lm" because it can lead to errors
+    } else {
+      class(res) <- c("lmr", "lmrob")
+    }
     res
 }
+
+#' @method summary lmr
+#' @export summary.lmr
+summary.lmr <- function(object, ...){
+  if ("rlm" %in% class(object)){
+    MASS:::summary.rlm(object, ...)
+  } else if ("lmrob" %in% class(object)){
+    robustbase:::summary.lmrob(object, showAlgo=FALSE, ...)
+  } else {
+    stop("the object class should include either 'rlm' or 'lmrob'")
+  }
+}
+
 
 #' @method predict lmr
 #' @export predict.lmr
@@ -90,11 +117,13 @@ ggqqplot <- function(o) {
 #' @param hist.scale A scaleing factor for bin widths in the histogram. The default bin width
 #'        will be \code{range(resid(data))/hist.scale)}. Defaults to \code{hist.scale=10},
 #'        which is smaler than the \code{ggplot} default of 30.
+#' @param plot. Logical indicating whether to plot. If FALSE, the function
+#'   returns a list of ggplot objects that can be passed to \code{gridExtra::grid.arrange}.
 #' @param ... Additional arguments passed to \code{ggplot}. Currently unused.
 #' @method ggplot rlm
 #' @importFrom gridExtra grid.arrange
 #' @export
-ggplot.rlm <- function(data=NULL, hist.scale=10, ...){
+ggplot.lmr <- function(data=NULL, hist.scale=10, plot.=TRUE, ...){
     d <- data.frame(r = resid(data), f=fitted(data), o=resid(data) + fitted(data))
 
     qq <- ggqqplot(data)
@@ -120,7 +149,11 @@ ggplot.rlm <- function(data=NULL, hist.scale=10, ...){
              scale_x_continuous("Fitted values") +
              scale_y_continuous("Observed values")
 
-    grid.arrange(qq, hist, fr, fo)
+    if (plot.){
+      gridExtra::grid.arrange(qq, hist, fr, fo)
+    } else {
+      list(qq, hist, fr, fo)
+    }
 }
 
 #' Boxplots of scaled residuals, by a factor in the model.
