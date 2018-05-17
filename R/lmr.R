@@ -6,7 +6,11 @@
 #' @param data An appropriate data frame.
 #' @param weights Not used. This is only here because \code{ggplot2::geom_smooth}
 #'   appears to require any custom smoother to take the argument.
-#' @param psi The psi function to use. Defaults to \code{psi=psi.bisquare}.
+#' @param psi The psi function to use. The default is to use bisquare weight functions.
+#'   Note that if \code{engine = "rlm"} then psi is set to \code{MASS::psi.bisquare}
+#'   (i.e. a function) and if \code{engine = "lmrob"}, psi is set to \code{"bisqare"}
+#'   (i.e. a character string). See the help files for \code{rlm} and \code{lmrob}
+#'   for further information on available values for psi.
 #' @param method The robust fitting method. Defaults to \code{method="MM"}.
 #' @param c Tuning parameter to the MM-algorithm. Defaults to \code{c=3.443689} giving 85\% efficiency for Gaussian data.
 #' @param engine Character string specifying either 'rlm' in which case \code{MASS::rlm} is used,
@@ -43,10 +47,12 @@
 #' @keywords models
 #' @importFrom MASS rlm
 #' @export lmr
-lmr <- function(formula, data, weights, psi=psi.bisquare, method="MM", c=3.443689, engine="rlm", maxit=40, ...){
+lmr <- function(formula, data, weights, psi=NULL, method="MM", c=3.443689, engine="rlm", maxit=40, ...){
     thecall <- match.call()
 
     if (engine == "rlm") {
+      if (is.null(psi)) psi <- MASS::psi.bisquare
+
       res <- MASS::rlm(formula, data, psi=psi, method=method, c=c, maxit=maxit, ...)
 
       s <- summary(res)
@@ -58,6 +64,8 @@ lmr <- function(formula, data, weights, psi=psi.bisquare, method="MM", c=3.44368
       res$df.residual <- length(res$residuals) - length(res$coefficients)
       res$formula <- formula
     } else if (engine == "lmrob"){
+      psi <- if (is.null(psi)) psi <- "bisquare"
+
       res <- robustbase::lmrob(formula, data, control=robustbase::lmrob.control(tuning.psi = c))
     } else {
       stop("engine should be either 'rlm' or 'lmrob'")
