@@ -3,6 +3,7 @@
 #' @importFrom scales comma
 ggplot.summary.margarita.sim.rl <- function(data=NULL, trans="log10", labels=comma,
                                          xlab="Return level", ylab="", main=NULL,
+                                         xbreaks = waiver(),
                                          ptcol="blue", linecol=c("blue", "blue"),
                                          ptsize=4, linesize=c(.5, 1.5),
                                          ncol=1, as.table=TRUE,
@@ -25,7 +26,7 @@ ggplot.summary.margarita.sim.rl <- function(data=NULL, trans="log10", labels=com
       p <- ggplot(data=data, aes(median, groups)) +
              geom_point(size=ptsize, color=ptcol) +
              facet_wrap(~M, ncol=ncol, as.table=as.table) +
-             scale_x_continuous(xlab, trans=trans, labels=labels) +
+             scale_x_continuous(xlab, trans=trans, labels=labels, breaks=xbreaks) +
              scale_y_discrete(ylab) +
              ggtitle(main) +
              geom_segment(data=seg[[1]], aes(x=lo, xend=hi, y=group, yend=group),
@@ -38,7 +39,7 @@ ggplot.summary.margarita.sim.rl <- function(data=NULL, trans="log10", labels=com
     else{
       p <- ggplot(data=data, aes(median, groups)) +
              geom_point(size=ptsize, color=ptcol) +
-             scale_x_continuous(xlab, trans=trans, labels=labels) +
+             scale_x_continuous(xlab, trans=trans, labels=labels, breaks=xbreaks) +
              scale_y_discrete(ylab) +
              ggtitle(main) +
              geom_segment(data=seg[[1]], aes(x=lo, xend=hi, y=group, yend=group),
