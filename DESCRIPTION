@@ -1,15 +1,16 @@
 Package: margarita
 Type: Package
 Title: Support functions for texmex
-Version: 0.17
-Date: 2018-04-23
+Version: 0.18
+Date: 2018-09-04
 Depends:
     mvtnorm,
     ggplot2,
     texmex,
     gridExtra,
     xtable,
-    scales
+    scales,
+    formattable
 Suggests:
     knitr
 Imports:
@@ -28,4 +29,4 @@ LazyLoad: yes
 LazyData: yes
 URL: https://github.com/harrysouthworth/margarita
 VignetteBuilder: knitr
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0

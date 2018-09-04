@@ -407,6 +407,8 @@ as.data.frame.summary.margarita.sim.prob <- function(x, row.names=NULL, optional
   rn <- rownames(x[[1]])
 
   x <- as.data.frame(do.call("rbind", x))
+  names(x) <- paste0("Q", names(x))
+
   x$Exceedance <- ordered(rownames(x), levels=rn)
   x$groups <- groups
   x <- x[, c(ncol(x)-1, ncol(x), 1:(ncol(x)-2))]

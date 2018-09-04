@@ -105,3 +105,14 @@ ggplot.summary.margarita.sim.prob <- function(data=NULL, ptcol="blue",
              }
     p
 }
+
+#' @method ggplot margarita.sim.prob
+#' @export
+ggplot.margarita.sim.prob <- function(data=NULL, mapping = aes(), ...,
+                                      environment = parent.frame()){
+  stop("No method available. You need to call 'summary' on the simulated margarita object first.")
+}
+
+#' @method ggplot margarita.sim.rl
+#' @export
+ggplot.margarita.sim.rl <- ggplot.margarita.sim.prob
