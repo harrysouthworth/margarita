@@ -412,7 +412,7 @@ as.data.frame.summary.margarita.sim.prob <- function(x, row.names=NULL, optional
   x <- x[, c(ncol(x)-1, ncol(x), 1:(ncol(x)-2))]
   x <- x[order(x$Exceedance), ]
   rownames(x) <- 1:nrow(x)
-  x
+  x[, c(3:ncol(x), 2:1)] # match order for ...sim.rl
 }
 
 #' @method print summary.margarita.sim.prob
