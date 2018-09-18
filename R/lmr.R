@@ -67,6 +67,8 @@ lmr <- function(formula, data, weights, psi=NULL, method="MM", c=3.443689, engin
       psi <- if (is.null(psi)) psi <- "bisquare"
 
       res <- robustbase::lmrob(formula, data, control=robustbase::lmrob.control(tuning.psi = c))
+      res$data <- data
+
     } else {
       stop("engine should be either 'rlm' or 'lmrob'")
     }

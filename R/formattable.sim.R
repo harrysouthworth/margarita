@@ -70,7 +70,7 @@ formattable.summary.margarita.sim.rl <-
     }
   }
 
-#' @method formattable summary.margarita.sim.rl
+#' @method formattable summary.margarita.sim.prob
 #' @export
 formattable.summary.margarita.sim.prob <-
   function(data, digits=2, backgroundColor=NULL, debug=FALSE){
