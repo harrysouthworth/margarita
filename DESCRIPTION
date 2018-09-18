@@ -16,6 +16,7 @@ Suggests:
 Imports:
     MASS,
     utils
+Encoding: UTF-8
 BuildVignettes: FALSE
 Author: Harry Southworth
 Maintainer: Harry Southworth <harry.southworth@gmail.com>
