@@ -16,8 +16,8 @@
 #' @aliases RFPE.lmr RFPE.lmRob
 #' @export RFPE
 RFPE <- function(x, scale){
-  if (missing(scale)){
-    stop("scale must be provided - see the Details section fo the help file for why")
+  if (missing(scale) | is.null(scale) | !is.numeric(scale)){
+    stop("scale estimate must be provided - see the Details section fo the help file for why")
   }
   UseMethod("RFPE", x)
 }
