@@ -7,6 +7,7 @@ shadesOfGrey <- shadesOfGray <-
 
 #' Create an HTML table for outputing via Rmd.
 #' @aliases formattable.summary.margarita.sim.prob
+#' @importFrom formattable formattable
 #' @param data The output of \code{summary.margarita.sim.rl}.
 #' @param digits The number of digits to round numbers to. Defaults to
 #'   \code{digits=2}.

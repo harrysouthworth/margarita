@@ -4,7 +4,7 @@
 #' @param kable Whether to return a kable. Defaults to \code{kable=FALSE} and an
 #' \code{xtable} object is returned.
 #'
-#' @import xtable
+#' @importFrom xtable xtable
 #' @export evidence
 evidence <- function(kable=FALSE){
     dev <- cbind(c("< 2", "2 -- 6", "6 -- 10", "> 10"),
