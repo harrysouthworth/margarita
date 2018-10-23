@@ -1,12 +1,17 @@
 #' Robust final prediction error for a linear model
-#' @param x A robust linear model, fit by \code{lmr}.
-#' @param scale The value of the scale to use. No default is available. See details.
-#' @return A number representing the robust final prediction error.
+#' @param x A robust linear model, fit by \code{margarita::lmr} or
+#'   \code{robust::lmRob} or \code{robustbase::lmrob}, or a list containing
+#'   multiple such models.
+#' @param scale The value of the scale to use. If \code{x} is a list and \code{scale}
+#'   is not provided by the user, the function takes the scale estimate to be the
+#'   one associated with the largest model. Otherwise, no default is available. See details.
+#' @return A number representing the robust final prediction error or, if \code{x}
+#'   is a list, a \code{data.frame} giving the final prediction error and other
+#'   details.
 #' @details The definition of robust final prediction error is given in Section 5.12
 #'     of Maronna et al. The function is generic, but so far only methods for objects
-#'     fit by \code{lmr} and \code{lmRob} have been implemented (the latter purely for
-#'     testing). It would be straightforward to implement
-#'     for objects returned by \code{rlm} or \code{lmrob}, for example. Only bisquare
+#'     fit by \code{lmr}, \code{lmrob}, \code{lmRob} and for a list of such
+#'     models have been implemented. Only bisquare
 #'     weight functions are considered. \strong{Note that} the purpose of RFPE
 #'     is to \emph{compare} models -- for a single model, it's not very meaningful.
 #'     To allow a valid comparison, the calculation must use the same scale
@@ -16,19 +21,21 @@
 #' @aliases RFPE.lmr RFPE.lmRob
 #' @export RFPE
 RFPE <- function(x, scale){
-  if (missing(scale) | is.null(scale) | !is.numeric(scale)){
-    stop("scale estimate must be provided - see the Details section fo the help file for why")
-  }
   UseMethod("RFPE", x)
 }
 
 #' @export
 RFPE.lmr <- function (x, scale){
-  if (is.null(scale)) scale <- x$s
   r <- resid(x) / scale
   if (any(is.na(r))) stop("missing values are not allowed")
 
-  c <- x$c
+  if (class(x)[1] == "lmr"){
+    c <- x$c
+  } else if (class(x) == "lmrob"){
+    c <- x$control$tuning.psi
+  } else if (class(x) == "lmRob"){
+    c <- x$yc
+  }
 
   a <- mean(bisquare(r, c=c, d=0))
   A <- mean(bisquare(r, c=c, d=1)^2)
@@ -42,11 +49,73 @@ RFPE.lmr <- function (x, scale){
 }
 
 #' @export
+RFPE.lmrob <- function(x, scale){
+  if (x$control$psi != "bisquare"){
+    stop("Only bisquare weight functions are implemented")
+  }
+
+  RFPE.lmr(x, scale)
+}
+
+#' @export
 RFPE.lmRob <- function(x, scale){
-  if (is.null(scale)) scale <- x$scale
+  if (unique(x$robust.control$weight) != "bisquare"){
+    stop("Only bisquare weight functions are implemented")
+  }
+
   x$s <- scale
   x$c <- x$yc
   RFPE.lmr(x, scale)
+}
+
+
+#' @export
+RFPE.list <- function(x, scale){
+  # Check response vectors are all the same
+  y <- lapply(x, function(X){
+    X$residuals + X$fitted.values
+  })
+  tt <- sapply(y[2:length(y)], FUN = all.equal, y[[1]])
+
+  if (class(tt) == "character"){
+    stop("The models in x don't all have the same response vector")
+  }
+
+  if (is.null(names(x))){
+    names(x) <- 1:length(x)
+  }
+
+  # Reverse order the models by rank
+  rank <- sapply(x, function(X) X$rank)
+  x <- x[rev(order(rank))]
+
+  if (missing(scale)){
+    if (class(x[[1]])[1] == "lmr"){
+      scale <- x[[1]]$s
+    } else {
+      scale <- x[[1]]$scale
+    }
+  }
+
+  # Check if maximal model is bigger than all others
+  srank <- rev(sort(rank))
+  if (rank[1] == rank[2]){
+    message(paste("More than one model with maximum rank. Using scale =", scale))
+  }
+
+  rfpe <- sapply(x, RFPE.lmr, scale = scale)
+
+  res <- data.frame(Model = names(x), Rank=rank[rev(order(rank))],
+                    formula = as.character(sapply(x, function(X) X$call$formula)),
+                    RFPE = rfpe, `Rel. RFPE` = rfpe / min(rfpe),
+                    stringsAsFactors=FALSE, check.names=FALSE)
+  res <- res[order(rfpe), ]
+
+  attr(res, "scale") <- scale
+
+  rownames(res) <- 1:nrow(res)
+
+  res
 }
 
 #' Bisquare weight function and its derivatives

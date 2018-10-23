@@ -7,7 +7,7 @@ drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, cores=NULL
   if (target == "RFPE") target <- RFPE.lmr
   else if (target == "AIC") target <- function(x) AIC.lmr(x, k=aick)
   else stop("available targets are 'RFPE' and 'AIC'")
-  
+
   if (is.null(scale)) scale <- object$s
   x <- model.matrix.lm(object)
   asgn <- attr(x, "assign")
@@ -18,7 +18,7 @@ drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, cores=NULL
   if (missing(scope))
     scope <- drop.scope(object)
   else {
-    if (!is.character(scope)) 
+    if (!is.character(scope))
       scope <- attr(terms(update.formula(object, scope)), "term.labels")
     if (!all(match(scope, term.labels, FALSE)))
       stop("scope is not a subset of term labels")
@@ -38,7 +38,7 @@ drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, cores=NULL
 
   scope <- c("<none>", scope)
   dfs <- c(0, dfs)
-  res <- c(target(object), res) # <------------------------------------------------------------------
+  res <- c(target(object, scale), res) # <------------------------------------------------------------------
   dfs[1] <- NA
   aod <- data.frame(Df = dfs, res = res, row.names = scope, check.names = FALSE)
   names(aod)[2] <- tnm
@@ -53,7 +53,7 @@ drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, cores=NULL
 #' @param object An object fit by \code{lmr}.
 #' @param scope The lowest model to consider.
 #' @param target Character string giving the method for selecting models. Defaults to "RFPE",
-#'   the only current alternative being "AIC". 
+#'   the only current alternative being "AIC".
 #' @param direction What direction to take steps in. Only "backwards" is implemented.
 #' @param trace Whether or not to report progress. Defaults to \code{trace=TRUE}.
 #' @param steps The maximum number of steps to take.
@@ -68,22 +68,22 @@ drop1.lmr <- function (object, scope, scale=NULL, target="RFPE", k=2, cores=NULL
 #' @export step.lmr
 step.lmr <- function (object, scope, target="RFPE", direction = "backward", trace = TRUE, steps = 1000, k=2, cores=NULL, ...){
   if (missing(direction)) direction <- "backward"
-  if (direction != "backward") 
+  if (direction != "backward")
     stop("Presently step.lmr only supports backward model selection.")
 
   tnm <- target
   if (target == "RFPE") target <- RFPE.lmr
   else if (target == "AIC") target <- AIC.lmr
   else stop("target should be either 'RFPE' or 'AIC'")
-  
+
   make.step <- function(models, fit, tnm, object) {
     change <- sapply(models, "[[", "change")
     rdf <- sapply(models, "[[", "df.resid")
     ddf <- c(NA, diff(rdf))
     RES <- sapply(models, "[[", "tnm")
-    heading <- c("Stepwise Model Path \nAnalysis of Deviance Table", 
-                 "\nInitial Model:", deparse(as.vector(formula(object))), 
-                 "\nFinal Model:", deparse(as.vector(formula(fit))), 
+    heading <- c("Stepwise Model Path \nAnalysis of Deviance Table",
+                 "\nInitial Model:", deparse(as.vector(formula(object))),
+                 "\nFinal Model:", deparse(as.vector(formula(fit))),
                  "\n")
     aod <- data.frame(Step = change, Df = ddf, `Resid. Df` = rdf, RES = RES, check.names=FALSE)
     names(aod)[4] <- tnm
@@ -99,14 +99,14 @@ step.lmr <- function (object, scope, target="RFPE", direction = "backward", trac
   }
   else {
     if (is.list(scope)) {
-      fdrop <- if (!is.null(fdrop <- scope$lower)) 
+      fdrop <- if (!is.null(fdrop <- scope$lower))
         attr(terms(update.formula(object, fdrop)), "factor")
       else numeric(0)
-      fadd <- if (!is.null(fadd <- scope$upper)) 
+      fadd <- if (!is.null(fadd <- scope$upper))
         attr(terms(update.formula(object, fadd)), "factor")
     }
     else {
-      fadd <- if (!is.null(fadd <- scope)) 
+      fadd <- if (!is.null(fadd <- scope))
         attr(terms(update.formula(object, scope)), "factor")
       fdrop <- numeric(0)
     }
@@ -130,14 +130,14 @@ step.lmr <- function (object, scope, target="RFPE", direction = "backward", trac
   n <- length(object$fitted)
   scale <- object$s
   fit <- object
-  bRES <- target(fit)
+  bRES <- target(fit, scale)
   nm <- 1
   Terms <- fit$terms
-  if (trace) 
+  if (trace)
     cat("Start:  RFPE=", format(round(bRES, 4)), "\n", deparse(as.vector(formula(fit))), "\n\n")
   models[[nm]] <- list(df.resid = fit$df.residual, change = "", tnm = bRES)
   RES <- bRES + 1
-  
+
   while (bRES < RES & steps > 0) {
     steps <- steps - 1
     RES <- bRES
