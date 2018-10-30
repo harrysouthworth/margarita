@@ -8,8 +8,8 @@
 \title{Simulate return levels, probabilities of threshold exceedences or response vectors
 from a robust linear model and an extreme value model}
 \usage{
-\method{simulate}{margarita}(object, nsim = 1, seed = NULL, type = "rl",
-  M = NULL, scale = "raw", Mlabels = NULL, ...)
+\method{simulate}{margarita}(object, nsim = 1, seed = NULL,
+  type = "rl", M = NULL, scale = "raw", Mlabels = NULL, ...)
 }
 \arguments{
 \item{object}{An object of class 'margarita'}
@@ -48,6 +48,10 @@ assumed.}
 in which case the function guesses at meaningful labels.}
 
 \item{...}{Other agruments passed to \code{simulate}. Currently unused.}
+
+\item{alpha}{In the corresponding \code{summary} methods, the levels of alpha
+for posterior interval estimates. Defaults to \code{alpha=c(0.1, 0.5)}
+resulting in 90\% and 50\% interval estimates.}
 }
 \description{
 Simulate return levels and probabilities of threshold exceedences from a

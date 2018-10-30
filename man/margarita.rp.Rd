@@ -4,7 +4,7 @@
 \alias{margarita.rp}
 \title{Return period for GPD}
 \usage{
-margarita.rp(X, xm, u, phi, xi, p, r)
+margarita.rp(X, xm, u, par, p, r, family, th)
 }
 \arguments{
 \item{X}{An indexing parameter used in a call to \code{sapply} or \code{lapply}.}
@@ -13,13 +13,15 @@ margarita.rp(X, xm, u, phi, xi, p, r)
 
 \item{u}{The threshold.}
 
-\item{phi}{The log-scale parameter for the GPD model.}
-
-\item{xi}{The shape parameter for the GPD model.}
+\item{par}{Matrix of parameter values.}
 
 \item{p}{The rate of threshold exceedance.}
 
 \item{r}{The data to which the original model was fit.}
+
+\item{family}{The family object.}
+
+\item{th}{The threshold used in fitting the model.}
 }
 \description{
 Compute the return period for a generalized Pareto distribution

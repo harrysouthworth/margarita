@@ -6,15 +6,21 @@
 \alias{RFPE.lmRob}
 \title{Robust final prediction error for a linear model}
 \usage{
-RFPE(x, scale = NULL)
+RFPE(x, scale)
 }
 \arguments{
-\item{x}{A robust linear model, fit by \code{lmr}.}
+\item{x}{A robust linear model, fit by \code{margarita::lmr} or
+\code{robust::lmRob} or \code{robustbase::lmrob}, or a list containing
+multiple such models.}
 
-\item{scale}{The value of the scale to use. Defaults to \code{scale=NULL} and is take from \code{x}.}
+\item{scale}{The value of the scale to use. If \code{x} is a list and \code{scale}
+is not provided by the user, the function takes the scale estimate to be the
+one associated with the largest model. Otherwise, no default is available. See details.}
 }
 \value{
-A number representing the robust final prediction error.
+A number representing the robust final prediction error or, if \code{x}
+  is a list, a \code{data.frame} giving the final prediction error and other
+  details.
 }
 \description{
 Robust final prediction error for a linear model
@@ -22,10 +28,13 @@ Robust final prediction error for a linear model
 \details{
 The definition of robust final prediction error is given in Section 5.12
     of Maronna et al. The function is generic, but so far only methods for objects
-    fit by \code{lmr} and \code{lmRob} have been implemented (the latter purely for
-    testing). It would be straightforward to implement
-    for objects returned by \code{rlm} or \code{lmrob}, for example. Only bisquare
-    weight functions are considered.
+    fit by \code{lmr}, \code{lmrob}, \code{lmRob} and for a list of such
+    models have been implemented. Only bisquare
+    weight functions are considered. \strong{Note that} the purpose of RFPE
+    is to \emph{compare} models -- for a single model, it's not very meaningful.
+    To allow a valid comparison, the calculation must use the same scale
+    estimate, usually the one taken from the largest model. For this reason,
+    no default scale argument is provided, forcing the user to specify a value.
 }
 \references{
 Maronna, R. A, Martin, R. D and Yohai, V. J. (2006) Robust Statistics: Theory and Methods, Wiley

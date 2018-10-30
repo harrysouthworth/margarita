@@ -4,8 +4,8 @@
 \alias{lmr}
 \title{Robust regression using MM-estimation}
 \usage{
-lmr(formula, data, weights, psi = psi.bisquare, method = "MM",
-  c = 3.443689, maxit = 40, ...)
+lmr(formula, data, weights, psi = NULL, method = "MM", c = 3.443689,
+  engine = "rlm", maxit = 40, ...)
 }
 \arguments{
 \item{formula}{A formula describing a linear model.}
@@ -15,11 +15,20 @@ lmr(formula, data, weights, psi = psi.bisquare, method = "MM",
 \item{weights}{Not used. This is only here because \code{ggplot2::geom_smooth}
 appears to require any custom smoother to take the argument.}
 
-\item{psi}{The psi function to use. Defaults to \code{psi=psi.bisquare}.}
+\item{psi}{The psi function to use. The default is to use bisquare weight functions.
+Note that if \code{engine = "rlm"} then psi is set to \code{MASS::psi.bisquare}
+(i.e. a function) and if \code{engine = "lmrob"}, psi is set to \code{"bisqare"}
+(i.e. a character string). See the help files for \code{rlm} and \code{lmrob}
+for further information on available values for psi.}
 
 \item{method}{The robust fitting method. Defaults to \code{method="MM"}.}
 
 \item{c}{Tuning parameter to the MM-algorithm. Defaults to \code{c=3.443689} giving 85\% efficiency for Gaussian data.}
+
+\item{engine}{Character string specifying either 'rlm' in which case \code{MASS::rlm} is used,
+or 'lmrob' in which case \code{robustbase::lmrob} is used. In the latter case, a robust
+version of R^2 is provided, but the default output produces p-values based on t-distributions
+that have no theoretical justification. Bootstrapping would be much better.}
 
 \item{maxit}{The maximum number of iterations to perform. Defaults to \code{maxit = 40}}
 

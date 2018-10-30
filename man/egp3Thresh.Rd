@@ -5,8 +5,9 @@
 \title{Do a test to suggest two possible thresholds above which generalized Pareto modelling can be performed
 The test is written in the context of modelling residual variation in clinical lab safety data and is unlikely to make sense outside of that context}
 \usage{
-egp3Thresh(data, umin = quantile(data, 0.5), umax = quantile(data, 0.75),
-  nint = 20, penalty = "gaussian", priorParameters = NULL, alpha = 0.05)
+egp3Thresh(data, umin = quantile(data, 0.5), umax = quantile(data,
+  0.75), nint = 20, penalty = "gaussian", priorParameters = NULL,
+  alpha = 0.05)
 }
 \arguments{
 \item{data}{A vector of value to use, typically residuals from a robust linear model having eliminated the baselne effect and possible a treatment effect}

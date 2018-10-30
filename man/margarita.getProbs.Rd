@@ -4,12 +4,12 @@
 \alias{margarita.getProbs}
 \title{Get probabilities of threshold exceedance for a GPD model.}
 \usage{
-margarita.getProbs(X, par, u, p, r, m)
+margarita.getProbs(X, par, u, p, r, m, family, th)
 }
 \arguments{
 \item{X}{An index parameter used in a call to \code{sapply} or \code{lapply}.}
 
-\item{par}{A numberic vector containin the parameters for the GPD model.}
+\item{par}{A numeric matrix with 2 columns containing the parameters for the GPD model.}
 
 \item{u}{The threshold.}
 
@@ -18,6 +18,10 @@ margarita.getProbs(X, par, u, p, r, m)
 \item{r}{The original data to which the model was fit.}
 
 \item{m}{The threshold above which we wish to estimated the exceedance rate.}
+
+\item{family}{The family object used in extreme value modelling.}
+
+\item{th}{The threshold used to fit the model.}
 }
 \description{
 Get probabilities of threshold exceedance for a genralized Pareto model.
