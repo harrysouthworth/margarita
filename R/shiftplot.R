@@ -23,7 +23,7 @@ shiftplot <- function(data, aes, by=NULL, ncol=NULL, trans="identity",
                       xlab="Baseline", ylab="Maximum", main=NULL,
                       jitter.amount=0, alpha=1, shape=16,
                       ptcol="blue", linecol="orange", theme=NULL, ...){
-  d <- data[, c(as.character(aes$x)[2], as.character(aes$y)[2])]
+  d <- data[, c(as_label(aes$x), as_label(aes$y))]
   limits <- range(d, na.rm=TRUE) + c(-jitter.amount, jitter.amount)
 
   ppts <-

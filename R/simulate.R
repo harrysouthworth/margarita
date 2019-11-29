@@ -279,9 +279,7 @@ function(x, row.names=NULL, optional=FALSE, ...){
 
   M <- rep(names(x), each=nrow(x[[1]]))
   x <- do.call("rbind", x)
-  cat("sick\n")
   x <- as.data.frame(x)
-  cat("scratch\n")
   x$M <- M
   x
 }
@@ -371,60 +369,108 @@ print.margarita.sim.prob <- function(x, ...){
 #' @export
 head.margarita.sim.prob <- function(x, ...){
     x <- unclass(x)
+    x$n <- x$scale <- NULL
     lapply(x, head)
+}
+
+#' @method as.data.frame margarita.sim.prob
+#' @export
+as.data.frame.margarita.sim.prob <- function(x, row.names = NULL, optional = FALSE, ...){
+  x$n <- x$scale <- NULL
+  
+  as.data.frame.margarita.sim.rl(x)
 }
 
 #' @method summary margarita.sim.prob
 #' @export
-summary.margarita.sim.prob <- function(object, alpha=c(.1, .5), ...){
+summary.margarita.sim.prob <- function(object, method = "subjects", studies = 1000, alpha=c(.1, .5), ...){
     n <- object$n
     scale <- object$scale
     object$scale <- object$n <- NULL
 
     object <- unclass(object)
 
-    qu <- getCIquantiles(alpha)
+    if (method == "subjects"){
+      qu <- getCIquantiles(alpha)
+      
+      nsim <- nrow(object[[1]])
+      
+      res <- lapply(object, function(X) t(apply(X, 2, quantile, prob=qu)))
+      
+      names(res) <- names(object)
+      
+      oldClass(res) <- "summary.margarita.sim.prob"
+    } else if (method == "studies"){
+      sampfun <- function(){
+        o <- lapply(1:length(object), function(X){
+          d <- object[[X]][sample(1:nrow(object[[X]]), size = n[X]), , drop = FALSE]
+  #browser()
+          colMeans(d)
+        })
+  
+        do.call("rbind", o)
+      }
+      
+      res <- replicate(studies, sampfun())
+      
+      groups <- rep(names(object), dim(res)[2])
+      M <- rep(colnames(res[,, 1]), each = dim(res)[1])
+      
+      qu <- getCIquantiles(alpha)
+      qu <- as.data.frame(t(as.data.frame(apply(res, 1:2, quantile, qu))))
+      names(qu) <- paste0("Q", names(qu))
+      
+      m <- c(apply(res, 1:2, mean))
 
-    nsim <- nrow(object[[1]])
+      res <- data.frame(M = M, groups = groups, Mean = m, qu,
+                        check.names = FALSE)
 
-    res <- lapply(object, function(X) t(apply(X, 2, quantile, prob=qu)))
-
-    names(res) <- names(object)
-
+    } else {
+      stop("method should be either 'subjects' or 'studies'")
+    }
+    
     oldClass(res) <- "summary.margarita.sim.prob"
+    
     res
 }
 
 #' @method as.data.frame summary.margarita.sim.prob
 #' @export
-
 as.data.frame.summary.margarita.sim.prob <- function(x, row.names=NULL, optional=FALSE, ...){
-  groups <- names(x)
-  x <- unclass(x)
-  ng <- nrow(x[[1]])
-  groups <- rep(groups, each=ng)
-
-  rn <- rownames(x[[1]])
-
-  x <- as.data.frame(do.call("rbind", x))
-  names(x) <- paste0("Q", names(x))
-
-  x$Exceedance <- ordered(rownames(x), levels=rn)
-  x$groups <- groups
-  x <- x[, c(ncol(x)-1, ncol(x), 1:(ncol(x)-2))]
-  x <- x[order(x$Exceedance), ]
-  rownames(x) <- 1:nrow(x)
-  x[, c(3:ncol(x), 2:1)] # match order for ...sim.rl
+  as.data.frame(unclass(x), check.names = FALSE)
+  
+  if (FALSE){
+    groups <- names(x)
+    x <- unclass(x)
+    ng <- nrow(x[[1]])
+    groups <- rep(groups, each=ng)
+    
+    rn <- rownames(x[[1]])
+    
+    x <- as.data.frame(do.call("rbind", x))
+    names(x) <- paste0("Q", names(x))
+    
+    x$Exceedance <- ordered(rownames(x), levels=rn)
+    x$groups <- groups
+    x <- x[, c(ncol(x)-1, ncol(x), 1:(ncol(x)-2))]
+    x <- x[order(x$Exceedance), ]
+    rownames(x) <- 1:nrow(x)
+    x[, c(3:ncol(x), 2:1)] # match order for ...sim.rl
+  }
 }
 
 #' @method print summary.margarita.sim.prob
 #' @export
 print.summary.margarita.sim.prob <- function(x, ...){
+  if (class(unclass(x)) == "list"){
     n <- names(x)
     for (i in seq_along(x)) {
         cat(n[[i]], "\n")
         print(x[[i]])
         cat("\n")
     }
+  } else {
+    
+  }
     invisible()
 }

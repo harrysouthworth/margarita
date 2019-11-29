@@ -1,8 +1,8 @@
 Package: margarita
 Type: Package
 Title: Support functions for texmex
-Version: 0.19
-Date: 2018-10-30
+Version: 0.20
+Date: 2019-11-29
 Depends:
     mvtnorm,
     ggplot2,
@@ -30,4 +30,4 @@ LazyLoad: yes
 LazyData: yes
 URL: https://github.com/harrysouthworth/margarita
 VignetteBuilder: knitr
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1

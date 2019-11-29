@@ -43,7 +43,7 @@ AICtable <- function(x, kable=FALSE, digits=3, label="tab:aic",
         fo <- lapply(fo, function(x) unlist(strsplit(as.character(x)[2], " + ", fixed=TRUE)))
         fo <- sapply(fo, function(x) paste0("f(", paste(x, collapse=", "), ")"))
         fo <- paste0("$", paste(paste0("\\", names(fo), "=", fo), collapse=", "), "$")
-        fo
+        gsub("`", "", fo)
     }
     fo <- sapply(x, getfo)
 
