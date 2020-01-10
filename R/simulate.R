@@ -401,10 +401,11 @@ summary.margarita.sim.prob <- function(object, method = "subjects", studies = 10
       
       oldClass(res) <- "summary.margarita.sim.prob"
     } else if (method == "studies"){
+      warning("method 'studies' is highly experimental. Check results against simple summaries of observed ULN breaches")
       sampfun <- function(){
         o <- lapply(1:length(object), function(X){
           d <- object[[X]][sample(1:nrow(object[[X]]), size = n[X]), , drop = FALSE]
-  #browser()
+
           colMeans(d)
         })
   
@@ -437,26 +438,23 @@ summary.margarita.sim.prob <- function(object, method = "subjects", studies = 10
 #' @method as.data.frame summary.margarita.sim.prob
 #' @export
 as.data.frame.summary.margarita.sim.prob <- function(x, row.names=NULL, optional=FALSE, ...){
-  as.data.frame(unclass(x), check.names = FALSE)
-  
-  if (FALSE){
-    groups <- names(x)
-    x <- unclass(x)
-    ng <- nrow(x[[1]])
-    groups <- rep(groups, each=ng)
-    
-    rn <- rownames(x[[1]])
-    
-    x <- as.data.frame(do.call("rbind", x))
-    names(x) <- paste0("Q", names(x))
-    
-    x$Exceedance <- ordered(rownames(x), levels=rn)
-    x$groups <- groups
-    x <- x[, c(ncol(x)-1, ncol(x), 1:(ncol(x)-2))]
-    x <- x[order(x$Exceedance), ]
-    rownames(x) <- 1:nrow(x)
-    x[, c(3:ncol(x), 2:1)] # match order for ...sim.rl
-  }
+  groups <- names(x)
+  x <- unclass(x)
+  ng <- nrow(x[[1]])
+  groups <- rep(groups, each=ng)
+
+  rn <- rownames(x[[1]])
+
+  x <- as.data.frame(do.call("rbind", x), check.names=FALSE)
+  names(x) <- paste0("Q", names(x))
+
+  x$Exceedance <- ordered(rep(rn, length(unique(groups))), levels=rn)
+
+  x$groups <- groups
+  x <- x[, c(ncol(x)-1, ncol(x), 1:(ncol(x)-2))]
+  x <- x[order(x$Exceedance), ]
+  rownames(x) <- 1:nrow(x)
+  x
 }
 
 #' @method print summary.margarita.sim.prob
