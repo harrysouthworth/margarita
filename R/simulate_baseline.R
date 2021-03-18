@@ -40,7 +40,7 @@ simulate.margarita.baseline.rl <- function(object, M, nsim = 1, seed = NULL, gri
   itrans <- object$invtrans
 
 
-  out <- getLMrange(rlm, baseline = baseline, trans = trans)
+  out <- getLMrange(object, n = grid.n)
 
   p <- predict(evmSim, M = M, ci.fit = TRUE, alpha = alpha)$obj
   nms <- gsub("%", "", paste0("Q", colnames(p[[1]])))
@@ -66,7 +66,8 @@ simulate.margarita.baseline.rl <- function(object, M, nsim = 1, seed = NULL, gri
     mutate(M = factor(M, levels = unique(M)))
 }
 
-simulate.margarita.baseline.prob <- function(object, nsim = 1, seed = NULL, M, ...){
+simulate.margarita.baseline.prob <- function(object, nsim = 1, seed = NULL, M,
+                                             Mlabels = NULL, grid.n = 25, ...){
 
   rlm <- object[[1]]
   evmSim <- object[[2]]
@@ -74,12 +75,17 @@ simulate.margarita.baseline.prob <- function(object, nsim = 1, seed = NULL, M, .
   trans <- object$trans
   itrans <- object$invtrans
   alpha <- object$alpha
+  newdata <- object$newdata
+
+  if (is.null(Mlabels)){
+    Mlabels <- paste0(M / min(M), "xULN")
+  }
 
   alpha <- sort(c(alpha / 2, .5, 1 - alpha / 2))
   family <- evmSim$map$family
   thresholds <- trans(M)
 
-  d <- getLMrange(rlm, baseline = baseline)
+  d <- getLMrange(object, n = grid.n)
   par <- predict(evmSim, type = "lp", all = TRUE)$obj$link[[1]]
 
   rate <- evmSim$map$rate
@@ -109,7 +115,6 @@ simulate.margarita.baseline.prob <- function(object, nsim = 1, seed = NULL, M, .
     res
   }
 
-
   sumfun <- function(x){
     res <- c(mean(x), quantile(x, probs = alpha))
     names(res) <- c("Mean", paste0("Q", 100 * alpha))
@@ -129,11 +134,19 @@ simulate.margarita.baseline.prob <- function(object, nsim = 1, seed = NULL, M, .
   out <-  lapply(out, function(X){
     apply(X, 2, sumfun) %>% t() %>%
       as.data.frame() %>%
-      mutate(threshold = paste0(multiples, "×ULN"),
-             threshold = factor(threshold, levels = threshold))
+      mutate(threshold = Mlabels,
+             threshold = factor(threshold, levels = Mlabels))
   }) %>% bind_rows() %>%
     mutate(baseline = rep(d[, baseline], each = length(thresholds)),
-           tooltip = paste0("Baseline: ", round(baseline, 2), "\nP(>threshold): ", round(Q50, 3)))
+           ..group.. = rep(newdata[, 1], length.out = n()))
+
+  names(out)[names(out) == "..group.."] <- object$arm
 
   invisible(out)
+}
+
+#' @method as.data.frame margarita.sim.baseline.prob
+#' @export
+as.data.frame.margarita.sim.baseline.prob <- function(x, row.names = NULL, optional = FALSE, ...){
+  as.data.frame(unclass(x))
 }

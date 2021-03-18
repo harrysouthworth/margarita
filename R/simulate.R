@@ -157,6 +157,7 @@ simulate.margarita <- function(object, nsim=1, seed=NULL,
     attr(res, "baseline") <- object$rawBaseline
     attr(res, "trans") <- object$trans
     attr(res, "invtrans") <- object$invtrans
+    attr(res, "alpha") <- object$alpha
 
     if (type %in% c("rl", "return", "return level")){
       oldClass(res) <- "margarita.sim.rl"
@@ -221,7 +222,7 @@ simulate.margarita.prob <- function(object, nsim = 1, seed = NULL, M = NULL,
     # Get matrix of M. Do it this way so that we can treat M as a multiple of baseline
     m <- margarita.rp.matrix(M, scale=scale, trans=object$trans,
                              d=res, baseline=object$rawBaseline)
-    
+
     r <- resid(object[[1]])
 
     out <- lapply(1:nn, margarita.getProbs, u = u, par=par, m=m,
@@ -270,7 +271,7 @@ simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
   # Replace threshold breaches with simulated values
   r[r > th] <- ru
   r[r <= th] <- sample(r[r <= th], size = length(r[r <= th]), replace = TRUE)
-  
+
   res <- rep(fitted(object[[1]]), nsim) + r
   # Transform to original scale and drop attributes by coercing to vector
   res <- as.vector(object$invtrans(res))
@@ -313,7 +314,7 @@ function(x, ...){
 #' @method summary margarita.sim.rl
 #' @export
 summary.margarita.sim.rl <- function(object, scale="raw", ...){
-    alpha <- object$alpha
+    alpha <- attr(object, "alpha")
     baseline <- attr(object, "baseline")
     invtrans <- attr(object, "invtrans")
     scale <- margaritaScale(scale)
@@ -388,14 +389,14 @@ head.margarita.sim.prob <- function(x, ...){
 #' @export
 as.data.frame.margarita.sim.prob <- function(x, row.names = NULL, optional = FALSE, ...){
   x$n <- x$scale <- NULL
-  
+
   as.data.frame.margarita.sim.rl(x)
 }
 
 #' @method summary margarita.sim.prob
 #' @export
 summary.margarita.sim.prob <- function(object, method = "subjects", studies = 1000, ...){
-    alpha <- object$alpha
+    alpha <- attr(object, "alpha")
     n <- object$n
     scale <- object$scale
     object$scale <- object$n <- NULL
@@ -404,13 +405,13 @@ summary.margarita.sim.prob <- function(object, method = "subjects", studies = 10
 
     if (method == "subjects"){
       qu <- getCIquantiles(alpha)
-      
+
       nsim <- nrow(object[[1]])
-      
+
       res <- lapply(object, function(X) t(apply(X, 2, quantile, prob=qu)))
-      
+
       names(res) <- names(object)
-      
+
       oldClass(res) <- "summary.margarita.sim.prob"
     } else if (method == "studies"){
       warning("method 'studies' is highly experimental. Check results against simple summaries of observed ULN breaches")
@@ -421,20 +422,20 @@ summary.margarita.sim.prob <- function(object, method = "subjects", studies = 10
 
           colMeans(d)
         })
-  
+
         do.call("rbind", o)
       }
-      
+
       n <- rep(n, length(object))
       res <- replicate(studies, sampfun())
-      
+
       groups <- rep(names(object), dim(res)[2])
       M <- rep(colnames(res[,, 1]), each = dim(res)[1])
-      
+
       qu <- getCIquantiles(alpha)
       qu <- as.data.frame(t(as.data.frame(apply(res, 1:2, quantile, qu))))
       names(qu) <- paste0("Q", names(qu))
-      
+
       m <- c(apply(res, 1:2, mean))
 
       res <- data.frame(M = M, groups = groups, Mean = m, qu,
@@ -443,9 +444,9 @@ summary.margarita.sim.prob <- function(object, method = "subjects", studies = 10
     } else {
       stop("method should be either 'subjects' or 'studies'")
     }
-    
+
     oldClass(res) <- "summary.margarita.sim.prob"
-    
+
     res
 }
 
@@ -482,7 +483,7 @@ print.summary.margarita.sim.prob <- function(x, ...){
         cat("\n")
     }
   } else {
-    
+
   }
     invisible()
 }
