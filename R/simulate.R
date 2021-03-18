@@ -94,7 +94,11 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #'        to produce. If \code{nsim=1}, the default, a vector of simulated responses is returned.
 #'        Otherwise, a matrix with \code{nsim} columns, each being a simualted response vector..
 #' @param seed Used to set the seed for the random number generator. Defaults to \code{seed=NULL}.
-#' @param type What type of prediction is required: either 'rl', 'prob' or 'simple'.
+#' @param type What type of prediction is required: 'rl' for return levels averaged
+#'        over baseline; 'prob' for threshold exceedance probabilities averaged
+#'        over baseline; 'baserl' for return levels across the observed range of
+#'        baselines; 'baseprob' for exceedance probabilities over the observed
+#'        range of baselines; or 'simple' for simulated values.
 #'        Defaults to \code{type = "rl"}. If \code{type='simple'} is used, the result
 #'        is a vector or matrix of simulated response variables. Otherwise, objects of
 #'        class 'simulate.margarita.rl' or 'simulate.margarita.prob' which have \code{summary}
@@ -102,7 +106,8 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' @param M The return level to be predicted. Defaults to \code{M=1000}. If
 #'        \code{type="prob"}, M should be a vector containing the thresholds
 #'        whose probabilities of exceedance the user is interested in, on the
-#'        scale of the raw data.
+#'        scale of the raw data (typically, something like
+#'        \code{M = c(1, 3, 5, 20) * ULN}..
 #' @param scale The type of prediction being made. Valid values are 'raw',
 #'        'proportional' and 'difference'. Due to how the calculations are
 #'        performed, \code{scale} needs to be specified in the call to
@@ -145,16 +150,23 @@ simulate.margarita <- function(object, nsim=1, seed=NULL,
                       simulate.margarita.rl(object, nsim=nsim, seed=seed, M=M, ...),
                   "prob" =, "probability"=, "excess probability" =
                       simulate.margarita.prob(object, nsim=nsim, seed=seed, M=M, scale=scale, Mlabels=Mlabels, ...),
+                  "baserl" = simulate.margarita.baseline.rl(object, nsim = nsim, seed = seed, M = M, ...),
+                  "baseprob" = simulate.margarita.baseline.prob(object, M, nsim = nsim, seed = seed, ...),
                   "simple"= simulate.margarita.simple(object, nsim=nsim, seed=seed, ...)
                   )
     attr(res, "baseline") <- object$rawBaseline
     attr(res, "trans") <- object$trans
     attr(res, "invtrans") <- object$invtrans
 
-    if (type %in% c("rl", "return", "return level"))
+    if (type %in% c("rl", "return", "return level")){
       oldClass(res) <- "margarita.sim.rl"
-    else if (type %in% c("prob", "probability", "excess probability"))
+    } else if (type %in% c("prob", "probability", "excess probability")){
       oldClass(res) <- "margarita.sim.prob"
+    } else if (type %in% "baserl"){
+      oldClass(res) <- "margarita.sim.baseline.rl"
+    } else if (type == "baseprob"){
+      oldClass(res) <- "margarita.sim.baseline.prob"
+    }
     # otherwise it's just a data.frame
 
     res
@@ -180,8 +192,8 @@ simulate.margarita.rl <- function(object, nsim=1, seed=NULL, M=NULL, ...){
     fullres
 }
 
-simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="raw",
-                                    Mlabels=NULL, ...){
+simulate.margarita.prob <- function(object, nsim = 1, seed = NULL, M = NULL,
+                                    scale = "raw", Mlabels=NULL, ...){
     object <- unclass(object)
     scale <- margaritaScale(scale)
 
@@ -202,12 +214,14 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     # Each entry is a matrix containing the parameters in the first two columns.
 
     # Get thresholds, put them in u
-    u <- lapply(res, function(x, u){ x$fitted + u }, u=object[[2]]$map$threshold)
+    u <- lapply(res, function(x, u){
+      x$fitted + u
+      }, u = object[[2]]$map$threshold)
 
     # Get matrix of M. Do it this way so that we can treat M as a multiple of baseline
     m <- margarita.rp.matrix(M, scale=scale, trans=object$trans,
                              d=res, baseline=object$rawBaseline)
-
+    
     r <- resid(object[[1]])
 
     out <- lapply(1:nn, margarita.getProbs, u = u, par=par, m=m,
@@ -230,10 +244,6 @@ simulate.margarita.prob <- function(object, nsim=1, seed=NULL, M=NULL, scale="ra
     if (is.null(Mlabels)) Mlabels <- paste("RL =", format(M))
 
     out <- lapply(out, function(x, m){ colnames(x) <- m; x }, m=Mlabels)
-
-    # We now have a simulated population of patients' individual probabilities.
-    # Later we'll want to make inferences about expected proportions, and will
-    # need to account for the original sample size
 
     out$n <- object$n
     out$scale <- scale
@@ -259,8 +269,8 @@ simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
   r <- rep(resid(object[[1]]), nsim)
   # Replace threshold breaches with simulated values
   r[r > th] <- ru
-  r[r <= th] <- sample(r[r <= th], size=nsim * (length(r) - length(ru)/nsim), replace=TRUE)
-
+  r[r <= th] <- sample(r[r <= th], size = length(r[r <= th]), replace = TRUE)
+  
   res <- rep(fitted(object[[1]]), nsim) + r
   # Transform to original scale and drop attributes by coercing to vector
   res <- as.vector(object$invtrans(res))
@@ -302,7 +312,8 @@ function(x, ...){
 
 #' @method summary margarita.sim.rl
 #' @export
-summary.margarita.sim.rl <- function(object, alpha=c(.1, .5), scale="raw", ...){
+summary.margarita.sim.rl <- function(object, scale="raw", ...){
+    alpha <- object$alpha
     baseline <- attr(object, "baseline")
     invtrans <- attr(object, "invtrans")
     scale <- margaritaScale(scale)
@@ -383,7 +394,8 @@ as.data.frame.margarita.sim.prob <- function(x, row.names = NULL, optional = FAL
 
 #' @method summary margarita.sim.prob
 #' @export
-summary.margarita.sim.prob <- function(object, method = "subjects", studies = 1000, alpha=c(.1, .5), ...){
+summary.margarita.sim.prob <- function(object, method = "subjects", studies = 1000, ...){
+    alpha <- object$alpha
     n <- object$n
     scale <- object$scale
     object$scale <- object$n <- NULL
@@ -404,6 +416,7 @@ summary.margarita.sim.prob <- function(object, method = "subjects", studies = 10
       warning("method 'studies' is highly experimental. Check results against simple summaries of observed ULN breaches")
       sampfun <- function(){
         o <- lapply(1:length(object), function(X){
+
           d <- object[[X]][sample(1:nrow(object[[X]]), size = n[X]), , drop = FALSE]
 
           colMeans(d)
@@ -412,6 +425,7 @@ summary.margarita.sim.prob <- function(object, method = "subjects", studies = 10
         do.call("rbind", o)
       }
       
+      n <- rep(n, length(object))
       res <- replicate(studies, sampfun())
       
       groups <- rep(names(object), dim(res)[2])

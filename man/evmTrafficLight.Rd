@@ -5,11 +5,23 @@
 \title{Plot predicted return levels of a safety lab variable with some guidance as to
 whether it seems safe, potentially suspect, or dangerous}
 \usage{
-evmTrafficLight(data = NULL, ptcol = "blue", loref = 1/1000,
-  hiref = 1/200, refcol = c("green", "orange", "red"),
-  linecol = c("blue", "blue"), ptsize = 4, linesize = c(0.5, 1.5),
-  scales = "free", ncol = NULL, xlab = "P( > RL)", ylab = "", M,
-  main = NULL, ...)
+evmTrafficLight(
+  data = NULL,
+  ptcol = "blue",
+  loref = 1/1000,
+  hiref = 1/200,
+  refcol = c("green", "orange", "red"),
+  linecol = c("blue", "blue"),
+  ptsize = 4,
+  linesize = c(0.5, 1.5),
+  scales = "free",
+  ncol = NULL,
+  xlab = "P( > RL)",
+  ylab = "",
+  M,
+  main = NULL,
+  ...
+)
 }
 \arguments{
 \item{data}{An object created by \code{summary.simulate.margarita.prob}}

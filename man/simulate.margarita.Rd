@@ -5,11 +5,37 @@
 \alias{simulate.margarita.rl}
 \alias{simulate.margarita.prob}
 \alias{simulate.margarita.simple}
+\alias{as.data.frame.margarita.sim.rl}
+\alias{print.margarita.sim.rl}
+\alias{head.margarita.sim.rl}
+\alias{as.data.frame.margarita.sim.prob}
+\alias{print.margarita.sim.prob}
+\alias{head.margarita.sim.prob}
+\alias{summary.margarita.sim.rl}
+\alias{summary.margarita.sim.prob}
+\alias{ggplot.summary.margarita.sim.rl}
+\alias{ggplot.summary.margarita.sim.prob}
+\alias{as.data.frame.summary.margarita.sim.rl}
+\alias{print.summary.margarita.sim.rl}
+\alias{as.data.frame.summary.margarita.sim.prob}
+\alias{print.summary.margarita.sim.prob}
+\alias{"/.summary.margarita.sim.rl"}
+\alias{"*.summary.margarita.sim.rl"}
+\alias{"-.summary.margarita.sim.rl"}
+\alias{"+.summary.margarita.sim.rl"}
 \title{Simulate return levels, probabilities of threshold exceedences or response vectors
 from a robust linear model and an extreme value model}
 \usage{
-\method{simulate}{margarita}(object, nsim = 1, seed = NULL,
-  type = "rl", M = NULL, scale = "raw", Mlabels = NULL, ...)
+\method{simulate}{margarita}(
+  object,
+  nsim = 1,
+  seed = NULL,
+  type = "rl",
+  M = NULL,
+  scale = "raw",
+  Mlabels = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{An object of class 'margarita'}
@@ -20,7 +46,11 @@ Otherwise, a matrix with \code{nsim} columns, each being a simualted response ve
 
 \item{seed}{Used to set the seed for the random number generator. Defaults to \code{seed=NULL}.}
 
-\item{type}{What type of prediction is required: either 'rl', 'prob' or 'simple'.
+\item{type}{What type of prediction is required: 'rl' for return levels averaged
+over baseline; 'prob' for threshold exceedance probabilities averaged
+over baseline; 'baserl' for return levels across the observed range of
+baselines; 'baseprob' for exceedance probabilities over the observed
+range of baselines; or 'simple' for simulated values.
 Defaults to \code{type = "rl"}. If \code{type='simple'} is used, the result
 is a vector or matrix of simulated response variables. Otherwise, objects of
 class 'simulate.margarita.rl' or 'simulate.margarita.prob' which have \code{summary}
@@ -29,7 +59,8 @@ functions available..}
 \item{M}{The return level to be predicted. Defaults to \code{M=1000}. If
 \code{type="prob"}, M should be a vector containing the thresholds
 whose probabilities of exceedance the user is interested in, on the
-scale of the raw data.}
+scale of the raw data (typically, something like
+\code{M = c(1, 3, 5, 20) * ULN}..}
 
 \item{scale}{The type of prediction being made. Valid values are 'raw',
 'proportional' and 'difference'. Due to how the calculations are

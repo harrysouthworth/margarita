@@ -4,8 +4,17 @@
 \alias{margarita}
 \title{Create an object of class 'margarita'}
 \usage{
-margarita(rlm, evmSim, newdata = NULL, trans = log, invtrans = exp,
-  baseline = "alt.b", arm = "arm", minima = FALSE)
+margarita(
+  rlm,
+  evmSim,
+  newdata = NULL,
+  trans = log,
+  invtrans = exp,
+  alpha = c(0.1, 0.5),
+  baseline = "alt.b",
+  arm = "arm",
+  minima = FALSE
+)
 }
 \arguments{
 \item{rlm}{An object of class 'rlm' returned by \code{lmr}.}
@@ -23,10 +32,15 @@ in the robust regression. Defaults to \code{trans=log}. Use
 
 \item{invtrans}{A function, the inverse of \code{trans}.}
 
+\item{alpha}{Used to specify coverage of interval estimates. Defaults to
+\code{alpha = c(1, .5)}.}
+
 \item{baseline}{Character string giving the name of the baseline variable.}
 
 \item{arm}{Character string giving the name of the treatment group variable.
-Defaults to \code{arm = "arm"}.}
+Defaults to \code{arm = "arm"}. If there is no treatment factor,
+presumably there is a continuous exposure variable and the sample
+size is the number of rows in the data.}
 
 \item{minima}{Are the extremes minima rather than maxima (i.e. the response
 was multiplied by -1 prior to all modelling). Defaults to

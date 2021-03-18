@@ -4,8 +4,14 @@
 \alias{AICtable}
 \title{Take a list of evmOpt objects and return an xtable}
 \usage{
-AICtable(x, kable = FALSE, digits = 3, label = "tab:aic",
-  caption = "Comparison of various generalized Pareto models in terms of number of coefficients, log-likelihood, AIC and change in deviance from the null model.")
+AICtable(
+  x,
+  kable = FALSE,
+  digits = 3,
+  label = "tab:aic",
+ 
+    caption = "Comparison of various generalized Pareto models in terms of number of coefficients, log-likelihood, AIC and change in deviance from the null model."
+)
 }
 \arguments{
 \item{x}{A list, each element of which is an object of class "evm". It is

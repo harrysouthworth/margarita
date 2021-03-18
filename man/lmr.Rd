@@ -4,8 +4,17 @@
 \alias{lmr}
 \title{Robust regression using MM-estimation}
 \usage{
-lmr(formula, data, weights, psi = NULL, method = "MM", c = 3.443689,
-  engine = "rlm", maxit = 40, ...)
+lmr(
+  formula,
+  data,
+  weights,
+  psi = NULL,
+  method = "MM",
+  c = 3.443689,
+  engine = "rlm",
+  maxit = 40,
+  ...
+)
 }
 \arguments{
 \item{formula}{A formula describing a linear model.}

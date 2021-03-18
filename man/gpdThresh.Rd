@@ -8,8 +8,15 @@
 \alias{ggplot.gpdRangeFit}
 \title{Produce plots to aid threshold selection for GPD models}
 \usage{
-gpdThresh(x, umin = quantile(x, 0.05), umax = quantile(x, 0.95),
-  nint = 25, which = 1:2, priorParameters = NULL, cov = "observed")
+gpdThresh(
+  x,
+  umin = quantile(x, 0.05),
+  umax = quantile(x, 0.95),
+  nint = 25,
+  which = 1:2,
+  priorParameters = NULL,
+  cov = "observed"
+)
 }
 \arguments{
 \item{x}{A numeric vector.}

@@ -5,8 +5,14 @@
 \title{Simulate expected responses from a robust linear model, accounting for
 uncertainty in the parameter estimates.}
 \usage{
-simLinear(lmod, gmod, newdata = NULL, baseline = "log(alt.b)",
-  rawBaseline = "alt.b", invtrans = exp)
+simLinear(
+  lmod,
+  gmod,
+  newdata = NULL,
+  baseline = "log(alt.b)",
+  rawBaseline = "alt.b",
+  invtrans = exp
+)
 }
 \arguments{
 \item{lmod}{An object returned by \code{lmr}.}

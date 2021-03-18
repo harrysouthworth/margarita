@@ -4,9 +4,20 @@
 \alias{boxplot.lmr}
 \title{Boxplots of scaled residuals, by a factor in the model.}
 \usage{
-\method{boxplot}{lmr}(x, by, jitter.width = 0.1, box = TRUE,
-  xlab = "", ylab = "Scaled residuals", main = "", size = 3,
-  ptcol = "orange", boxcol = "blue", boxfill = "light blue", ...)
+\method{boxplot}{lmr}(
+  x,
+  by,
+  jitter.width = 0.1,
+  box = TRUE,
+  xlab = "",
+  ylab = "Scaled residuals",
+  main = "",
+  size = 3,
+  ptcol = "orange",
+  boxcol = "blue",
+  boxfill = "light blue",
+  ...
+)
 }
 \arguments{
 \item{x}{An object of class 'rlm'.}

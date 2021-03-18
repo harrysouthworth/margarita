@@ -65,7 +65,6 @@ margarita.rp <- function(X, xm, u, par, p, r, family, th) {
     res[wh] <- p + (1 - p) * res[wh]
   }
 
-
   res
 }
 

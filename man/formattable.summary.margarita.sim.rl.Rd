@@ -5,8 +5,7 @@
 \alias{formattable.summary.margarita.sim.prob}
 \title{Create an HTML table for outputing via Rmd.}
 \usage{
-\method{formattable}{summary.margarita.sim.rl}(data, digits = 2,
-  backgroundColor = NULL, debug = FALSE)
+\method{formattable}{summary.margarita.sim.rl}(data, digits = 2, backgroundColor = NULL, debug = FALSE)
 }
 \arguments{
 \item{data}{The output of \code{summary.margarita.sim.rl}.}

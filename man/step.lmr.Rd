@@ -5,8 +5,17 @@
 \alias{drop1.lmr}
 \title{Stepwise model selection for a robust linear model}
 \usage{
-step.lmr(object, scope, target = "RFPE", direction = "backward",
-  trace = TRUE, steps = 1000, k = 2, cores = NULL, ...)
+step.lmr(
+  object,
+  scope,
+  target = "RFPE",
+  direction = "backward",
+  trace = TRUE,
+  steps = 1000,
+  k = 2,
+  cores = NULL,
+  ...
+)
 }
 \arguments{
 \item{object}{An object fit by \code{lmr}.}

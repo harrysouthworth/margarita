@@ -13,9 +13,13 @@ NULL
 #'        in the robust regression. Defaults to \code{trans=log}. Use
 #'        \code{trans=I} if no transformation was made.
 #' @param invtrans A function, the inverse of \code{trans}.
+#' @param alpha Used to specify coverage of interval estimates. Defaults to
+#'   \code{alpha = c(1, .5)}.
 #' @param baseline Character string giving the name of the baseline variable.
 #' @param arm Character string giving the name of the treatment group variable.
-#'        Defaults to \code{arm = "arm"}.
+#'        Defaults to \code{arm = "arm"}. If there is no treatment factor,
+#'        presumably there is a continuous exposure variable and the sample
+#'        size is the number of rows in the data.
 #' @param minima Are the extremes minima rather than maxima (i.e. the response
 #'        was multiplied by -1 prior to all modelling). Defaults to
 #'        \code{minima=FALSE}. Note that if you specify \code{minima=TRUE} the
@@ -28,6 +32,7 @@ NULL
 #' @export margarita
 margarita <- function(rlm, evmSim, newdata=NULL,
                       trans=log, invtrans=exp,
+                      alpha = c(.1, .5),
                       baseline="alt.b", arm="arm", minima=FALSE){
   if (minima){
     stop("If working with minima, multiply the response and baseline by -1 at the very start. Then call this function specifying -M, not M")
@@ -93,13 +98,20 @@ margarita <- function(rlm, evmSim, newdata=NULL,
 
   # Get sample sizes so that we can later adjust the distribution of the expected
   # proportions exceeding thresholds
-  n <- table(rlm$data$arm)
+  if (!(arm %in% names(rlm$data))){
+    stop("arm not in rlm$data")
+  } else if (inherits(rlm$data[, arm], c("factor", "character"))){
+    n <- table(rlm$data$arm)
+  } else {
+    n <- nrow(rlm$data)
+  }
 
   # Construct output object and return
   res <- list(rlm, evmSim, newdata=newdata,
               baseline=baseline, rawBaseline=rawBaseline,
               arm=arm, n=n,
               trans=trans, invtrans=invtrans,
+              alpha = alpha,
               minima=minima)
   oldClass(res) <- "margarita"
   res
