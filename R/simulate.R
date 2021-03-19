@@ -125,7 +125,10 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' @param alpha In the corresponding \code{summary} methods, the levels of alpha
 #'   for posterior interval estimates. Defaults to \code{alpha=c(0.1, 0.5)}
 #'   resulting in 90\% and 50\% interval estimates.
-#' @param ... Other agruments passed to \code{simulate}. Currently unused.
+#' @param ... Other arguments passed to \code{simulate}. \code{simulate.margarita.baseline.prob}
+#'   accepts arguments \code{grid.n} for the number of points across the range
+#'   of baseline values (defaulting to 25) and \code{baseline.range} for the
+#'   range to be simulated over (defaulting to the observed range).
 #' @details If \code{type="prob"}, the function computes simulated probabilities of
 #'   breaching thresholds \code{M}. These are posterior probabilities, not expected
 #'   proportions. The shape of the distribution will often have a mode at 0. If
@@ -136,8 +139,8 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' @keywords datagen
 #' @method simulate margarita
 #' @export
-simulate.margarita <- function(object, nsim=1, seed=NULL,
-                               type="rl", M=NULL, scale="raw", Mlabels=NULL, ...){
+simulate.margarita <- function(object, nsim = 1, seed = NULL, type = "rl", M = NULL,
+                               scale = "raw", Mlabels = NULL, ...){
     if (missing(M) & type != "simple")
         stop("You must provide a value for M")
 
@@ -151,7 +154,7 @@ simulate.margarita <- function(object, nsim=1, seed=NULL,
                   "prob" =, "probability"=, "excess probability" =
                       simulate.margarita.prob(object, nsim=nsim, seed=seed, M=M, scale=scale, Mlabels=Mlabels, ...),
                   "baserl" = simulate.margarita.baseline.rl(object, nsim = nsim, seed = seed, M = M, ...),
-                  "baseprob" = simulate.margarita.baseline.prob(object, M, nsim = nsim, seed = seed, ...),
+                  "baseprob" = simulate.margarita.baseline.prob(object, M, nsim = nsim, seed = seed, Mlabels = Mlabels, ...),
                   "simple"= simulate.margarita.simple(object, nsim=nsim, seed=seed, ...)
                   )
     attr(res, "baseline") <- object$rawBaseline
