@@ -78,7 +78,10 @@ assumed.}
 \item{Mlabels}{Labels to be used in the output. Defaults to \code{Mlabels=NULL}
 in which case the function guesses at meaningful labels.}
 
-\item{...}{Other agruments passed to \code{simulate}. Currently unused.}
+\item{...}{Other arguments passed to \code{simulate}. \code{simulate.margarita.baseline.prob}
+accepts arguments \code{grid.n} for the number of points across the range
+of baseline values (defaulting to 25) and \code{baseline.range} for the
+range to be simulated over (defaulting to the observed range).}
 
 \item{alpha}{In the corresponding \code{summary} methods, the levels of alpha
 for posterior interval estimates. Defaults to \code{alpha=c(0.1, 0.5)}

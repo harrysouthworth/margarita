@@ -39,7 +39,8 @@ getLMrange <- function(object, n, range = NULL){
 #' @param grid.n An integer giving the number of poitns over the range of baseline
 #'   values. Defaults to \code{grid.n = 25}.
 #' @param baseline String identifying the baseline variable.
-simulate.margarita.baseline.rl <- function(object, M, nsim = 1, seed = NULL, grid.n = 25, ...){
+simulate.margarita.baseline.rl <- function(object, M, nsim = 1, seed = NULL,
+                                           baseline.range = NULL, grid.n = 25, ...){
 
   ## Get contents of (), if they exist
   ##if (substring(wh, nchar(wh)) == ")"){
@@ -53,30 +54,32 @@ simulate.margarita.baseline.rl <- function(object, M, nsim = 1, seed = NULL, gri
   trans <- object$trans
   itrans <- object$invtrans
 
-  out <- getLMrange(object, n = grid.n)
+  out <- getLMrange(object, n = grid.n, range = baseline.range)
+  out <- out[order(out[, baseline]), ]
 
-  p <- predict(evmSim, M = M, ci.fit = TRUE, alpha = alpha)$obj
-  nms <- gsub("%", "", paste0("Q", colnames(p[[1]])))
-
-  p <- unlist(p) %>%
-    matrix(nrow = length(M), byrow = TRUE) %>%
+  p <- predict(evmSim, M = M, ci.fit = TRUE, alpha = alpha, newdata = object$newdata)$obj
+  
+  p <- do.call("rbind", p) %>% 
     as.data.frame() %>%
-    setNames(c("Mean", nms[-1])) %>%
-    mutate(M = M)
+    mutate(M = rep(M, each = nrow(object$newdata)))
 
   res <- list()
   for (m in M){
-    om <- apply(p[p$M == m, !(names(p) == "M")], 2, function(X) itrans(X + out$expected)) %>%
+    om <- apply(p[p$M == m, !(names(p) %in% c(colnames(object$newdata), "M"))], 2,
+                function(X) itrans(X + out$expected)) %>%
       as.data.frame() %>%
       bind_cols(out) %>%
-      mutate(M = paste0(m, "-subject return level"),
-             tooltip = paste("Baseline:", round(baseline), "\nReturn level:", round(Q50)))
+      mutate(M = paste0(m, "-subject return level"))
 
     res[[paste("M =", m)]] <- om
   }
 
-  bind_rows(res) %>%
+  res <- bind_rows(res) %>%
     mutate(M = factor(M, levels = unique(M)))
+  names(res) <- ifelse(substring(names(res), nchar(names(res))) == "%",
+                       paste0("Q", substring(names(res), 1, nchar(names(res)) - 1)),
+                       names(res))
+  res
 }
 
 simulate.margarita.baseline.prob <- function(object, nsim = 1, seed = NULL, M,
@@ -91,7 +94,6 @@ simulate.margarita.baseline.prob <- function(object, nsim = 1, seed = NULL, M,
   newdata <- object$newdata
 
   if (is.null(Mlabels)){
-    ##Mlabels <- paste0(M / min(M), "xULN")
     Mlabels <- M
   }
 
@@ -105,17 +107,15 @@ simulate.margarita.baseline.prob <- function(object, nsim = 1, seed = NULL, M,
   rate <- evmSim$map$rate
   u <- d$expected + evmSim$map$threshold
 
-  ##m <- matrix(rep(thresholds, nrow(d)), ncol = length(thresholds), byrow = TRUE)
-  ##m <- thresholds
   r <- resid(rlm)
   
   out <- list()
   
-  for (i in 1:grid.n){
+  for (i in 1:grid.n){ ## Loop over baseline grid
     out[[i]] <- list()
-    for (j in 1:length(m)){
+    for (j in 1:length(m)){ ## Loop over thresholds of interest
       out[[i]][[j]] <- list()
-      for (k in 1:length(par)){
+      for (k in 1:length(par)){ ## Loop over groups (usually arms)
         
         ui <- u[i]
         mj <- m[j]
@@ -159,6 +159,11 @@ as.data.frame.margarita.sim.baseline.prob <- function(x, row.names = NULL, optio
   as.data.frame(unclass(x))
 }
 
+#' @method as.data.frame margarita.sim.baseline.rl
+#' @export
+as.data.frame.margarita.sim.baseline.rl <- function(x, row.names = NULL, optional = FALSE, ...){
+  as.data.frame(unclass(x))
+}
 
 # The function below is ripped off from margarita:::margarita.getProbs and
 # margarita:::rp because those functions require par to be a list, expects
