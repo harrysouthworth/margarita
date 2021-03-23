@@ -34,6 +34,10 @@ getLMrange <- function(object, n, range = NULL){
 #' Get return levels over observed range of baseline values
 #'
 #' @param object An object of class 'margarita'.
+#' @param M A vector of return levels of interest.
+#' @param nsim,seed,... Not used.
+#' @param grid.n An integer giving the number of poitns over the range of baseline
+#'   values. Defaults to \code{grid.n = 25}.
 #' @param baseline String identifying the baseline variable.
 simulate.margarita.baseline.rl <- function(object, M, nsim = 1, seed = NULL, grid.n = 25, ...){
 
@@ -48,7 +52,6 @@ simulate.margarita.baseline.rl <- function(object, M, nsim = 1, seed = NULL, gri
   evmSim <- object[[2]]
   trans <- object$trans
   itrans <- object$invtrans
-
 
   out <- getLMrange(object, n = grid.n)
 
@@ -88,12 +91,13 @@ simulate.margarita.baseline.prob <- function(object, nsim = 1, seed = NULL, M,
   newdata <- object$newdata
 
   if (is.null(Mlabels)){
-    Mlabels <- paste0(M / min(M), "xULN")
+    ##Mlabels <- paste0(M / min(M), "xULN")
+    Mlabels <- M
   }
 
   summary_alpha <- sort(c(summary_alpha / 2, .5, 1 - summary_alpha / 2))
   family <- evmSim$map$family
-  thresholds <- trans(M)
+  m <- trans(M)
 
   d <- getLMrange(object, n = grid.n, range = baseline.range)
   par <- predict(evmSim, newdata = d, type = "lp", all = TRUE)$obj$link
@@ -102,28 +106,49 @@ simulate.margarita.baseline.prob <- function(object, nsim = 1, seed = NULL, M,
   u <- d$expected + evmSim$map$threshold
 
   ##m <- matrix(rep(thresholds, nrow(d)), ncol = length(thresholds), byrow = TRUE)
-  m <- thresholds
+  ##m <- thresholds
   r <- resid(rlm)
   
-  out <- lapply(1:grid.n, simBaseline_getProbs,
-                u = u, par = par,
-                m = m, r = r, p = rate, family = evmSim$map$family,
-                th = evmSim$map$threshold)
-
-  out <- lapply(out, function(X){
-    o <- lapply(X, function(Z){
-      Z <- as.data.frame(apply(Z, 2, simBaseline_sumfun, probs = summary_alpha))
-      names(Z) <- Mlabels
-      Z <- as.data.frame(t(Z))
-      Z$level <- rownames(Z)
-      Z
-    }) %>% bind_rows() %>% 
-      mutate(..group.. = rep(newdata[, 1], each = n() / nrow(newdata)))
-  }) %>% bind_rows() %>% 
-    mutate(baseline = rep(unique(d[, baseline]), each = length(m) * nrow(newdata)))
+  out <- list()
   
+  for (i in 1:grid.n){
+    out[[i]] <- list()
+    for (j in 1:length(m)){
+      out[[i]][[j]] <- list()
+      for (k in 1:length(par)){
+        
+        ui <- u[i]
+        mj <- m[j]
+        park <- par[[k]]
+        
+        if (mj > ui){
+          o <- rate * (1 - family$prob(mj, park, list(threshold = ui)))
+        } else {
+          rr <- r[r <= quantile(r, 1 - rate)]
+          o <- mean(rr + ui > mj)
+        }
+
+        o <- simBaseline_sumfun(o, probs = summary_alpha)
+        
+        out[[i]][[j]][[k]] <- o
+      } ## Close k
+
+      out[[i]][[j]] <- as.data.frame(do.call("rbind", out[[i]][[j]]))
+      out[[i]][[j]]$..group.. <- newdata[, 1]
+    }
+    
+    out[[i]] <- bind_rows(out[[i]]) %>% 
+      mutate(threshold = rep(Mlabels, each = nrow(newdata)))
+  }
+  
+  out <- bind_rows(out) %>% 
+    mutate(baseline = rep(d[1:grid.n, object$rawBaseline], each = nrow(newdata) * length(m)),
+           ..group.. = factor(..group.., levels = newdata[, 1]),
+           threshold = factor(threshold, levels = Mlabels))
+    
   names(out)[names(out) == "..group.."] <- object$arm
-  rownames(out) <- 1:nrow(out)
+  names(out)[names(out) == "baseline"] <- object$rawBaseline
+  ##rownames(out) <- 1:nrow(out)
 
   invisible(out)
 }
@@ -135,7 +160,7 @@ as.data.frame.margarita.sim.baseline.prob <- function(x, row.names = NULL, optio
 }
 
 
-# The functions below is ripped off from margarita:::margarita.getProbs and
+# The function below is ripped off from margarita:::margarita.getProbs and
 # margarita:::rp because those functions require par to be a list, expects
 # multiple treatment groups and we need to be able to debug
 simBaseline_getProbs <- function (X, par, u, p, r, m, family, th){
