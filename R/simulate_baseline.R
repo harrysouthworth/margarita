@@ -79,6 +79,7 @@ simulate.margarita.baseline.rl <- function(object, M, nsim = 1, seed = NULL,
   names(res) <- ifelse(substring(names(res), nchar(names(res))) == "%",
                        paste0("Q", substring(names(res), 1, nchar(names(res)) - 1)),
                        names(res))
+  res[, colnames(object$newdata)] <- factor(res[, colnames(object$newdata)], levels = object$newdata[, 1])
   res
 }
 
@@ -125,7 +126,8 @@ simulate.margarita.baseline.prob <- function(object, nsim = 1, seed = NULL, M,
           o <- rate * (1 - family$prob(mj, park, list(threshold = ui)))
         } else {
           rr <- r[r <= quantile(r, 1 - rate)]
-          o <- mean(rr + ui > mj)
+          ## P(above regression line) = rate
+          o <- rate + (1 - rate) * mean(rr + ui > mj)
         }
 
         o <- simBaseline_sumfun(o, probs = summary_alpha)

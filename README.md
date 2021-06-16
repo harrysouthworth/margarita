@@ -10,3 +10,7 @@ margarita also provides ggplot2 replacement functions for some of the plot
 functions in texmex.
 
 The development of margarita is partially funded by AstraZeneca.
+
+**2021-06-15**
+Removing lmr and associated functions. Only boxplot.lmr remains. The reason
+is that lmr now has its own package.
