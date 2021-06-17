@@ -38,7 +38,7 @@ margarita <- function(rlm, evmSim, newdata=NULL,
     stop("If working with minima, multiply the response and baseline by -1 at the very start. Then call this function specifying -M, not M")
   }
 
-  if (! "rlm" %in% class(rlm)){ # class is likely c("lmr", "rlm")
+  if (!inherits(rlm, c("rlm", "lmrob"))){ # class is likely c("lmr", "rlm")
     stop("object should have class 'rlm'")
   }
   else if (is.null(rlm$cov)){
