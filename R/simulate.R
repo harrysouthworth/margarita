@@ -275,6 +275,11 @@ simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
   r[r > th] <- ru
   r[r <= th] <- sample(r[r <= th], size = length(r[r <= th]), replace = TRUE)
 
+  # This leaves us with those observations with residuals being below the
+  # threshold having 0 probability of ever having one above the threshol.
+  # So permute them
+  r <- sample(r)
+
   res <- rep(fitted(object[[1]]), nsim) + r
   # Transform to original scale and drop attributes by coercing to vector
   res <- as.vector(object$invtrans(res))
