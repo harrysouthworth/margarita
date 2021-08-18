@@ -128,7 +128,10 @@ simLinear <- function(lmod, gmod, newdata=NULL,
 #' @param ... Other arguments passed to \code{simulate}. \code{simulate.margarita.baseline.prob}
 #'   accepts arguments \code{grid.n} for the number of points across the range
 #'   of baseline values (defaulting to 25) and \code{baseline.range} for the
-#'   range to be simulated over (defaulting to the observed range).
+#'   range to be simulated over (defaulting to the observed range). If
+#'   \code{method = "simple"}, argument \code{type} is allowed and can be
+#'   "random" (the default -- uses random draws from the posterior distributions
+#'   of the parameters), "map" (uses the MAP estimates) or "posterior means".
 #' @details If \code{type="prob"}, the function computes simulated probabilities of
 #'   breaching thresholds \code{M}. These are posterior probabilities, not expected
 #'   proportions. The shape of the distribution will often have a mode at 0. If
@@ -258,7 +261,7 @@ simulate.margarita.prob <- function(object, nsim = 1, seed = NULL, M = NULL,
 # Simulate pairs of baselines and on-treatment values. Take baselines and any
 # other covariates as given and simulate the residuals, then combine the
 # residuals with the fitted values
-simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
+simulate.margarita.simple <- function(object, nsim=1, seed=NULL, type = "random", ...){
   if (class(object) != "margarita") stop("object should be of class margarita")
 
   if (!is.null(seed)) set.seed(seed)
@@ -267,24 +270,33 @@ simulate.margarita.simple <- function(object, nsim=1, seed=NULL, ...){
 
   # Rate of exceedance could be anything between 0 and 1, so simulate enough of each residual.
   # Simulate residuals above the gpd fitting threshold
-  ru <- c(simulate(object[[2]], nsim=nsim)) # A new vector of 'responses' above the threshold
+  if (type == "random"){
+    ru <- c(simulate(object[[2]], nsim=nsim)) # A new vector of 'responses' above the threshold
+  } else if (type == "map"){
+    ru <- c(simulate(object[[2]]$map, nsim = nsim))
+  } else if (type){
+    object[[2]]$map$coefficients <- coef(object[[2]])
+    ru <- c(simulate(object[[2]]$map, nsim = nsim))
+  } else {
+    stop("type should be 'random', 'map' or 'posterior means'")
+  }
 
   # Replicate residuals nsim times
   r <- rep(resid(object[[1]]), nsim)
   # Replace threshold breaches with simulated values
   r[r > th] <- ru
   r[r <= th] <- sample(r[r <= th], size = length(r[r <= th]), replace = TRUE)
-
   # This leaves us with those observations with residuals being below the
-  # threshold having 0 probability of ever having one above the threshol.
-  # So permute them
+  # threshold having 0 probability of ever having one above the threshold.
+  # So permute them.
   r <- sample(r)
 
   res <- rep(fitted(object[[1]]), nsim) + r
   # Transform to original scale and drop attributes by coercing to vector
   res <- as.vector(object$invtrans(res))
 
-  if (nsim > 1) res <- matrix(res, ncol=nsim)
+  if (nsim > 1) res <- matrix(res, ncol = nsim)
+
 
   invisible(res)
 }
