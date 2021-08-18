@@ -82,7 +82,7 @@ in which case the function guesses at meaningful labels.}
 accepts arguments \code{grid.n} for the number of points across the range
 of baseline values (defaulting to 25) and \code{baseline.range} for the
 range to be simulated over (defaulting to the observed range). If
-\code{method = "simple"}, argument \code{type} is allowed and can be
+\code{method = "simple"}, argument \code{method} is allowed and can be
 "random" (the default -- uses random draws from the posterior distributions
 of the parameters), "map" (uses the MAP estimates) or "posterior means".}
 
