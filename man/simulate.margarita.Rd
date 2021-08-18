@@ -81,7 +81,10 @@ in which case the function guesses at meaningful labels.}
 \item{...}{Other arguments passed to \code{simulate}. \code{simulate.margarita.baseline.prob}
 accepts arguments \code{grid.n} for the number of points across the range
 of baseline values (defaulting to 25) and \code{baseline.range} for the
-range to be simulated over (defaulting to the observed range).}
+range to be simulated over (defaulting to the observed range). If
+\code{method = "simple"}, argument \code{type} is allowed and can be
+"random" (the default -- uses random draws from the posterior distributions
+of the parameters), "map" (uses the MAP estimates) or "posterior means".}
 
 \item{alpha}{In the corresponding \code{summary} methods, the levels of alpha
 for posterior interval estimates. Defaults to \code{alpha=c(0.1, 0.5)}
